@@ -20,22 +20,42 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="54b1a552-c094-45f6-8d43-9ee6c01c061a" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Tianqi/经典游戏服务器端架构(全服全线模型).md" beforeDir="false" afterPath="$PROJECT_DIR$/doc/notes/Tianqi/经典游戏服务器端架构(全服全线模型).md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Tianqi/经典游戏服务器端架构(全服分线模型).md" beforeDir="false" afterPath="$PROJECT_DIR$/doc/notes/Tianqi/经典游戏服务器端架构(全服分线模型).md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Tianqi/经典游戏服务器端架构(分服模型).md" beforeDir="false" afterPath="$PROJECT_DIR$/doc/notes/Tianqi/经典游戏服务器端架构(分服模型).md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="GOROOT" path="/usr/local/Cellar/go/1.15.3/libexec" />
+  <component name="GOROOT" path="/usr/local/Cellar/go/1.15.4/libexec" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GitToolBoxStore">
     <option name="projectConfigVersion" value="2" />
+    <option name="recentBranches">
+      <RecentBranches>
+        <option name="branchesForRepo">
+          <list>
+            <RecentBranchesForRepo>
+              <option name="branches">
+                <list>
+                  <RecentBranch>
+                    <option name="branchName" value="dev" />
+                    <option name="lastUsedInstant" value="1604936356" />
+                  </RecentBranch>
+                  <RecentBranch>
+                    <option name="branchName" value="main" />
+                    <option name="lastUsedInstant" value="1604936355" />
+                  </RecentBranch>
+                </list>
+              </option>
+              <option name="repositoryRootUrl" value="file://$PROJECT_DIR$" />
+            </RecentBranchesForRepo>
+          </list>
+        </option>
+      </RecentBranches>
+    </option>
   </component>
   <component name="GoLibraries">
     <option name="indexEntireGoPath" value="false" />
@@ -87,11 +107,16 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VgoProject">
     <integration-enabled>true</integration-enabled>
   </component>
   <component name="WindowStateProjectService">
+    <state x="504" y="394" key="#GOROOT" timestamp="1604967456013">
+      <screen x="0" y="23" width="1440" height="877" />
+    </state>
+    <state x="504" y="394" key="#GOROOT/0.23.1440.877@0.23.1440.877" timestamp="1604967456013" />
     <state x="520" y="302" key="#Go_Modules" timestamp="1604935789806">
       <screen x="0" y="23" width="1440" height="877" />
     </state>
