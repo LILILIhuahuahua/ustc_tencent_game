@@ -1,3 +1,3 @@
-module github.com/ustc_tencent_game
+module github.com/LILILIhuahuahua/ustc_tencent_game
 
 go 1.15
