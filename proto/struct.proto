@@ -5,7 +5,7 @@ message SnakeMsg {
   required CoordinateXY snakePosition = 2; //蛇头的坐标
   optional float snakeSpeed = 3; //蛇的速度
   optional int32 snakeLength = 4; //蛇的长度
-  required int32 snakeDirection = 5; //蛇的行进方向
+  required CoordinateXY snakeDirection = 5; //蛇的行进方向
   required SNAKE_STATUS snakeStatus = 6; //蛇的状态
   repeated CoordinateXY snakeBodyPosition = 7[packed=true];
 }
