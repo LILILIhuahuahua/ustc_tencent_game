@@ -1,0 +1,45 @@
+import "msgenum.proto";
+import "struct.proto";
+
+message Notify {
+
+  optional AttrChangeNotify attrChange = 1; //蛇的属性变化通知
+  optional TimeNotify time = 2; //对局时间信息通知
+  optional EventNotify eventNotify = 3; //事件通知
+}
+
+message AttrChangeNotify {
+  required int32 attrType = 1; //同步信息的类型：例如蛇速度、行进方向发生改变  注：只有在关键动作或者经过一段时间间隔会发送同步信息
+  optional int32 ObjectId = 2; //对象的ID
+  required SnakeMsg snakeMsg = 3; //蛇的信息
+}
+
+message TimeNotify { //对局时间信息通知
+  optional int64 time = 1;
+}
+
+message EventNotify {
+  required int32 eventType = 1; //事件类型
+  optional EatFoodEvent eatFoodEvent = 2; //吃食物事件
+  optional InitFoodEvent initFoodEvent = 3; //生成食物事件
+  optional InitSnakeEvent initSnakeEvent = 4; //生成新蛇事件
+}
+
+message EatFoodEvent {
+  required CoordinateXY snakedPosition = 1; //蛇头的位置信息
+  required FoodMsg eatenFood = 2; //食物的信息
+}
+
+message InitSnakeEvent {
+  required SnakeMsg initSnakeMsg = 1; //新初始化的蛇的信息
+}
+
+message InitFoodEvent {
+  required FoodMsg foodMsg = 1; //食物的信息
+}
+
+message crashEvent {
+  required SnakeMsg crashSnake = 1; //要挂掉的那条蛇
+  required int32 type = 2; //碰撞类型，是撞墙了还是撞了其他玩家
+  optional SnakeMsg crashedSnake = 3; //被撞的蛇
+}
