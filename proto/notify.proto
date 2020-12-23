@@ -2,7 +2,6 @@ import "msgenum.proto";
 import "struct.proto";
 
 message Notify {
-
   optional AttrChangeNotify attrChange = 1; //蛇的属性变化通知
   optional TimeNotify time = 2; //对局时间信息通知
   optional EventNotify eventNotify = 3; //事件通知
