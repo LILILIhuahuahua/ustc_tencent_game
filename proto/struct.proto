@@ -16,6 +16,13 @@ message FoodMsg {
   required CoordinateXY foodPosition = 3; //食物的初始坐标
 }
 
+message MapMsg {
+  required float XMin = 1;
+  required float XMax = 2;
+  required float YMin = 3;
+  required float YMax = 4; //四个边界
+}
+
 message CoordinateXY { //坐标点
   required float coordinateX = 1; //横坐标
   required float coordinateY = 2; //纵坐标
