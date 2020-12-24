@@ -1,16 +1,12 @@
 
 message Request {
-  optional CrashRequest crashRequest = 1; //碰撞事件监测请求
-  optional EatFoodRequest eatFoodRequest = 2; //吃食物时间监测请求
+  optional EntityChangeRequest entityChangeRequest = 1; //实体改变请求，例如两条蛇相撞的时候、蛇吃道具的时候要发此类请求
 }
 
-message CrashRequest {
-  required int32 crashSnakeId = 1; //撞到物体的蛇的ID
-  required int32 crashType = 2; //碰撞类型
-  optional int32 crashedSnakedId = 3; //被撞的蛇的ID
-}
-
-message EatFoodRequest {
-  required int32 snakeId = 1; //吃食物的蛇的ID
-  required int32 foodId = 2; //食物的ID
+message EntityChangeRequest {
+  required int32 eventType = 1; // 事件类型 enum
+  required int32 playerId = 2; // 发送请求的实体Id
+  optional int32 linkedId = 3; // 交互对象
+  optional int32 linkedType = 4; //交互的对象类型
+  optional PlayerInfo playerInfo = 5; //玩家的信息
 }

@@ -1,16 +1,15 @@
 import "msgenum";
 
-message SnakeMsg {
-  required int32 snakeId = 1; //蛇的ID
-  required CoordinateXY snakePosition = 2; //蛇头的坐标
-  optional float snakeSpeed = 3; //蛇的速度
-  optional int32 snakeLength = 4; //蛇的长度
-  required CoordinateXY snakeDirection = 5; //蛇的行进方向
-  required SNAKE_STATUS snakeStatus = 6; //蛇的状态
-  repeated CoordinateXY snakeBodyPosition = 7[packed=true];
+message PlayerMsg {
+  required int32 playerId = 1; //玩家的ID
+  required CoordinateXY playerPosition = 2; //玩家的坐标
+  optional float playerSpeed = 3; //玩家的速度
+  optional int32 playerSize = 4; //玩家的大小
+  required CoordinateXY snakeDirection = 5; //玩家的行进方向
+  required SNAKE_STATUS snakeStatus = 6; //玩家的状态
 }
 
-message FoodMsg {
+message ItemMsg {
   required int32 foodId = 1; //食物Id
   required int32 foodType = 2; //食物类型
   required CoordinateXY foodPosition = 3; //食物的初始坐标

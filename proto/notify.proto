@@ -2,16 +2,25 @@ import "msgenum.proto";
 import "struct.proto";
 
 message Notify {
-  optional AttrChangeNotify attrChange = 1; //球的属性变化通知
-  optional TimeNotify time = 2; //对局时间信息通知
-  optional MapInfo mapInfo = 3;
-  optional FoodInfo gameInfo = 4; //食物信息
+  optional EntityInfoChangeNotify entityInfoChangeNotify = 1; //实体的属性变化通知
+  optional GameGlobalInfoNotify gameGlobalInfoNotify = 2; //玩家加入时对玩家进行同步的所有消息
+  optional TimeNotify time = 3; //对局时间信息通知
+  optional MapInfo mapInfo = 4;
 }
 
-message AttrChangeNotify {
-  required int32 attrType = 1; //同步信息的类型：例如球速度、行进方向发生改变  注：只有在关键动作或者经过一段时间间隔会发送同步信息
-  optional int32 ObjectId = 2; //对象的ID
-  required SnakeMsg snakeMsg = 3; //球的信息
+message EntityInfoChangeNotify {
+  required int32 entityType = 1; //实体的类型
+  required int32 entityId = 2; //实体的Id
+  optional PlayerMsg playerMsg = 3; //玩家的信息
+  optional ItemMsg itemMsg = 4; //物体的信息
+}
+
+message GameGlobalInfoNotify {
+  required int32 playerNumber = 1; //玩家数量
+  required int64 time = 2; //游戏对局中的时间(开始时间)
+  repeated PlayerMsg playerMsg = 3; //对局中玩家的信息
+  repeated ItemMsg ItemMsg = 4; //对局中道具的信息
+  required MapMsg mapMsg = 5; //地图信息
 }
 
 message TimeNotify { //对局时间信息通知
@@ -22,6 +31,3 @@ message MapInfo {
   required MapMsg mapMsg = 1; //地图信息
 }
 
-message FoodInfo {
-  repeated FoodMsg foodMsg = 1; //食物的信息
-}

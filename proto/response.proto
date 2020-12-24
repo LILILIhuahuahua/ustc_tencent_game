@@ -1,17 +1,9 @@
 
 message Response {
-  optional int32 result = 1; //返回结果
-  optional CrashResponse crashResponse = 2; //返回碰撞检测结果
-  optional EatFoodResponse eatFoodResponse = 3; //返回吃食物结果
+  required int32 result = 1; //返回结果
+  optional EntityChangeResponse entityChangeResponse = 2;
 }
 
-message CrashResponse {
-  required bool crashResult = 1; //该次碰撞是否有效
-  optional int32 deadSnake = 2; //挂掉的蛇的ID
-  optional int32 crashedSnake = 3; //被撞到的蛇的ID，也就是击杀者
-}
-
-message EatFoodResponse {
-  required bool eatResult = 1; //该次吃食物是否有效
-  required int32 foodType = 2; //吃的食物类型
+message EntityChangeResponse {
+  required bool changeResult = 1; //改变结果是否有效
 }
