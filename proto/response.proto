@@ -1,9 +1,9 @@
 
 message Response {
   required int32 result = 1; //返回结果
-  optional EntityChangeResponse entityChangeResponse = 2;
+  optional EntityInfoChangeResponse entityChangeResponse = 2;
 }
 
-message EntityChangeResponse {
+message EntityInfoChangeResponse {
   required bool changeResult = 1; //改变结果是否有效
 }
