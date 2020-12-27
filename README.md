@@ -10,3 +10,7 @@ git clone git@github.com:LILILIhuahuahua/ustc_tencent_game.git
 ```
 
 Enjoy coding.
+
+
+## Note
+1. Check meaning of project layout from [here](https://github.com/golang-standards/project-layout) ,try to follow the standard as possible as you can.
