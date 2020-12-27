@@ -1,0 +1,6 @@
+
+enum SNAKE_STATUS {
+  LIVE = 1; //存活
+  DEAD = 2; //死亡
+  INVINCIBLE = 3; //暂时无敌
+}

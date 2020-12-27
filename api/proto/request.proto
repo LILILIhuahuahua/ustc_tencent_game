@@ -1,0 +1,12 @@
+
+message Request {
+  optional EntityInfoChangeRequest entityChangeRequest = 1; //实体改变请求，例如两条蛇相撞的时候、蛇吃道具的时候要发此类请求
+}
+
+message EntityInfoChangeRequest {
+  required int32 eventType = 1; // 事件类型 enum
+  required int32 playerId = 2; // 发送请求的实体Id
+  optional int32 linkedId = 3; // 交互对象
+  optional int32 linkedType = 4; //交互的对象类型
+  optional PlayerInfo playerInfo = 5; //玩家的信息
+}
