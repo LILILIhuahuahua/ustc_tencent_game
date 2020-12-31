@@ -1,11 +1,13 @@
+syntax = "proto3";
+
 import "notify.proto";
 import "request.proto";
 import "response.proto";
 
 message GMessage {
-  required int32 msgType = 1; //消息类型
-  required int32 seqId = 2; //消息的编号
-  optional Notify notify = 3; //通知类型
-  optional Request request = 4; //请求类型
-  optional Response response = 5; //答复类型
+  int32 msgType = 1; //消息类型
+  int32 seqId = 2; //消息的编号
+  Notify notify = 3; //通知类型
+  Request request = 4; //请求类型
+  Response response = 5; //答复类型
 }

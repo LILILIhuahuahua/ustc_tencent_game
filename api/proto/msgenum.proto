@@ -1,6 +1,33 @@
+syntax = "proto3";
 
-enum SNAKE_STATUS {
-  LIVE = 1; //存活
-  DEAD = 2; //死亡
-  INVINCIBLE = 3; //暂时无敌
+enum MSG_TYPE {
+  NOTIGY = 0; //通知类型
+  REQUEST = 1; //请求类型
+  RESPONSE = 2; //答复类型
 }
+
+enum HERO_STATUS {
+  LIVE = 0; //存活
+  DEAD = 1; //死亡
+  INVINCIBLE = 2; //暂时无敌
+}
+
+/* eventType的枚举 */
+enum EVENT_TYPE {
+  HERO_COLLISION = 0; //玩家碰撞事件
+  ITEM_COLLISION = 1; //道具碰撞事件
+}
+
+/* entityType的枚举 */
+enum ENTITY_TYPE {
+  HERO_TYPE = 0; //Hero类型
+  PROP_TYPE = 1; //Prop类型--道具
+  FOOD_TYPE = 2; //Food类型--食物
+}
+
+/* response的result枚举 */
+enum RESULT_TYPE {
+  SUCCESS = 0; //成功
+  FAIL = 1; //失败
+}
+

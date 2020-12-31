@@ -1,33 +1,35 @@
+syntax = "proto3";
+
 import "msgenum.proto";
 import "struct.proto";
 
 message Notify {
-  optional EntityInfoChangeNotify entityInfoChangeNotify = 1; //实体的属性变化通知
-  optional GameGlobalInfoNotify gameGlobalInfoNotify = 2; //玩家加入时对玩家进行同步的所有消息
-  optional TimeNotify time = 3; //对局时间信息通知
-  optional MapInfo mapInfo = 4;
+  EntityInfoChangeNotify entityInfoChangeNotify = 1; //实体的属性变化通知
+  GameGlobalInfoNotify gameGlobalInfoNotify = 2; //玩家加入时对玩家进行同步的所有消息
+  TimeNotify time = 3; //对局时间信息通知
+  MapInfo mapInfo = 4; //地图信息
 }
 
 message EntityInfoChangeNotify {
-  required int32 entityType = 1; //实体的类型
-  required int32 entityId = 2; //实体的Id
-  optional PlayerMsg playerMsg = 3; //玩家的信息
-  optional ItemMsg itemMsg = 4; //物体的信息
+  ENTITY_TYPE entityType = 1; //实体的类型
+  int32 entityId = 2; //实体的Id
+  HeroMsg HeroMsg = 3; //玩家的信息
+  ItemMsg itemMsg = 4; //物体的信息
 }
 
 message GameGlobalInfoNotify {
-  required int32 playerNumber = 1; //玩家数量
-  required int64 time = 2; //游戏对局中的时间(开始时间)
-  repeated PlayerMsg playerMsg = 3; //对局中玩家的信息
+  int32 heroNumber = 1; //玩家数量
+  int64 time = 2; //游戏对局中的时间(开始时间)
+  repeated HeroMsg HeroMsg = 3; //对局中玩家的信息
   repeated ItemMsg ItemMsg = 4; //对局中道具的信息
-  required MapMsg mapMsg = 5; //地图信息
+  MapMsg mapMsg = 5; //地图信息
 }
 
 message TimeNotify { //对局时间信息通知
-  optional int64 time = 1;
+  int64 time = 1;
 }
 
 message MapInfo {
-  required MapMsg mapMsg = 1; //地图信息
+  MapMsg mapMsg = 1; //地图信息
 }
 

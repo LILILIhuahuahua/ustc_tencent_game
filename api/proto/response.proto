@@ -1,9 +1,16 @@
+syntax = "proto3";
+
+import "msgenum.proto";
 
 message Response {
-  required int32 result = 1; //返回结果
-  optional EntityInfoChangeResponse entityChangeResponse = 2;
+  RESULT_TYPE result = 1; //返回结果
+  EntityInfoChangeResponse entityChangeResponse = 2;
 }
 
 message EntityInfoChangeResponse {
-  required bool changeResult = 1; //改变结果是否有效
+  bool changeResult = 1; //改变结果是否有效
+}
+
+message HeroQuitResponse { //玩家退出通知
+  bool quitResponse = 1;
 }
