@@ -7,3 +7,9 @@
 5. playerSize改为float
 6. 将所有和player或者snake有关的字段全部替换成了hero
 7. 修改pb2为pb3
+
+
+
+2022-1-1更新日志
+
+1.GMessage.msgType改为MSG_TYPE

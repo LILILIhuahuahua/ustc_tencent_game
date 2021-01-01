@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 enum MSG_TYPE {
-  NOTIGY = 0; //通知类型
+  NOTIFY = 0; //通知类型
   REQUEST = 1; //请求类型
   RESPONSE = 2; //答复类型
 }
