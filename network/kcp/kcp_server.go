@@ -1,21 +1,23 @@
 package kcp
+
 import (
 	"github.com/xtaci/kcp-go"
-	"net"
+	"log"
 	"sync"
 )
 
 type kcpServer struct {
-	mu        sync.Mutex
-	addr      string
-	ln        net.Listener
+	mu   sync.Mutex
+	addr string
+	listen *kcp.Listener
+	sess *kcp.UDPSession
 }
 
 // NewKcpServer return a *kcpServer
 func NewKcpServer(addr string) (s *kcpServer, err error) {
 	ts := new(kcpServer)
 	ts.addr = addr
-	ts.ln, err = kcp.ListenWithOptions(addr, nil, 10, 3)
+	ts.listen,err = kcp.ListenWithOptions(addr, nil, 10, 3)
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +26,7 @@ func NewKcpServer(addr string) (s *kcpServer, err error) {
 
 func (s *kcpServer) Run() error {
 	for {
-		conn, err := s.ln.Accept()
+		conn, err := s.listen.AcceptKCP()
 		if err != nil {
 			return err
 		}
@@ -32,9 +34,20 @@ func (s *kcpServer) Run() error {
 	}
 }
 
-func (s *kcpServer) Handle(conn net.Conn) {
-	defer func() {
-		if r := recover(); r != nil {
+func (s *kcpServer) Handle(conn *kcp.UDPSession) {
+	buf := make([]byte, 4096)
+	for {
+		_, err := conn.Read(buf)
+		// 处理buf，改为事件驱动型...
+		if err != nil {
+			log.Println(err)
+			return
 		}
-	}()
+
+		//n, err = conn.Write(buf[:n])
+		if err != nil {
+			log.Println(err)
+			return
+		}
+	}
 }
