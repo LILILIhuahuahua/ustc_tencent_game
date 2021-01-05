@@ -38,7 +38,6 @@ func NewBroadcaster(address string) (*Broadcaster,error){
 
 //注册连接者
 func (b *Broadcaster)RegisterConnector(c *Connector)  error{
-	c.broader = b
 	b.conctmap[c.Id]=c
 	return nil
 }
@@ -67,12 +66,12 @@ func (b *Broadcaster) Serv() error {
 		if err != nil {
 			return err
 		}
-		connector := NewConnector(b,*conn)
+		connector := NewConnector(conn)
 		err = b.RegisterConnector(connector)
 		if err != nil {
 			return err
 		}
-		go b.Handle(conn)
+		go b.Handle(connector.Sess)
 	}
 }
 
@@ -86,6 +85,7 @@ func (b *Broadcaster) Handle(conn *kcp.UDPSession) {
 			log.Println(err)
 			return
 		}
+		//c.Sess.Write(buf[:n])
 		err = b.NotifyAll(buf[:n])
 		//n, err = conn.Write(buf[:n])
 		if err != nil {

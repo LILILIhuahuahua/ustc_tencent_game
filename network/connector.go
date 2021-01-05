@@ -9,16 +9,14 @@ import(
 type(
 	Connector struct {
 		Id      string
-		broader *Broadcaster
 		//Sess Session
-		Sess kcp.UDPSession
+		Sess *kcp.UDPSession
 	}
 )
 
-func NewConnector(b *Broadcaster,s kcp.UDPSession)  *Connector{
+func NewConnector(s *kcp.UDPSession)  *Connector{
 	return &Connector{
 		Id:      uuid.New().String(),
-		broader: b,
 		Sess:    s,
 	}
 }
