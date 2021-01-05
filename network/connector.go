@@ -1,10 +1,35 @@
 package network
+
+import(
+	"github.com/google/uuid"
+	"github.com/xtaci/kcp-go"
+)
+
 //网络组件----连接者
+type(
+	Connector struct {
+		Id      string
+		broader *Broadcaster
+		//Sess Session
+		Sess kcp.UDPSession
+	}
+)
+
+func NewConnector(b *Broadcaster,s kcp.UDPSession)  *Connector{
+	return &Connector{
+		Id:      uuid.New().String(),
+		broader: b,
+		Sess:    s,
+	}
+}
 
 //持有客户端udp信息、session会话
 
-//消息上报
-
+//状态更新
+func (c *Connector)Update(buff [] byte) error{
+	_,err := c.Sess.Write(buff)
+	return err
+}
 //消息接受
 
 //消息移交

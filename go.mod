@@ -3,6 +3,7 @@ module github.com/LILILIhuahuahua/ustc_tencent_game
 go 1.15
 
 require (
+	github.com/google/uuid v1.1.4
 	github.com/klauspost/reedsolomon v1.9.10 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/templexxx/cpufeat v0.0.0-20180724012125-cef66df7f161 // indirect

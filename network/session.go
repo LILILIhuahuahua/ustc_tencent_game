@@ -1,10 +1,6 @@
 package network
 
-import (
-	"net"
-)
-
-type session struct {
-	conn *net.UDPConn
-	remote *net.UDPAddr
+type Session interface {
+	Read() ([]byte,error)
+	Write(buff []byte) error
 }

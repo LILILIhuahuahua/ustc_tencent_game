@@ -1,21 +1,23 @@
 package kcp
 
 import (
+	"github.com/LILILIhuahuahua/ustc_tencent_game/network"
 	"github.com/xtaci/kcp-go"
 	"log"
 	"sync"
 )
 
-type kcpServer struct {
+type KcpServer struct {
 	mu   sync.Mutex
 	addr string
 	listen *kcp.Listener
 	sess *kcp.UDPSession
+	broader *network.Broadcaster
 }
 
-// NewKcpServer return a *kcpServer
-func NewKcpServer(addr string) (s *kcpServer, err error) {
-	ts := new(kcpServer)
+// NewKcpServer return a *KcpServer
+func NewKcpServer(addr string) (s *KcpServer, err error) {
+	ts := new(KcpServer)
 	ts.addr = addr
 	ts.listen,err = kcp.ListenWithOptions(addr, nil, 10, 3)
 	if err != nil {
@@ -24,9 +26,14 @@ func NewKcpServer(addr string) (s *kcpServer, err error) {
 	return ts, err
 }
 
-func (s *kcpServer) Run() error {
+func (s *KcpServer) Run() error {
 	for {
 		conn, err := s.listen.AcceptKCP()
+		if err != nil {
+			return err
+		}
+		connector := network.NewConnector(s.broader,*conn)
+		err = s.broader.RegisterConnector(connector)
 		if err != nil {
 			return err
 		}
@@ -34,16 +41,16 @@ func (s *kcpServer) Run() error {
 	}
 }
 
-func (s *kcpServer) Handle(conn *kcp.UDPSession) {
+func (s *KcpServer) Handle(conn *kcp.UDPSession) {
 	buf := make([]byte, 4096)
 	for {
-		_, err := conn.Read(buf)
+		n, err := conn.Read(buf)
 		// 处理buf，改为事件驱动型...
 		if err != nil {
 			log.Println(err)
 			return
 		}
-
+		err = s.broader.NotifyAll(buf[:n])
 		//n, err = conn.Write(buf[:n])
 		if err != nil {
 			log.Println(err)
