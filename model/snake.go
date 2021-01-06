@@ -6,11 +6,11 @@ type coordinate struct {
 }
 
 type Snake struct {
-	Id int64
-	Len int
-	Direction int
-	Kills int
-	Statue int
-	Speed int
+	Id          int64
+	Len         int
+	Direction   int
+	Kills       int
+	Statue      int
+	Speed       int
 	Coordinates []coordinate
 }

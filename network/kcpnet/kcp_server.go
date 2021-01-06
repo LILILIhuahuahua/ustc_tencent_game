@@ -17,12 +17,13 @@ type KcpServer struct {
 func NewKcpServer(addr string) (s *KcpServer, err error) {
 	ts := new(KcpServer)
 	ts.addr = addr
-	ts.Listen,err = kcp.ListenWithOptions(addr, nil, 10, 3)
+	ts.Listen, err = kcp.ListenWithOptions(addr, nil, 10, 3)
 	if err != nil {
 		return nil, err
 	}
 	return ts, err
 }
+
 //
 //func (s *KcpServer) Run() error {
 //	for {

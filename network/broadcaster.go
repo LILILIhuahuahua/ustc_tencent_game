@@ -8,24 +8,25 @@ import (
 )
 
 //网络组件----广播者
-type(
+type (
 	Broadcaster struct {
-		addr string
-		server *kcpnet.KcpServer
+		addr     string
+		server   *kcpnet.KcpServer
 		conctmap map[interface{}]*Connector
 	}
 )
+
 //数据持有；连接者指针列表
-func NewBroadcaster(address string) (*Broadcaster,error){
-	s,err := kcpnet.NewKcpServer(address)
+func NewBroadcaster(address string) (*Broadcaster, error) {
+	s, err := kcpnet.NewKcpServer(address)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	return &Broadcaster{
-		addr: address,
+		addr:     address,
 		conctmap: make(map[interface{}]*Connector),
-		server: s,
-	},nil
+		server:   s,
+	}, nil
 }
 
 //func(b *Broadcaster) Serv() error{
@@ -37,28 +38,27 @@ func NewBroadcaster(address string) (*Broadcaster,error){
 //}
 
 //注册连接者
-func (b *Broadcaster)RegisterConnector(c *Connector)  error{
-	b.conctmap[c.Id]=c
+func (b *Broadcaster) RegisterConnector(c *Connector) error {
+	b.conctmap[c.Id] = c
 	return nil
 }
 
 //删除连接者
-func (b *Broadcaster)DeleteConnector(c *Connector)  error{
-return nil
+func (b *Broadcaster) DeleteConnector(c *Connector) error {
+	return nil
 }
 
 //推送广播
-func (b *Broadcaster)NotifyAll(buff []byte) error {
-	for  _,connector := range b.conctmap{
-		err:= connector.Update(buff)
+func (b *Broadcaster) NotifyAll(buff []byte) error {
+	for _, connector := range b.conctmap {
+		err := connector.Update(buff)
 		if nil != err {
 			println(err)
 			return err
 		}
 	}
- 	return nil
+	return nil
 }
-
 
 func (b *Broadcaster) Serv() error {
 	for {
@@ -94,4 +94,3 @@ func (b *Broadcaster) Handle(conn *kcp.UDPSession) {
 		}
 	}
 }
-

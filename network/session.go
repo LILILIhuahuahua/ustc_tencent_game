@@ -1,6 +1,6 @@
 package network
 
 type Session interface {
-	Read() ([]byte,error)
+	Read() ([]byte, error)
 	Write(buff []byte) error
 }
