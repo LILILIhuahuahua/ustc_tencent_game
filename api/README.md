@@ -18,7 +18,7 @@
 
 2022-1-6更新日志
 
-1.Event_TYPE增加Hero移动事件
+1.Event_TYPE增加Hero移动事件，Hero变大事件
 
 2.添加EnterGame包
 
