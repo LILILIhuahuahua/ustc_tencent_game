@@ -13,3 +13,13 @@
 2022-1-1更新日志
 
 1.GMessage.msgType改为MSG_TYPE
+
+
+
+2022-1-6更新日志
+
+1.Event_TYPE增加Hero移动事件
+
+2.添加EnterGame包
+
+3.添加ConnectNet结构

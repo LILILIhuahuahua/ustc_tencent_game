@@ -8,6 +8,7 @@ message Notify {
   GameGlobalInfoNotify gameGlobalInfoNotify = 2; //玩家加入时对玩家进行同步的所有消息
   TimeNotify time = 3; //对局时间信息通知
   MapInfo mapInfo = 4; //地图信息
+  EnterGameNotify enterGameNotify  = 5; //进入游戏包
 }
 
 message EntityInfoChangeNotify {
@@ -15,6 +16,12 @@ message EntityInfoChangeNotify {
   int32 entityId = 2; //实体的Id
   HeroMsg HeroMsg = 3; //玩家的信息
   ItemMsg itemMsg = 4; //物体的信息
+}
+
+message EnterGameNotify {
+  int32 heroId = 1; //Hero的Id
+  HeroMsg HeroMsg = 2; //玩家的信息
+  ConnectMsg clientConnectMsg = 3; //网络信息
 }
 
 message GameGlobalInfoNotify {

@@ -16,6 +16,8 @@ enum HERO_STATUS {
 enum EVENT_TYPE {
   HERO_COLLISION = 0; //玩家碰撞事件
   ITEM_COLLISION = 1; //道具碰撞事件
+  HERO_MOVE = 2; //玩家移动事件
+  
 }
 
 /* entityType的枚举 */

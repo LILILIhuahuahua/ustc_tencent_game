@@ -28,3 +28,8 @@ message CoordinateXY { //坐标点
   float coordinateX = 1; //横坐标
   float coordinateY = 2; //纵坐标
 }
+
+message ConnectMsg{
+  string ip = 1;
+  int32 port =2;
+}
