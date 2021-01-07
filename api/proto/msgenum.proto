@@ -12,6 +12,11 @@ enum HERO_STATUS {
   INVINCIBLE = 2; //暂时无敌
 }
 
+enum ITEM_STATUS {
+  ITEM_LIVE = 0; //存活
+  ITEM_DEAD = 1; //死亡
+}
+
 /* eventType的枚举 */
 enum EVENT_TYPE {
   HERO_COLLISION = 0; //玩家碰撞事件

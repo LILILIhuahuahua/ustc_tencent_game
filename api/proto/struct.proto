@@ -15,6 +15,7 @@ message ItemMsg {
   int32 ItemId = 1; //Item的Id
   ENTITY_TYPE ItemType = 2; //Item的类型
   CoordinateXY ItemPosition = 3; //Item的初始坐标
+  ITEM_STATUS ItemStatus = 4; //Item的状态
 }
 
 message MapMsg {

@@ -23,3 +23,5 @@
 2.添加EnterGame包
 
 3.添加ConnectNet结构
+
+4.ItemMsg添加ItemStatus
