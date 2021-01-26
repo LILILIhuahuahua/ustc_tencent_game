@@ -4,8 +4,9 @@ package proto;
 import "msgenum.proto";
 
 message Response {
-  RESULT_TYPE result = 1; //返回结果
-  EntityInfoChangeResponse entityChangeResponse = 2;
+  int32 seqId = 1; //消息的编号
+  RESULT_TYPE result = 2; //返回结果
+  EntityInfoChangeResponse entityChangeResponse = 3;
 }
 
 message EntityInfoChangeResponse {
