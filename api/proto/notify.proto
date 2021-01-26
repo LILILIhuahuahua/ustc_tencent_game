@@ -1,4 +1,5 @@
 syntax = "proto3";
+package proto;
 
 import "msgenum.proto";
 import "struct.proto";

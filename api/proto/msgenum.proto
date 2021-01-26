@@ -1,9 +1,19 @@
 syntax = "proto3";
-
+package proto;
 enum MSG_TYPE {
   NOTIFY = 0; //通知类型
   REQUEST = 1; //请求类型
   RESPONSE = 2; //答复类型
+}
+
+enum GAME_MSG_CODE {
+    ENTITY_INFO_CHANGE_REQUEST=0; //EntityInfoChangeRequest
+    ENTITY_INFO_CHANGE_RESPONSE=1; //EntityInfoChangeResponse
+    ENTITY_INFO_NOTIFY=2; //EntityInfoChangeNotify
+    HERO_QUIT_REQUEST =3;//HeroQuitRequest
+    GAME_GLOBAL_INFO_NOTIFY=4;//GameGlobalInfoNotify
+    TIME_NOTIFY=5; //TimeNotify
+    ENTER_GAME_NOTIFY=6;//EnterGameNotify
 }
 
 enum HERO_STATUS {
