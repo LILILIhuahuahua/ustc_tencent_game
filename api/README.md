@@ -16,7 +16,7 @@
 
 
 
-2022-1-6更新日志
+2021-1-6更新日志
 
 1.Event_TYPE增加Hero移动事件，Hero变大事件
 
@@ -25,3 +25,10 @@
 3.添加ConnectNet结构
 
 4.ItemMsg添加ItemStatus
+
+
+
+2021-1-26更新日志
+
+1.在response中添加seqId
+
