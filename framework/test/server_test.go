@@ -1,7 +1,7 @@
 package test
 
 import (
-	"github.com/LILILIhuahuahua/ustc_tencent_game/network"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/framework"
 	"testing"
 )
 
@@ -11,6 +11,6 @@ var (
 
 // TestNewKcpServer create a server for test
 func TestNewKcpServer(t *testing.T) {
-	b, _ := network.NewBroadcaster(addr)
+	b, _ := framework.NewGameRoom(addr)
 	b.Serv()
 }

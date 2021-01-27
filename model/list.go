@@ -14,7 +14,7 @@ type GList struct {
 	DgsAddr string
 }
 
-// MList represents the network information.
+// MList represents the framework information.
 // It maps client address with dgs address.
 type MList struct {
 	Id  int64

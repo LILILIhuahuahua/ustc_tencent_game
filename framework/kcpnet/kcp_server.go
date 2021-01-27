@@ -10,7 +10,7 @@ type KcpServer struct {
 	addr   string
 	Listen *kcp.Listener
 	Sess   *kcp.UDPSession
-	//broader *network.Broadcaster
+	//broader *framework.Broadcaster
 }
 
 // NewKcpServer return a *KcpServer
@@ -31,7 +31,7 @@ func NewKcpServer(addr string) (s *KcpServer, err error) {
 //		if err != nil {
 //			return err
 //		}
-//		connector := network.NewConnector(s.broader,*conn)
+//		connector := framework.NewConnector(s.broader,*conn)
 //		err = s.broader.RegisterConnector(connector)
 //		if err != nil {
 //			return err
@@ -49,7 +49,7 @@ func NewKcpServer(addr string) (s *KcpServer, err error) {
 //			log.Println(err)
 //			return
 //		}
-//		err = s.broader.NotifyAll(buf[:n])
+//		err = s.broader.BroadcastAll(buf[:n])
 //		//n, err = conn.Write(buf[:n])
 //		if err != nil {
 //			log.Println(err)
