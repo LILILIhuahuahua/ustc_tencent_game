@@ -1,6 +1,6 @@
 package event
 
-type event interface {
+type Event interface {
 	GetCode() int
 	SetCode(eventCode int)
 	ToMessage() interface{}

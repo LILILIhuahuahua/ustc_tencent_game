@@ -3,6 +3,8 @@ package network
 import (
 	"fmt"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/network/kcpnet"
+	pb "github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
+	"github.com/golang/protobuf/proto"
 	"github.com/xtaci/kcp-go"
 	"log"
 )
@@ -80,6 +82,8 @@ func (b *Broadcaster) Handle(conn *kcp.UDPSession) {
 	for {
 		n, err := conn.Read(buf)
 		fmt.Println(string(buf))
+		req :=&pb.EntityInfoChangeRequest{}
+		proto.Unmarshal(buf, req)
 		// 处理buf，改为事件驱动型...
 		if err != nil {
 			log.Println(err)

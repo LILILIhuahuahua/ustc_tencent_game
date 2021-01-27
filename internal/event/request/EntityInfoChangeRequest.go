@@ -17,3 +17,12 @@ func (this *EntityInfoChangeRequest)FromMessage(obj interface{}) {
 	this.linkedId = pbMsg.LinkedId
 	this.linkedType = pbMsg.LinkedType.String()
 }
+
+func (this *EntityInfoChangeRequest)ToMessage() interface{} {
+	return pb.EntityInfoChangeRequest{
+		EventType: pb.EVENT_TYPE_HERO_MOVE,
+		HeroId: this.heroId,
+		LinkedId: this.linkedId,
+		LinkedType: pb.ENTITY_TYPE_HERO_TYPE,
+	}
+}
