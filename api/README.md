@@ -32,3 +32,5 @@
 
 1.在response中添加seqId
 
+2021-1-28更新日志
+1.在Gmessage中添加sessionId字段
