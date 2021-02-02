@@ -7,7 +7,7 @@ type BaseEventDispatcher struct {
 
 func (b BaseEventDispatcher) FireEvent(e event.Event) {
 	//todo:改造为线程池 而非无脑开协程
-	go Handler.onEvent(e)
+	go EVENT_HANDLER.onEvent(e)
 }
 
 func (b BaseEventDispatcher) FireEventToSession(e event.Event, s event.Session) {

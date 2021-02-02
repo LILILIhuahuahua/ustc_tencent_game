@@ -14,15 +14,15 @@ message Notify {
 
 message EntityInfoChangeNotify {
   ENTITY_TYPE entityType = 1; //实体的类型
-  int32 entityId = 2; //实体的Id
+  int64 entityId = 2; //实体的Id
   HeroMsg HeroMsg = 3; //玩家的信息
   ItemMsg itemMsg = 4; //物体的信息
 }
 
 message EnterGameNotify {
-  int32 heroId = 1; //Hero的Id
-  HeroMsg HeroMsg = 2; //玩家的信息
-  ConnectMsg clientConnectMsg = 3; //网络信息
+  int64 playerId = 1; //玩家ID
+//  HeroMsg HeroMsg = 2; //玩家的信息
+  ConnectMsg clientConnectMsg = 2; //网络信息
 }
 
 message GameGlobalInfoNotify {

@@ -4,7 +4,7 @@ package proto;
 import "msgenum.proto";
 
 message HeroMsg {
-  int32 heroId = 1; //玩家的ID
+  int64 heroId = 1; //玩家的ID
   CoordinateXY heroPosition = 2; //玩家的坐标
   float heroSpeed = 3; //玩家的速度
   float heroSize = 4; //玩家的大小
@@ -13,7 +13,7 @@ message HeroMsg {
 }
 
 message ItemMsg {
-  int32 ItemId = 1; //Item的Id
+  int64 ItemId = 1; //Item的Id
   ENTITY_TYPE ItemType = 2; //Item的类型
   CoordinateXY ItemPosition = 3; //Item的初始坐标
   ITEM_STATUS ItemStatus = 4; //Item的状态

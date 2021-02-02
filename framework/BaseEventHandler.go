@@ -2,9 +2,9 @@ package framework
 
 import (
 	 "github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
-	event2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event"
+	//event2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event"
 )
-var Handler = &BaseEventHandler{}
+var EVENT_HANDLER = &BaseEventHandler{}
 
 type BaseEventHandler struct {
 }
@@ -14,11 +14,8 @@ func (b BaseEventHandler) onEvent(e event.Event) {
 		return
 	}
 	 handler :=  event.Manager.FetchHandler(e.GetCode())
-	// 二级解码
-	msg := e.(event2.GMessage)
-	data := msg.Data
 	if nil!=handler {
-		handler.OnEvent(data)
+		handler.OnEvent(e)
 	}
 }
 

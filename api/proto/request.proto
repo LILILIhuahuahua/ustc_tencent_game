@@ -11,14 +11,14 @@ message Request {
 
 message EntityInfoChangeRequest {
   EVENT_TYPE eventType = 1; // 事件类型 enum
-  int32 heroId = 2; // 发送请求的实体Id
-  int32 linkedId = 3; // 交互对象
+  int64 heroId = 2; // 发送请求的实体Id
+  int64 linkedId = 3; // 交互对象
   ENTITY_TYPE linkedType = 4; //交互的对象类型
   HeroMsg heroMsg = 5; //玩家的信息
 }
 
 
 message HeroQuitRequest {
-  int32 heroId = 1; //玩家Id
+  int64 heroId = 1; //玩家Id
   int64 time = 2; //离开时间
 }

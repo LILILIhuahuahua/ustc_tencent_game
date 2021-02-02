@@ -1,7 +1,7 @@
 package framework
 
 import (
-	"github.com/google/uuid"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"github.com/xtaci/kcp-go"
 )
 
@@ -18,10 +18,14 @@ type (
 )
 
 func NewBaseSession(s *kcp.UDPSession) *BaseSession {
-	return &BaseSession{
-		Id:   int64(uuid.New().ID()),
+	s.SetNoDelay(1,10,2,1)
+	s.SetACKNoDelay(true)
+	baseSession := &BaseSession{
+		Id:   tools.UUID_UTIL.GenerateInt64UUID(),
 		Sess: s,
 	}
+	//kcp session调优
+	return baseSession
 }
 
 //状态更新

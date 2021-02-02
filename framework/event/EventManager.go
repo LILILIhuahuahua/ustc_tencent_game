@@ -5,12 +5,9 @@ type EventManager struct {
 	eventMap map[int32]Event
 }
 
-var Manager = &EventManager{
-	handlerMap: make(map[int32]Handler),
-	eventMap: make(map[int32]Event),
-}
+var Manager = NewEventManager()
 
-func (this *EventManager)NewEventManager() *EventManager{
+func NewEventManager() *EventManager{
 	return &EventManager{
 		handlerMap: make(map[int32]Handler),
 		eventMap: make(map[int32]Event),
