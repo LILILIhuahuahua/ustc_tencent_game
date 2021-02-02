@@ -48,7 +48,6 @@ func (g *GameRoom) RegisterConnector(c *framework.BaseSession) error {
 }
 
 func (g *GameRoom) FetchConnector(sessionId int64) *framework.BaseSession {
-	//g.sessions[c.Id] = c
 	return g.sessions[sessionId]
 }
 
@@ -126,7 +125,8 @@ func (g *GameRoom) Handle(session *framework.BaseSession) {
 func (g *GameRoom)onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
 	enterGameNotify := e.Data.(*notify.EnterGameNotify)
 	s.Id = enterGameNotify.PlayerID
-	if nil==g.FetchConnector(s.Id) {
+	// todo:先不检测会话存在，放开测试，后期加上
+	//if nil==g.FetchConnector(s.Id) {
 		g.RegisterConnector(s)
-	}
+	//}
 }
