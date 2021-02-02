@@ -18,13 +18,13 @@ type (
 )
 
 func NewBaseSession(s *kcp.UDPSession) *BaseSession {
+	//kcp session调优
 	s.SetNoDelay(1,10,2,1)
-	s.SetACKNoDelay(true)
+	//s.SetACKNoDelay(true)
 	baseSession := &BaseSession{
 		Id:   tools.UUID_UTIL.GenerateInt64UUID(),
 		Sess: s,
 	}
-	//kcp session调优
 	return baseSession
 }
 

@@ -109,10 +109,11 @@ func (g *GameRoom) Handle(session *framework.BaseSession) {
 		msg.SetRoomId(g.ID)
 		m := msg.CopyFromMessage(pbMsg)
 		m.SetRoomId(g.ID)
+		println(m)
 		//若为进入世界业务，则不走消息分发，直接创建会话绑定到玩家ID
 		if m.GetCode() == int32(pb.GAME_MSG_CODE_ENTER_GAME_NOTIFY) {
 			g.onEnterGame(m.(*event2.GMessage), session)
-			return
+			continue
 		}
 		g.dispatcher.FireEvent(m)
 		if err != nil {
