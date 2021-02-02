@@ -7,6 +7,12 @@ message Response {
   int32 seqId = 1; //消息的编号
   RESULT_TYPE result = 2; //返回结果
   EntityInfoChangeResponse entityChangeResponse = 3;
+  EnterGameResponse enterGameResponse = 4;
+}
+
+message EnterGameResponse {
+  bool changeResult = 1; //结果是否有效
+  int32 heroId = 2; //玩家ID
 }
 
 message EntityInfoChangeResponse {

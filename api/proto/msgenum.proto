@@ -14,6 +14,8 @@ enum GAME_MSG_CODE {
     GAME_GLOBAL_INFO_NOTIFY=4;//GameGlobalInfoNotify
     TIME_NOTIFY=5; //TimeNotify
     ENTER_GAME_NOTIFY=6;//EnterGameNotify
+    ENTER_GAME_REQUEST=7;
+    ENTER_GAME_RESPONSE=8;
 }
 
 enum HERO_STATUS {

@@ -7,6 +7,12 @@ import "struct.proto";
 message Request {
   EntityInfoChangeRequest entityChangeRequest = 1; //实体改变请求，例如两条蛇相撞的时候、蛇吃道具的时候要发此类请求
   HeroQuitRequest heroQuitRequest = 2; //玩家退出请求
+  EnterGameRequest enterGameRequest = 3;
+}
+
+message EnterGameRequest {
+  int32 playerId = 1; //玩家ID
+  ConnectMsg clientConnectMsg = 2; //网络信息
 }
 
 message EntityInfoChangeRequest {

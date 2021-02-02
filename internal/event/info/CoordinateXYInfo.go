@@ -14,8 +14,10 @@ type CoordinateXYInfo struct {
 
 func (c *CoordinateXYInfo)FromMessage(obj interface{}) {
 	pbMsg := obj.(*pb.CoordinateXY)
-	c.CoordinateX = pbMsg.CoordinateX
-	c.CoordinateY = pbMsg.CoordinateY
+	if nil != pbMsg {
+		c.CoordinateX = pbMsg.CoordinateX
+		c.CoordinateY = pbMsg.CoordinateY
+	}
 }
 
 func (c *CoordinateXYInfo)CopyFromMessage(obj interface{}) event.Event {

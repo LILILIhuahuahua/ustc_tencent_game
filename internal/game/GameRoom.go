@@ -7,19 +7,22 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/kcpnet"
 	event2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/notify"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"github.com/golang/protobuf/proto"
 	"log"
+	"sync"
 )
 
 //游戏房间类，对应一局游戏
 type GameRoom struct {
-		ID int64
+		ID         int64
 		addr       string
 		server     *kcpnet.KcpServer
 		sessions   map[interface{}]*framework.BaseSession
 		dispatcher event.EventDispatcher
+		Heros 	sync.Map
 	}
 
 //数据持有；连接者指针列表
@@ -29,11 +32,12 @@ func NewGameRoom(address string) *GameRoom {
 		return nil
 	}
 	return &GameRoom{
-		ID: tools.UUID_UTIL.GenerateInt64UUID(),
+		ID:         tools.UUID_UTIL.GenerateInt64UUID(),
 		addr:       address,
 		sessions:   make(map[interface{}]*framework.BaseSession),
 		server:     s,
 		dispatcher: framework.BaseEventDispatcher{},
+		//Heros: make(map[int32]*model.Hero),
 	}
 }
 
@@ -110,7 +114,8 @@ func (g *GameRoom) Handle(session *framework.BaseSession) {
 		m.SetRoomId(g.ID)
 		println(m)
 		//若为进入世界业务，则不走消息分发，直接创建会话绑定到玩家ID
-		if m.GetCode() == int32(pb.GAME_MSG_CODE_ENTER_GAME_NOTIFY) {
+		if m.GetCode() == int32(pb.GAME_MSG_CODE_ENTER_GAME_NOTIFY) ||
+			m.GetCode() == int32(pb.GAME_MSG_CODE_ENTER_GAME_REQUEST) {
 			g.onEnterGame(m.(*event2.GMessage), session)
 			continue
 		}
@@ -123,10 +128,53 @@ func (g *GameRoom) Handle(session *framework.BaseSession) {
 }
 
 func (g *GameRoom)onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
-	enterGameNotify := e.Data.(*notify.EnterGameNotify)
+	enterGameNotify := e.Data.(*request.EnterGameRequest)
 	s.Id = enterGameNotify.PlayerID
 	// todo:先不检测会话存在，放开测试，后期加上
 	//if nil==g.FetchConnector(s.Id) {
+		//注册会话绑定到玩家id
 		g.RegisterConnector(s)
 	//}
+	//初始化hero加入到对局中
+	hero := model.NewHero()
+	g.RegisterHero(hero)
+	//回包
+	data:=pb.EnterGameResponse{
+		ChangeResult: true,
+		HeroId: hero.ID,
+	}
+	resp:=pb.Response{
+		EnterGameResponse: &data,
+	}
+	msg:=pb.GMessage{
+		MsgType: pb.MSG_TYPE_RESPONSE,
+		MsgCode: pb.GAME_MSG_CODE_ENTER_GAME_RESPONSE,
+		Response: &resp,
+	}
+	out, _ := proto.Marshal(&msg)
+	GAME_ROOM_MANAGER.Unicast(g.ID, s.Id, out)
+}
+
+func (g *GameRoom)RegisterHero(h *model.Hero) {
+	hero, _ := g.Heros.Load(h.ID)
+	if nil == hero  {
+		g.Heros.Store(h.ID, h)
+	}
+}
+
+func (g *GameRoom)ModifyHero(h *model.Hero) {
+		g.Heros.Delete(h.ID)
+		g.Heros.Store(h.ID, h)
+}
+
+func (g *GameRoom)FetchHeros() []*model.Hero{
+	heros := make([]*model.Hero,0)
+	//for k, h := range g.Heros {
+	//	heros = append(heros, h)
+	//}
+	g.Heros.Range(func(k,v interface{}) bool{
+		heros = append(heros, v.(*model.Hero))
+		return true
+	})
+	return heros
 }
