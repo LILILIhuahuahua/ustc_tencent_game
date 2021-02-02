@@ -8,8 +8,8 @@ import "msgenum.proto";
 message GMessage {
   MSG_TYPE msgType = 1; //消息类型
   GAME_MSG_CODE msgCode = 2; //消息码 用于表示具体业务类型 参照msgenum.proto中的GAME_MSG_CODE枚举
-  int64 sessionId = 3; //会话ID
-  int64 seqId = 4; //消息的编号
+  int32 sessionId = 3; //会话ID
+  int32 seqId = 4; //消息的编号
   Notify notify = 5; //通知类型
   Request request = 6; //请求类型
   Response response = 7; //答复类型
