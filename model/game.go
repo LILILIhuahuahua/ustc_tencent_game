@@ -10,5 +10,5 @@ type Game struct {
 	CountDown time.Time
 	Props     []Prop
 	Ranks     map[int64]int // TODO
-	Snakes    []Snake
+	Snakes    []Hero
 }

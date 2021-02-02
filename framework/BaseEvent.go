@@ -1,7 +1,7 @@
 package framework
 
 type BaseEvent struct {
-	SessionId int64
+	SessionId int32
 	Code       int32
 	RoomId    int64
 }
@@ -14,11 +14,11 @@ func (e *BaseEvent) SetCode(code int32) {
 	e.Code = code
 }
 
-func (e *BaseEvent) GetSessionId() int64 {
+func (e *BaseEvent) GetSessionId() int32 {
 	return e.SessionId
 }
 
-func (e *BaseEvent) SetSessionId(sessionId int64) {
+func (e *BaseEvent) SetSessionId(sessionId int32) {
 	e.SessionId = sessionId
 }
 

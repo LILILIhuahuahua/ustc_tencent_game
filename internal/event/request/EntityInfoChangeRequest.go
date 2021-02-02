@@ -9,8 +9,8 @@ import (
 type EntityInfoChangeRequest struct {
 	framework.BaseEvent	//基础消息类作为父类
 	EventType  string
-	HeroId     int64
-	LinkedId   int64
+	HeroId     int32
+	LinkedId   int32
 	LinkedType string
 	//heroMsg
 }

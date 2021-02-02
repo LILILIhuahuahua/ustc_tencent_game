@@ -47,7 +47,7 @@ func (g *GameRoom) RegisterConnector(c *framework.BaseSession) error {
 	return nil
 }
 
-func (g *GameRoom) FetchConnector(sessionId int64) *framework.BaseSession {
+func (g *GameRoom) FetchConnector(sessionId int32) *framework.BaseSession {
 	return g.sessions[sessionId]
 }
 

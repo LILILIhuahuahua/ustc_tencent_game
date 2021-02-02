@@ -24,7 +24,7 @@ func (m *BaseGameRoomManager)RegisterGameRoom(room BaseGameRoom) {
 	 }
 }
 
-func (m *BaseGameRoomManager)Unicast(roomId int64, sessionId int64, buff []byte) {
+func (m *BaseGameRoomManager)Unicast(roomId int64, sessionId int32, buff []byte) {
 	r := m.FetchGameRoom(roomId)
 	s := r.FetchConnector(sessionId)
 	s.SendMessage(buff)

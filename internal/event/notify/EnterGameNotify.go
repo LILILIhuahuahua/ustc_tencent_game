@@ -9,7 +9,7 @@ import (
 
 type EnterGameNotify struct {
 	framework.BaseEvent
-	PlayerID int64
+	PlayerID int32
 	Connect info.ConnectInfo
 }
 

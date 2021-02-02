@@ -10,7 +10,7 @@ type GMessage struct {
 	MsgType int32
 	//GameMsgCode int32
 	//SessionId int64
-	SeqId int64
+	SeqId int32
 	Data e.Event
 }
 

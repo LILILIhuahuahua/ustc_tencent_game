@@ -3,8 +3,8 @@ package event
 type Event interface {
 	GetCode() int32
 	SetCode(eventCode int32)
-	GetSessionId() int64
-	SetSessionId(sessionId int64)
+	GetSessionId() int32
+	SetSessionId(sessionId int32)
 	GetRoomId() int64
 	SetRoomId(roomId int64)
 	ToMessage() interface{}

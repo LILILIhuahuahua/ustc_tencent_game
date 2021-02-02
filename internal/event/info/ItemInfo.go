@@ -8,7 +8,7 @@ import (
 
 type ItemInfo struct {
 	framework.BaseEvent
-	ID int64
+	ID int32
 	Type int32
 	Status int32
 	ItemPosition CoordinateXYInfo

@@ -8,7 +8,7 @@ import (
 
 type HeroInfo struct {
 	framework.BaseEvent
-	ID int64
+	ID int32
 	Status int32
 	Speed float32
 	Size float32

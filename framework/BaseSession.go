@@ -8,7 +8,7 @@ import (
 //基础会话类
 type (
 	BaseSession struct {
-		Id int64				//唯一标识号，与player的ID相同
+		Id int32				//唯一标识号，与player的ID相同
 		Sess *kcp.UDPSession	//kcp发送方
 		Status int32			//会话状态：建立、销毁
 		Type int32				//网络类型：TCP、UDP
@@ -20,9 +20,9 @@ type (
 func NewBaseSession(s *kcp.UDPSession) *BaseSession {
 	//kcp session调优
 	s.SetNoDelay(1,10,2,1)
-	//s.SetACKNoDelay(true)
+	s.SetACKNoDelay(true)
 	baseSession := &BaseSession{
-		Id:   tools.UUID_UTIL.GenerateInt64UUID(),
+		Id:   tools.UUID_UTIL.GenerateInt32UUID(),
 		Sess: s,
 	}
 	return baseSession
