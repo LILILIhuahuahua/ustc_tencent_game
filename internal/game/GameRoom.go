@@ -89,6 +89,7 @@ func (g *GameRoom) Unicast(buff []byte, sessionId int64) error {
 func (g *GameRoom) Serv() error {
 	for {
 		conn, err := g.server.Listen.AcceptKCP()
+		conn.SetWindowSize(120, 120)
 		if err != nil {
 			return err
 		}
