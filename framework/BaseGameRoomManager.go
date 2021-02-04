@@ -1,4 +1,5 @@
 package framework
+
 type BaseGameRoomManager interface {
 	FetchGameRoom(id int64) BaseGameRoom
 	RegisterGameRoom(room BaseGameRoom)

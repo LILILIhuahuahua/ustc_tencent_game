@@ -12,7 +12,7 @@ type CoordinateXYInfo struct {
 	CoordinateY float32
 }
 
-func (c *CoordinateXYInfo)FromMessage(obj interface{}) {
+func (c *CoordinateXYInfo) FromMessage(obj interface{}) {
 	pbMsg := obj.(*pb.CoordinateXY)
 	if nil != pbMsg {
 		c.CoordinateX = pbMsg.CoordinateX
@@ -20,15 +20,15 @@ func (c *CoordinateXYInfo)FromMessage(obj interface{}) {
 	}
 }
 
-func (c *CoordinateXYInfo)CopyFromMessage(obj interface{}) event.Event {
+func (c *CoordinateXYInfo) CopyFromMessage(obj interface{}) event.Event {
 	pbMsg := obj.(*pb.CoordinateXY)
 	return &CoordinateXYInfo{
-		CoordinateX:   pbMsg.CoordinateX,
-		CoordinateY:   pbMsg.CoordinateY,
+		CoordinateX: pbMsg.CoordinateX,
+		CoordinateY: pbMsg.CoordinateY,
 	}
 }
 
-func (c *CoordinateXYInfo)ToMessage() interface{} {
+func (c *CoordinateXYInfo) ToMessage() interface{} {
 	return &pb.CoordinateXY{
 		CoordinateX: c.CoordinateX,
 		CoordinateY: c.CoordinateY,

@@ -14,7 +14,7 @@ type MapInfo struct {
 	YMax float32
 }
 
-func (m *MapInfo)FromMessage(obj interface{}) {
+func (m *MapInfo) FromMessage(obj interface{}) {
 	pbMsg := obj.(*pb.MapMsg)
 	m.XMax = pbMsg.XMax
 	m.XMin = pbMsg.XMin
@@ -22,7 +22,7 @@ func (m *MapInfo)FromMessage(obj interface{}) {
 	m.YMin = pbMsg.YMin
 }
 
-func (m *MapInfo)CopyFromMessage(obj interface{}) event.Event {
+func (m *MapInfo) CopyFromMessage(obj interface{}) event.Event {
 	pbMsg := obj.(*pb.MapMsg)
 	return &MapInfo{
 		XMax: pbMsg.XMax,
@@ -32,7 +32,7 @@ func (m *MapInfo)CopyFromMessage(obj interface{}) event.Event {
 	}
 }
 
-func (m *MapInfo)ToMessage() interface{} {
+func (m *MapInfo) ToMessage() interface{} {
 	return &pb.MapMsg{
 		XMax: m.XMax,
 		XMin: m.XMin,

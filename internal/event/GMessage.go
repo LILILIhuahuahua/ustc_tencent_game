@@ -5,13 +5,14 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework"
 	e "github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
 )
+
 type GMessage struct {
 	framework.BaseEvent
 	MsgType int32
 	//GameMsgCode int32
 	//SessionId int64
 	SeqId int32
-	Data e.Event
+	Data  e.Event
 }
 
 func (this *GMessage) ToMessage() interface{} {
@@ -23,7 +24,7 @@ func (this *GMessage) CopyFromMessage(obj interface{}) e.Event {
 	pbMsg := obj.(*pb.GMessage)
 	msg := &GMessage{
 		MsgType: int32(pbMsg.MsgType),
-		SeqId: pbMsg.SeqId,
+		SeqId:   pbMsg.SeqId,
 	}
 	msg.SetCode(int32(pbMsg.MsgCode))
 	msg.SetSessionId(pbMsg.SessionId)
@@ -43,8 +44,7 @@ func (this *GMessage) CopyFromMessage(obj interface{}) e.Event {
 	return msg
 }
 
-//todo：值类型的receiver只能使用值传递
-func (this *GMessage)FromMessage(obj interface{}) {
+func (this *GMessage) FromMessage(obj interface{}) {
 	pbMsg := obj.(*pb.GMessage)
 	this.MsgType = int32(pbMsg.MsgType)
 	this.Code = int32(pbMsg.MsgCode)

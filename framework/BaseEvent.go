@@ -2,7 +2,7 @@ package framework
 
 type BaseEvent struct {
 	SessionId int32
-	Code       int32
+	Code      int32
 	RoomId    int64
 }
 

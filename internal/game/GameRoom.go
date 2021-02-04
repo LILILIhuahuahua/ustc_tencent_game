@@ -17,13 +17,13 @@ import (
 
 //游戏房间类，对应一局游戏
 type GameRoom struct {
-		ID         int64
-		addr       string
-		server     *kcpnet.KcpServer
-		sessions   map[interface{}]*framework.BaseSession
-		dispatcher event.EventDispatcher
-		Heros 	sync.Map
-	}
+	ID         int64
+	addr       string
+	server     *kcpnet.KcpServer
+	sessions   map[interface{}]*framework.BaseSession
+	dispatcher event.EventDispatcher
+	Heros      sync.Map
+}
 
 //数据持有；连接者指针列表
 func NewGameRoom(address string) *GameRoom {
@@ -41,7 +41,7 @@ func NewGameRoom(address string) *GameRoom {
 	}
 }
 
-func (g *GameRoom) GetRoomID() int64{
+func (g *GameRoom) GetRoomID() int64 {
 	return g.ID
 }
 
@@ -75,7 +75,7 @@ func (g *GameRoom) BroadcastAll(buff []byte) error {
 //单播
 func (g *GameRoom) Unicast(buff []byte, sessionId int64) error {
 	session := g.sessions[sessionId]
-	if nil == session{
+	if nil == session {
 		return nil
 	}
 	err := session.SendMessage(buff)
@@ -107,7 +107,7 @@ func (g *GameRoom) Handle(session *framework.BaseSession) {
 		_, err := session.Sess.Read(buf)
 		fmt.Println(string(buf))
 
-		pbMsg:=&pb.GMessage{}
+		pbMsg := &pb.GMessage{}
 		proto.Unmarshal(buf, pbMsg)
 		msg := event2.GMessage{}
 		msg.SetRoomId(g.ID)
@@ -128,52 +128,52 @@ func (g *GameRoom) Handle(session *framework.BaseSession) {
 	}
 }
 
-func (g *GameRoom)onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
+func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
 	enterGameNotify := e.Data.(*request.EnterGameRequest)
 	s.Id = enterGameNotify.PlayerID
 	// todo:先不检测会话存在，放开测试，后期加上
 	//if nil==g.FetchConnector(s.Id) {
-		//注册会话绑定到玩家id
-		g.RegisterConnector(s)
+	//注册会话绑定到玩家id
+	g.RegisterConnector(s)
 	//}
 	//初始化hero加入到对局中
 	hero := model.NewHero()
 	g.RegisterHero(hero)
 	//回包
-	data:=pb.EnterGameResponse{
+	data := pb.EnterGameResponse{
 		ChangeResult: true,
-		HeroId: hero.ID,
+		HeroId:       hero.ID,
 	}
-	resp:=pb.Response{
+	resp := pb.Response{
 		EnterGameResponse: &data,
 	}
-	msg:=pb.GMessage{
-		MsgType: pb.MSG_TYPE_RESPONSE,
-		MsgCode: pb.GAME_MSG_CODE_ENTER_GAME_RESPONSE,
+	msg := pb.GMessage{
+		MsgType:  pb.MSG_TYPE_RESPONSE,
+		MsgCode:  pb.GAME_MSG_CODE_ENTER_GAME_RESPONSE,
 		Response: &resp,
 	}
 	out, _ := proto.Marshal(&msg)
 	GAME_ROOM_MANAGER.Unicast(g.ID, s.Id, out)
 }
 
-func (g *GameRoom)RegisterHero(h *model.Hero) {
+func (g *GameRoom) RegisterHero(h *model.Hero) {
 	hero, _ := g.Heros.Load(h.ID)
-	if nil == hero  {
+	if nil == hero {
 		g.Heros.Store(h.ID, h)
 	}
 }
 
-func (g *GameRoom)ModifyHero(h *model.Hero) {
-		g.Heros.Delete(h.ID)
-		g.Heros.Store(h.ID, h)
+func (g *GameRoom) ModifyHero(h *model.Hero) {
+	g.Heros.Delete(h.ID)
+	g.Heros.Store(h.ID, h)
 }
 
-func (g *GameRoom)FetchHeros() []*model.Hero{
-	heros := make([]*model.Hero,0)
+func (g *GameRoom) FetchHeros() []*model.Hero {
+	heros := make([]*model.Hero, 0)
 	//for k, h := range g.Heros {
 	//	heros = append(heros, h)
 	//}
-	g.Heros.Range(func(k,v interface{}) bool{
+	g.Heros.Range(func(k, v interface{}) bool {
 		heros = append(heros, v.(*model.Hero))
 		return true
 	})

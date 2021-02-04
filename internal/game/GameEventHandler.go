@@ -10,12 +10,11 @@ import (
 	"sync"
 )
 
-type GameEventHandler struct {
-}
+type GameEventHandler struct {}
 
 var GAME_EVENT_HANDLER = &GameEventHandler{}
 
-func (this GameEventHandler)OnEvent(e event.Event) {
+func (this GameEventHandler) OnEvent(e event.Event) {
 	if nil == e {
 		return
 	}
@@ -24,19 +23,19 @@ func (this GameEventHandler)OnEvent(e event.Event) {
 	data := msg.Data
 	switch data.GetCode() {
 
-		case int32(pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_REQUEST):
-			this.onEntityInfoChange(data.(*request.EntityInfoChangeRequest))
+	case int32(pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_REQUEST):
+		this.onEntityInfoChange(data.(*request.EntityInfoChangeRequest))
 
-		default:
-			return
+	default:
+		return
 	}
 }
 
-func (this GameEventHandler)OnEventToSession(e event.Event,s event.Session) {
+func (this GameEventHandler) OnEventToSession(e event.Event, s event.Session) {
 
 }
 
-func (this GameEventHandler)onEntityInfoChange(req *request.EntityInfoChangeRequest) {
+func (this GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeRequest) {
 	//heroId := req.HeroId
 	g := GAME_ROOM_MANAGER.FetchGameRoom(req.RoomId)
 
@@ -53,9 +52,7 @@ func (this GameEventHandler)onEntityInfoChange(req *request.EntityInfoChangeRequ
 		hero.HeroDirection = model.Coordinate{}
 		hero.HeroDirection.X = req.HeroMsg.HeroDirection.CoordinateX
 		hero.HeroDirection.Y = req.HeroMsg.HeroDirection.CoordinateY
-		var lock = sync.Mutex{
-
-		}
+		var lock = sync.Mutex{}
 		lock.Lock()
 		g.ModifyHero(hero)
 		lock.Unlock()
@@ -66,7 +63,7 @@ func (this GameEventHandler)onEntityInfoChange(req *request.EntityInfoChangeRequ
 	data := pb.GameGlobalInfoNotify{
 		HeroNumber: int32(len(heros)),
 	}
-	for _,h:=range heros {
+	for _, h := range heros {
 		hMsg := &pb.HeroMsg{}
 		hMsg.HeroId = h.ID
 		hMsg.HeroSize = h.Size
@@ -80,13 +77,13 @@ func (this GameEventHandler)onEntityInfoChange(req *request.EntityInfoChangeRequ
 		data.HeroMsg = append(data.HeroMsg, hMsg)
 	}
 
-	notify:=pb.Notify{
+	notify := pb.Notify{
 		GameGlobalInfoNotify: &data,
 	}
 	msg := pb.GMessage{
 		MsgType: pb.MSG_TYPE_NOTIFY,
 		MsgCode: pb.GAME_MSG_CODE_GAME_GLOBAL_INFO_NOTIFY,
-		Notify: &notify,
+		Notify:  &notify,
 	}
 
 	//data := pb.EntityInfoChangeResponse{
@@ -101,7 +98,7 @@ func (this GameEventHandler)onEntityInfoChange(req *request.EntityInfoChangeRequ
 	//	Response: &resp,
 	//}
 	out, err := proto.Marshal(&msg)
-	if nil==err {
+	if nil == err {
 
 	}
 	GAME_ROOM_MANAGER.Braodcast(req.GetRoomId(), out)
