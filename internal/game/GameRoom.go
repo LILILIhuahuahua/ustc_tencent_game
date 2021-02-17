@@ -13,6 +13,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"log"
 	"sync"
+	"time"
 )
 
 //游戏房间类，对应一局游戏
@@ -178,4 +179,23 @@ func (g *GameRoom) FetchHeros() []*model.Hero {
 		return true
 	})
 	return heros
+}
+
+//更新英雄位置
+func (g *GameRoom) UpdateHeroPos() {
+	g.Heros.Range(func(k, v interface{}) bool {
+		hero := v.(*model.Hero)
+		nowTime := time.Now().UnixNano() / 1e6
+		timeElapse := nowTime - hero.UpdateTime
+		if timeElapse > int64(time.Second) {
+			timeElapse = int64(time.Second)
+		}
+		hero.UpdateTime = nowTime
+		distance := float64(timeElapse) * float64(hero.Speed) / 1000
+		x, y := tools.CalXY(distance, hero.HeroDirection)
+		hero.HeroPosition.X += x
+		hero.HeroPosition.Y += y
+		g.Heros.Store(k.(int32), hero)
+		return true
+	})
 }

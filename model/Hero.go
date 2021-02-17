@@ -3,6 +3,7 @@ package model
 import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
+	"time"
 )
 
 type Hero struct {
@@ -12,6 +13,8 @@ type Hero struct {
 	Speed       float32
 	HeroDirection Coordinate
 	HeroPosition Coordinate
+	CreateTime	int64
+	UpdateTime 	int64
 }
 
 func NewHero() *Hero {
@@ -30,11 +33,14 @@ func (h *Hero)Init() {
 		X : 0.0,
 		Y: 0.0,
 	}
+	nowTime := time.Now().UnixNano() / 1e6
 	h.ID = tools.UUID_UTIL.GenerateInt32UUID()
 	h.Size = 45.0
 	h.Speed = 8.0
 	h.HeroDirection = dcit
 	h.HeroPosition = pos
+	h.CreateTime = nowTime
+	h.UpdateTime = nowTime
 }
 
 func (h *Hero)ToEvent() info.HeroInfo {
