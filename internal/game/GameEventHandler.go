@@ -4,8 +4,10 @@ import (
 	pb "github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
 	event2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event"
+	notify2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/notify"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"github.com/golang/protobuf/proto"
 	"sync"
 )
@@ -38,7 +40,7 @@ func (this GameEventHandler) OnEventToSession(e event.Event, s event.Session) {
 func (this GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeRequest) {
 	//heroId := req.HeroId
 	g := GAME_ROOM_MANAGER.FetchGameRoom(req.RoomId)
-
+	var pbMsg *pb.GMessage
 	if req.EventType == int32(pb.EVENT_TYPE_HERO_MOVE) {
 		//todo:封装解包类方法
 		hero := &model.Hero{}
@@ -56,35 +58,43 @@ func (this GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReq
 		lock.Lock()
 		g.ModifyHero(hero)
 		lock.Unlock()
+
+		notify := &notify2.EntityInfoChangeNotify{
+			EntityType: tools.HeroType,
+			EntityId: hero.ID,
+			HeroMsg: hero.ToEvent(),
+			//ItemMsg: nil,
+		}
+
+		msg := event2.GMessage{
+			MsgType:     tools.MsgTypeNotify,
+			GameMsgCode: tools.EntityInfoNotify, //这里命名之后要修改
+			SessionId:   req.SessionId,
+			Data:        notify,
+		}
+		pbMsg = msg.ToMessage().(*pb.GMessage)
 	}
 
 	//回包
-	heros := g.FetchHeros()
-	data := pb.GameGlobalInfoNotify{
-		HeroNumber: int32(len(heros)),
-	}
-	for _, h := range heros {
-		hMsg := &pb.HeroMsg{}
-		hMsg.HeroId = h.ID
-		hMsg.HeroSize = h.Size
-		hMsg.HeroSpeed = h.Speed
-		hMsg.HeroPosition = &pb.CoordinateXY{}
-		hMsg.HeroPosition.CoordinateX = h.HeroPosition.X
-		hMsg.HeroPosition.CoordinateY = h.HeroPosition.Y
-		hMsg.HeroDirection = &pb.CoordinateXY{}
-		hMsg.HeroDirection.CoordinateX = h.HeroDirection.X
-		hMsg.HeroDirection.CoordinateY = h.HeroDirection.Y
-		data.HeroMsg = append(data.HeroMsg, hMsg)
-	}
+	//heros := g.FetchHeros()
+	//data := pb.GameGlobalInfoNotify{
+	//	HeroNumber: int32(len(heros)),
+	//}
+	//for _, h := range heros {
+	//	hMsg := &pb.HeroMsg{}
+	//	hMsg.HeroId = h.ID
+	//	hMsg.HeroSize = h.Size
+	//	hMsg.HeroSpeed = h.Speed
+	//	hMsg.HeroPosition = &pb.CoordinateXY{}
+	//	hMsg.HeroPosition.CoordinateX = h.HeroPosition.X
+	//	hMsg.HeroPosition.CoordinateY = h.HeroPosition.Y
+	//	hMsg.HeroDirection = &pb.CoordinateXY{}
+	//	hMsg.HeroDirection.CoordinateX = h.HeroDirection.X
+	//	hMsg.HeroDirection.CoordinateY = h.HeroDirection.Y
+	//	data.HeroMsg = append(data.HeroMsg, hMsg)
+	//}
+	//
 
-	notify := pb.Notify{
-		GameGlobalInfoNotify: &data,
-	}
-	msg := pb.GMessage{
-		MsgType: pb.MSG_TYPE_NOTIFY,
-		MsgCode: pb.GAME_MSG_CODE_GAME_GLOBAL_INFO_NOTIFY,
-		Notify:  &notify,
-	}
 
 	//data := pb.EntityInfoChangeResponse{
 	//	ChangeResult: true,
@@ -97,7 +107,7 @@ func (this GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReq
 	//	MsgCode: pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_RESPONSE,
 	//	Response: &resp,
 	//}
-	out, err := proto.Marshal(&msg)
+	out, err := proto.Marshal(pbMsg)
 	if nil == err {
 
 	}
