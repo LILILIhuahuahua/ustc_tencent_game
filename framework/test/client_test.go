@@ -2,10 +2,10 @@ package test
 
 import (
 	pb "github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"github.com/golang/protobuf/proto"
 	"github.com/xtaci/kcp-go"
 	"io"
@@ -20,8 +20,8 @@ func TestConnect(t *testing.T) {
 	time.Sleep(time.Second)
 
 	msg := event.GMessage{
-		MsgType:     tools.MsgTypeRequest,
-		GameMsgCode: tools.EntityInfoChangeRequest,
+		MsgType:     configs.MsgTypeRequest,
+		GameMsgCode: configs.EntityInfoChangeRequest,
 		SessionId:   0,
 		SeqId:       0,
 		Data:        &request.EntityInfoChangeRequest{

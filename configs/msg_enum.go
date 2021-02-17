@@ -1,4 +1,4 @@
-package tools
+package configs
 
 const (
 	// msg消息类型

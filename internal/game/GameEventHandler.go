@@ -2,12 +2,12 @@ package game
 
 import (
 	pb "github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
 	event2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event"
 	notify2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/notify"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"github.com/golang/protobuf/proto"
 	"sync"
 )
@@ -60,15 +60,15 @@ func (this GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReq
 		lock.Unlock()
 
 		notify := &notify2.EntityInfoChangeNotify{
-			EntityType: tools.HeroType,
-			EntityId: hero.ID,
-			HeroMsg: hero.ToEvent(),
+			EntityType: configs.HeroType,
+			EntityId:   hero.ID,
+			HeroMsg:    hero.ToEvent(),
 			//ItemMsg: nil,
 		}
 
 		msg := event2.GMessage{
-			MsgType:     tools.MsgTypeNotify,
-			GameMsgCode: tools.EntityInfoNotify, //这里命名之后要修改
+			MsgType:     configs.MsgTypeNotify,
+			GameMsgCode: configs.EntityInfoNotify, //这里命名之后要修改
 			SessionId:   req.SessionId,
 			Data:        notify,
 		}
