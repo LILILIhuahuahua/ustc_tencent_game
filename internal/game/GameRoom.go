@@ -46,6 +46,10 @@ func (g *GameRoom) GetRoomID() int64 {
 	return g.ID
 }
 
+func (g *GameRoom) GetHeros() sync.Map{
+	return g.Heros
+}
+
 //注册连接者
 func (g *GameRoom) RegisterConnector(c *framework.BaseSession) error {
 	g.sessions[c.Id] = c

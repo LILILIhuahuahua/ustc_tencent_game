@@ -16,3 +16,11 @@ func CalXY(dis float64, dir model.Coordinate) (x, y float32) {
 	x = y * xDivY
 	return x, y
 }
+
+func getAb(x float32) float32 {
+	if x >= 0 {
+		return x
+ 	} else {
+ 		return -x
+	}
+}

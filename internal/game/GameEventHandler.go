@@ -8,6 +8,7 @@ import (
 	notify2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/notify"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"github.com/golang/protobuf/proto"
 	"sync"
 )
@@ -42,6 +43,19 @@ func (this GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReq
 	g := GAME_ROOM_MANAGER.FetchGameRoom(req.RoomId)
 	var pbMsg *pb.GMessage
 	if req.EventType == int32(pb.EVENT_TYPE_HERO_MOVE) {
+		heros := g.GetHeros()
+		nowHero, ok := heros.Load(req.HeroMsg.ID)
+		if !ok {
+			panic("hero not exists") //之后改成response false
+		}
+		if !tools.JudgePosition(
+			req.HeroMsg.HeroPosition.CoordinateX,
+			req.HeroMsg.HeroPosition.CoordinateY,
+			nowHero.(*model.Hero).HeroPosition,
+			nowHero.(*model.Hero).Speed) {
+			panic("hero position is not correct")
+		}
+
 		//todo:封装解包类方法
 		hero := &model.Hero{}
 		hero.ID = req.HeroMsg.ID
