@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	pb "github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/kcpnet"
@@ -11,7 +12,6 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"github.com/golang/protobuf/proto"
-	"log"
 	"sync"
 	"time"
 )
@@ -72,13 +72,16 @@ func (g *GameRoom) DeleteConnector(c *framework.BaseSession) error {
 func (g *GameRoom) BroadcastAll(buff []byte) error {
 	var sendQueue []*framework.BaseSession
 	g.sessions.Range(func(_, v interface{}) bool {
-		sendQueue = append(sendQueue, v.(*framework.BaseSession))
+		sess := v.(*framework.BaseSession)
+		if sess.Status != configs.SessionStatusDead {
+			sendQueue = append(sendQueue, v.(*framework.BaseSession))
+		}
 		return true
 	})
 	for _, session := range sendQueue {
 		err := session.SendMessage(buff)
 		if nil != err {
-			println(err)
+			println(err.Error())
 			return err
 		}
 	}
@@ -116,9 +119,30 @@ func (g *GameRoom) Serv() error {
 
 func (g *GameRoom) Handle(session *framework.BaseSession) {
 	buf := make([]byte, 4096)
+	defer func() {
+		err := recover()
+		if err != nil {
+			fmt.Println("在handle的时候发生了错误, 错误为：", err)
+		}
+	}()
+
 	for {
-		_, err := session.Sess.Read(buf)
-		fmt.Println(string(buf))
+		session.StatusMutex.Lock()
+		if session.Status == configs.SessionStatusDead {
+			println("baibai")
+			break
+		}
+		//给session加一个读超时函数
+		err := session.Sess.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(2)))
+		if err != nil {
+			panic("setDeadLine出错")
+		}
+		num, _ := session.Sess.Read(buf)
+		session.StatusMutex.Unlock()
+		if num == 0 {
+			continue
+		}
+		session.UpdateTime()
 
 		pbMsg := &pb.GMessage{}
 		proto.Unmarshal(buf, pbMsg)
@@ -126,7 +150,6 @@ func (g *GameRoom) Handle(session *framework.BaseSession) {
 		msg.SetRoomId(g.ID)
 		m := msg.CopyFromMessage(pbMsg)
 		m.SetRoomId(g.ID)
-		println(m)
 		//若为进入世界业务，则不走消息分发，直接创建会话绑定到玩家ID
 		if m.GetCode() == int32(pb.GAME_MSG_CODE_ENTER_GAME_NOTIFY) ||
 			m.GetCode() == int32(pb.GAME_MSG_CODE_ENTER_GAME_REQUEST) {
@@ -134,10 +157,6 @@ func (g *GameRoom) Handle(session *framework.BaseSession) {
 			continue
 		}
 		g.dispatcher.FireEvent(m)
-		if err != nil {
-			log.Println(err)
-			return
-		}
 	}
 }
 
@@ -210,4 +229,24 @@ func (g *GameRoom) UpdateHeroPos() {
 		g.Heros.Store(k.(int32), hero)
 		return true
 	})
+}
+
+func (g *GameRoom) DeleteUnavailableSession() error{
+	var needDelete []*framework.BaseSession
+	//将不能正常通信的session存储到needDelete中
+	g.sessions.Range(func(_, obj interface{}) bool {
+		sess := obj.(*framework.BaseSession)
+		if !sess.IsAvailable() {
+			needDelete = append(needDelete, sess)
+		}
+		return true
+	})
+	for _, session := range needDelete {
+		session.ChangeStatus(configs.SessionStatusDead)
+		err := session.CloseKcpSession()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

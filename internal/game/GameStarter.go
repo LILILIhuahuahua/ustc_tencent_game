@@ -6,6 +6,8 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/notify"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/response"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/scheduler"
+	"time"
 )
 
 type GameStarter struct {
@@ -40,6 +42,9 @@ func (this *GameStarter) init() {
 	event.Manager.Register(int32(pb.GAME_MSG_CODE_ENTER_GAME_REQUEST), &enterGameRequest, GAME_EVENT_HANDLER)
 
 	//todo:启动定时任务
+	//定时检测客户端kcp是否可连通 每5秒检测一次
+	scheduler.NewTimer(time.Second * time.Duration(5), GAME_ROOM_MANAGER.DeleteUnavailableSession)
+	go scheduler.Sched(time.Millisecond * time.Duration(2))
 }
 
 func (this *GameStarter) Boot() {
