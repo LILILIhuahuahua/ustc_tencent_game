@@ -2,42 +2,42 @@ package configs
 
 const (
 	// msg消息类型
-	MsgTypeNotify   = 0
-	MsgTypeRequest  = 1
-	MsgTypeResponse = 2
+	MsgTypeNotify int32 = 0
+	MsgTypeRequest int32 = 1
+	MsgTypeResponse int32 = 2
 
 	// game msg code
-	EntityInfoChangeRequest = 0
-	EntityInfoChangeResponse = 1
-	EntityInfoNotify = 2
-	HeroQuitRequest = 3
-	GameGlobalInfoNotify = 4
-	TimeNotify = 5
-	EnterGameNotify = 6
-	EnterGameRequest = 7
-	EnterGameResponse = 8
+	EntityInfoChangeRequest int32 = 0
+	EntityInfoChangeResponse int32 = 1
+	EntityInfoNotify int32 = 2
+	HeroQuitRequest int32 = 3
+	GameGlobalInfoNotify int32 = 4
+	TimeNotify int32 = 5
+	EnterGameNotify int32 = 6
+	EnterGameRequest int32 = 7
+	EnterGameResponse int32 = 8
 
 	// 英雄状态
-	Live = 0
-	Dead = 1
-	Invincible = 2
+	Live int32 = 0
+	Dead int32 = 1
+	Invincible int32 = 2
 
 	// Item status
-	ItemLive = 0
-	ItemDead = 1
+	ItemLive int32 = 0
+	ItemDead int32 = 1
 
 	// eventType的枚举
-	HeroCollision = 0
-	ItemCollision = 1
-	HeroMove = 2
-	HeroGrow = 3
+	HeroCollision int32 = 0
+	ItemCollision int32 = 1
+	HeroMove int32 = 2
+	HeroGrow int32 = 3
 
 	// entityType的枚举
-	HeroType = 0
-	PropType = 1
-	FoodType = 2
+	HeroType int32 = 0
+	PropType int32 = 1
+	FoodType int32 = 2
 
 	// response的枚举
-	Success = 0
-	Fail = 1
+	Success int32 = 0
+	Fail int32 = 1
 )
