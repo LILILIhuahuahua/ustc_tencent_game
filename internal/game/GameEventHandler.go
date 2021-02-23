@@ -44,15 +44,17 @@ func (this GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReq
 	var pbMsg *pb.GMessage
 	if req.EventType == int32(pb.EVENT_TYPE_HERO_MOVE) {
 		heros := g.GetHeros()
-		nowHero, ok := heros.Load(req.HeroMsg.ID)
+		heroObj, ok := heros.Load(req.HeroMsg.ID)
 		if !ok {
 			panic("hero not exists") //之后改成response false
 		}
+		nowHero := heroObj.(*model.Hero)
 		if !tools.JudgePosition(
 			req.HeroMsg.HeroPosition.CoordinateX,
 			req.HeroMsg.HeroPosition.CoordinateY,
-			nowHero.(*model.Hero).HeroPosition,
-			nowHero.(*model.Hero).Speed) {
+			nowHero.HeroDirection.X,
+			nowHero.HeroDirection.Y,
+			nowHero.Speed) {
 			panic("hero position is not correct")
 		}
 

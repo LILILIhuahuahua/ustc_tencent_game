@@ -204,7 +204,7 @@ func (g *GameRoom) UpdateHeroPos() {
 		}
 		hero.UpdateTime = nowTime
 		distance := float64(timeElapse) * float64(hero.Speed) / 1000
-		x, y := tools.CalXY(distance, hero.HeroDirection)
+		x, y := tools.CalXY(distance, hero.HeroDirection.X, hero.HeroDirection.Y)
 		hero.HeroPosition.X += x
 		hero.HeroPosition.Y += y
 		g.Heros.Store(k.(int32), hero)
