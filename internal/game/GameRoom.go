@@ -21,7 +21,7 @@ type GameRoom struct {
 	ID         int64
 	addr       string
 	server     *kcpnet.KcpServer
-	sessions   map[interface{}]*framework.BaseSession
+	sessions   sync.Map //map[interface{}]*framework.BaseSession
 	dispatcher event.EventDispatcher
 	Heros      sync.Map
 }
@@ -35,7 +35,6 @@ func NewGameRoom(address string) *GameRoom {
 	return &GameRoom{
 		ID:         tools.UUID_UTIL.GenerateInt64UUID(),
 		addr:       address,
-		sessions:   make(map[interface{}]*framework.BaseSession),
 		server:     s,
 		dispatcher: framework.BaseEventDispatcher{},
 		//Heros: make(map[int32]*model.Hero),
@@ -52,12 +51,16 @@ func (g *GameRoom) GetHeros() sync.Map{
 
 //注册连接者
 func (g *GameRoom) RegisterConnector(c *framework.BaseSession) error {
-	g.sessions[c.Id] = c
+	g.sessions.Store(c.Id, c)
 	return nil
 }
 
 func (g *GameRoom) FetchConnector(sessionId int32) *framework.BaseSession {
-	return g.sessions[sessionId]
+	sess, ok := g.sessions.Load(sessionId)
+	if !ok {
+		return nil
+	}
+	return sess.(*framework.BaseSession)
 }
 
 //删除连接者
@@ -67,7 +70,12 @@ func (g *GameRoom) DeleteConnector(c *framework.BaseSession) error {
 
 //广播-全体会话
 func (g *GameRoom) BroadcastAll(buff []byte) error {
-	for _, session := range g.sessions {
+	var sendQueue []*framework.BaseSession
+	g.sessions.Range(func(_, v interface{}) bool {
+		sendQueue = append(sendQueue, v.(*framework.BaseSession))
+		return true
+	})
+	for _, session := range sendQueue {
 		err := session.SendMessage(buff)
 		if nil != err {
 			println(err)
@@ -79,11 +87,11 @@ func (g *GameRoom) BroadcastAll(buff []byte) error {
 
 //单播
 func (g *GameRoom) Unicast(buff []byte, sessionId int64) error {
-	session := g.sessions[sessionId]
-	if nil == session {
+	session, ok := g.sessions.Load(sessionId)
+	if !ok {
 		return nil
 	}
-	err := session.SendMessage(buff)
+	err := session.(*framework.BaseSession).SendMessage(buff)
 	if nil != err {
 		println(err)
 		return err
