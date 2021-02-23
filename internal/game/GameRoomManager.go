@@ -37,11 +37,20 @@ func (m *GameRoomManager) Braodcast(roomId int64, buff []byte) {
 	//m.FetchGameRoom(roomId).FetchConnector(sessionId).SendMessage(buff)
 }
 
-func (m * GameRoomManager) DeleteUnavailableSession() {
+func (m *GameRoomManager) DeleteUnavailableSession() {
 	for _, room := range m.roomMap {
 		err := room.DeleteUnavailableSession()
 		if err != nil {
 			fmt.Println("清理不可用session的时候发生了error: ", err.Error())
+		}
+	}
+}
+
+func (m *GameRoomManager) DeleteDeprecatedHero() {
+	for _, room := range m.roomMap {
+		err := room.DeleteOfflinePlayer()
+		if err != nil {
+			fmt.Println("清理废弃玩家的小球时发生了error: ", err.Error())
 		}
 	}
 }

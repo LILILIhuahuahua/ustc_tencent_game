@@ -1,6 +1,7 @@
 package game
 
 import (
+	"errors"
 	"fmt"
 	pb "github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
@@ -24,6 +25,7 @@ type GameRoom struct {
 	sessions   sync.Map //map[interface{}]*framework.BaseSession
 	dispatcher event.EventDispatcher
 	Heros      sync.Map
+	SessionHeroMap sync.Map //map[sessionId] *model.Hero
 }
 
 //数据持有；连接者指针列表
@@ -171,6 +173,7 @@ func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
 	//初始化hero加入到对局中
 	hero := model.NewHero()
 	g.RegisterHero(hero)
+	g.SessionHeroMap.Store(s.Id, hero)
 	//回包
 	data := pb.EnterGameResponse{
 		ChangeResult: true,
@@ -241,12 +244,36 @@ func (g *GameRoom) DeleteUnavailableSession() error{
 		}
 		return true
 	})
+	//fmt.Println(needDelete)
 	for _, session := range needDelete {
 		session.ChangeStatus(configs.SessionStatusDead)
 		err := session.CloseKcpSession()
 		if err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func (g *GameRoom) DeleteOfflinePlayer() error {
+	var needDelete []*framework.BaseSession
+	g.sessions.Range(func(_, obj interface{}) bool {
+		sess := obj.(*framework.BaseSession)
+		if sess.IsDeprecated() {
+			needDelete = append(needDelete, sess)
+		}
+		return true
+	})
+
+	for _, session := range needDelete {
+		deletedObj, ok := g.SessionHeroMap.Load(session.Id)
+		if !ok {
+			return errors.New("玩家不存在")
+		}
+		hero := deletedObj.(*model.Hero)
+		hero.ChangeHeroStatus(configs.Dead)
+		session.ChangOfflineStatus(true)
+		fmt.Println("我调用了玩家删除函数")
 	}
 	return nil
 }

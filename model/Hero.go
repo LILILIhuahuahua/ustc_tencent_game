@@ -1,6 +1,7 @@
 package model
 
 import (
+	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"time"
@@ -35,6 +36,7 @@ func (h *Hero)Init() {
 	}
 	nowTime := time.Now().UnixNano() / 1e6
 	h.ID = tools.UUID_UTIL.GenerateInt32UUID()
+	h.Status = configs.Live
 	h.Size = 45.0
 	h.Speed = 8.0
 	h.HeroDirection = dcit
@@ -63,4 +65,8 @@ func (h *Hero)FromEvent(info info.HeroInfo)  {
 	h.HeroDirection.FromEvent(info.HeroDirection)
 	h.HeroPosition = Coordinate{}
 	h.HeroPosition.FromEvent(info.HeroPosition)
+}
+
+func (h *Hero) ChangeHeroStatus(status int32) {
+	h.Status = status
 }
