@@ -18,10 +18,10 @@ type (
 		Status             int32           //会话状态：建立、销毁
 		Type               int32           //网络类型：TCP、UDP
 		CreationTime       int64           //会话创建时间
-		LastUpdateTime	   int64  		   //上一次接收到消息的时间
+		LastUpdateTime     int64           //上一次接收到消息的时间
 		LastDisconnectTime int64           //会话上一次断开时间
-		OfflineForever	   bool			   //超过30s没有发送消息即认为该player永久掉线了
-		StatusMutex		   sync.Mutex
+		OfflineForever     bool            //超过30s没有发送消息即认为该player永久掉线了
+		StatusMutex        sync.Mutex
 	}
 )
 
@@ -31,10 +31,10 @@ func NewBaseSession(s *kcp.UDPSession) *BaseSession {
 	s.SetACKNoDelay(true)
 	createTime := time.Now().UnixNano() / 1e6
 	baseSession := &BaseSession{
-		Id:   tools.UUID_UTIL.GenerateInt32UUID(),
-		Sess: s,
-		Status: configs.SessionStatusCreated,
-		CreationTime: createTime,
+		Id:             tools.UUID_UTIL.GenerateInt32UUID(),
+		Sess:           s,
+		Status:         configs.SessionStatusCreated,
+		CreationTime:   createTime,
 		LastUpdateTime: createTime,
 	}
 	return baseSession

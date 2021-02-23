@@ -19,12 +19,12 @@ import (
 
 //游戏房间类，对应一局游戏
 type GameRoom struct {
-	ID         int64
-	addr       string
-	server     *kcpnet.KcpServer
-	sessions   sync.Map //map[interface{}]*framework.BaseSession
-	dispatcher event.EventDispatcher
-	Heros      sync.Map
+	ID             int64
+	addr           string
+	server         *kcpnet.KcpServer
+	sessions       sync.Map //map[interface{}]*framework.BaseSession
+	dispatcher     event.EventDispatcher
+	Heros          sync.Map
 	SessionHeroMap sync.Map //map[sessionId] *model.Hero
 }
 

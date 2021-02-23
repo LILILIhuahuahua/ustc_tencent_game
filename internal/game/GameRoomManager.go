@@ -1,4 +1,5 @@
 package game
+
 import "fmt"
 
 type GameRoomManager struct {
