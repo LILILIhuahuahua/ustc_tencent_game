@@ -19,9 +19,9 @@ import (
 type EntityInfoChangeNotify struct {
 	framework.BaseEvent
 	EntityType int32
-	EntityId int32
-	HeroMsg info.HeroInfo
-	ItemMsg info.ItemInfo
+	EntityId   int32
+	HeroMsg    info.HeroInfo
+	ItemMsg    info.ItemInfo
 }
 
 func (notify *EntityInfoChangeNotify) FromMessage(obj interface{}) {
@@ -43,5 +43,3 @@ func (notify *EntityInfoChangeNotify) ToMessage() interface{} {
 
 	return pbMsg
 }
-
-

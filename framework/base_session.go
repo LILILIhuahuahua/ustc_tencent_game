@@ -2,7 +2,6 @@ package framework
 
 import (
 	"errors"
-	"fmt"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"github.com/xtaci/kcp-go"
@@ -54,7 +53,7 @@ func (c *BaseSession) SendMessage(buff []byte) error {
 func (c *BaseSession) IsAvailable() bool {
 	nowTime := time.Now().UnixNano() / 1e6
 	if c.Status != configs.SessionStatusDead &&
-		nowTime - c.LastUpdateTime >= 5 * int64(time.Second) / 1e6 {
+		nowTime-c.LastUpdateTime >= 5*int64(time.Second)/1e6 {
 		return false
 	}
 	return true
@@ -84,9 +83,9 @@ func (c *BaseSession) CloseKcpSession() error {
 // 30s内如果没有收到玩家的消息，就可以认为玩家永远掉线，需要将offlineForever字段变为true，玩家即使再重连，也需要重新开始
 func (c *BaseSession) IsDeprecated() bool {
 	nowTime := time.Now().UnixNano() / 1e6
-	if	!c.OfflineForever &&
+	if !c.OfflineForever &&
 		c.Status == configs.SessionStatusDead &&
-		nowTime - c.LastDisconnectTime >= 30 * int64(time.Second) / 1e6 { 
+		nowTime-c.LastDisconnectTime >= 30*int64(time.Second)/1e6 {
 		return true
 	}
 	return false

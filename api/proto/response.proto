@@ -2,6 +2,7 @@ syntax = "proto3";
 package proto;
 
 import "msgenum.proto";
+import "struct.proto";
 
 message Response {
   int32 seqId = 1; //消息的编号

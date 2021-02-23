@@ -2,6 +2,7 @@ package game
 
 import (
 	pb "github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/notify"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
@@ -30,6 +31,8 @@ func (this *GameStarter) init() {
 
 	enterGameNotify := notify.EnterGameNotify{}
 	enterGameNotify.SetCode(int32(pb.GAME_MSG_CODE_ENTER_GAME_NOTIFY))
+	gameGlobalInfoNotify := notify.GameGlobalInfoNotify{}
+	gameGlobalInfoNotify.SetCode(int32(pb.GAME_MSG_CODE_GAME_GLOBAL_INFO_NOTIFY))
 	entityInfochangeReq := request.EntityInfoChangeRequest{}
 	entityInfochangeReq.SetCode(int32(pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_REQUEST))
 	entityInfochangeResp := response.EntityInfoChangeResponse{}
@@ -40,12 +43,14 @@ func (this *GameStarter) init() {
 	event.Manager.Register(int32(pb.GAME_MSG_CODE_ENTER_GAME_NOTIFY), &enterGameNotify, GAME_EVENT_HANDLER)
 	event.Manager.Register(int32(pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_REQUEST), &entityInfochangeReq, GAME_EVENT_HANDLER)
 	event.Manager.Register(int32(pb.GAME_MSG_CODE_ENTER_GAME_REQUEST), &enterGameRequest, GAME_EVENT_HANDLER)
+	event.Manager.Register(int32(pb.GAME_MSG_CODE_GAME_GLOBAL_INFO_NOTIFY), &gameGlobalInfoNotify, GAME_EVENT_HANDLER)
 
 	//todo:启动定时任务
 	//定时检测客户端kcp是否可连通 每5秒检测一次
-	scheduler.NewTimer(time.Second * time.Duration(5), GAME_ROOM_MANAGER.DeleteUnavailableSession)
-	scheduler.NewTimer(time.Second * time.Duration(5), GAME_ROOM_MANAGER.DeleteDeprecatedHero)
-	go scheduler.Sched(time.Millisecond * time.Duration(2))
+	scheduler.NewTimer(time.Second*time.Duration(5), GAME_ROOM_MANAGER.DeleteUnavailableSession)
+	scheduler.NewTimer(time.Second*time.Duration(5), GAME_ROOM_MANAGER.DeleteDeprecatedHero)
+	//go scheduler.Sched(time.Millisecond * time.Duration(2))
+	go scheduler.Sched(configs.GlobalInfoNotifyInterval)
 }
 
 func (this *GameStarter) Boot() {

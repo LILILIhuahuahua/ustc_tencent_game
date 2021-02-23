@@ -8,14 +8,14 @@ import (
 )
 
 type Hero struct {
-	ID          int32
-	Status      int32
-	Size        float32
-	Speed       float32
+	ID            int32
+	Status        int32
+	Size          float32
+	Speed         float32
 	HeroDirection Coordinate
-	HeroPosition Coordinate
-	CreateTime	int64
-	UpdateTime 	int64
+	HeroPosition  Coordinate
+	CreateTime    int64
+	UpdateTime    int64
 }
 
 func NewHero() *Hero {
@@ -25,13 +25,13 @@ func NewHero() *Hero {
 	return h
 }
 
-func (h *Hero)Init() {
+func (h *Hero) Init() {
 	dcit := Coordinate{
-		X : 0.0,
+		X: 0.0,
 		Y: 0.0,
 	}
 	pos := Coordinate{
-		X : 0.0,
+		X: 0.0,
 		Y: 0.0,
 	}
 	nowTime := time.Now().UnixNano() / 1e6
@@ -45,18 +45,18 @@ func (h *Hero)Init() {
 	h.UpdateTime = nowTime
 }
 
-func (h *Hero)ToEvent() info.HeroInfo {
+func (h *Hero) ToEvent() info.HeroInfo {
 	return info.HeroInfo{
-		ID: h.ID,
-		Status: h.Status,
-		Speed: h.Speed,
-		Size: h.Size,
+		ID:            h.ID,
+		Status:        h.Status,
+		Speed:         h.Speed,
+		Size:          h.Size,
 		HeroDirection: h.HeroDirection.ToEvent(),
-		HeroPosition: h.HeroPosition.ToEvent(),
+		HeroPosition:  h.HeroPosition.ToEvent(),
 	}
 }
 
-func (h *Hero)FromEvent(info info.HeroInfo)  {
+func (h *Hero) FromEvent(info info.HeroInfo) {
 	h.ID = info.ID
 	h.Status = info.Status
 	h.Speed = info.Speed

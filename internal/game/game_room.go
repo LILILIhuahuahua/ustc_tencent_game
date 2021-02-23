@@ -10,9 +10,11 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/kcpnet"
 	event2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/prop"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"github.com/golang/protobuf/proto"
+	"log"
 	"sync"
 	"time"
 )
@@ -26,6 +28,7 @@ type GameRoom struct {
 	dispatcher     event.EventDispatcher
 	Heros          sync.Map
 	SessionHeroMap sync.Map //map[sessionId] *model.Hero
+	props          *prop.PropsManger
 }
 
 //数据持有；连接者指针列表
@@ -39,6 +42,7 @@ func NewGameRoom(address string) *GameRoom {
 		addr:       address,
 		server:     s,
 		dispatcher: framework.BaseEventDispatcher{},
+		props:      prop.New(),
 		//Heros: make(map[int32]*model.Hero),
 	}
 }
@@ -47,7 +51,7 @@ func (g *GameRoom) GetRoomID() int64 {
 	return g.ID
 }
 
-func (g *GameRoom) GetHeros() sync.Map{
+func (g *GameRoom) GetHeros() sync.Map {
 	return g.Heros
 }
 
@@ -148,10 +152,12 @@ func (g *GameRoom) Handle(session *framework.BaseSession) {
 
 		pbMsg := &pb.GMessage{}
 		proto.Unmarshal(buf, pbMsg)
+		log.Printf("Receive data: %+v", pbMsg)
 		msg := event2.GMessage{}
 		msg.SetRoomId(g.ID)
 		m := msg.CopyFromMessage(pbMsg)
 		m.SetRoomId(g.ID)
+		log.Printf("Build event: %+v", m)
 		//若为进入世界业务，则不走消息分发，直接创建会话绑定到玩家ID
 		if m.GetCode() == int32(pb.GAME_MSG_CODE_ENTER_GAME_NOTIFY) ||
 			m.GetCode() == int32(pb.GAME_MSG_CODE_ENTER_GAME_REQUEST) {
@@ -234,7 +240,7 @@ func (g *GameRoom) UpdateHeroPos() {
 	})
 }
 
-func (g *GameRoom) DeleteUnavailableSession() error{
+func (g *GameRoom) DeleteUnavailableSession() error {
 	var needDelete []*framework.BaseSession
 	//将不能正常通信的session存储到needDelete中
 	g.sessions.Range(func(_, obj interface{}) bool {

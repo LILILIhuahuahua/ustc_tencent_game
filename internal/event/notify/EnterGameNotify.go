@@ -41,7 +41,7 @@ func (e *EnterGameNotify) ToMessage() interface{} {
 		Ip:   e.Connect.Ip,
 		Port: e.Connect.Port,
 	}
-	return pb.EnterGameNotify{
+	return &pb.EnterGameNotify{
 		PlayerId:         e.PlayerID,
 		ClientConnectMsg: infoMsg,
 	}

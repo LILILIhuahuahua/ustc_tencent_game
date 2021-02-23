@@ -30,6 +30,14 @@ func (this *GMessage) ToMessage() interface{} {
 			pbMsgNotify = &pb.Notify{
 				EntityInfoChangeNotify: this.Data.ToMessage().(*pb.EntityInfoChangeNotify),
 			}
+		case *notify.GameGlobalInfoNotify:
+			pbMsgNotify = &pb.Notify{
+				GameGlobalInfoNotify: this.Data.ToMessage().(*pb.GameGlobalInfoNotify),
+			}
+		case *notify.EnterGameNotify:
+			pbMsgNotify = &pb.Notify{
+				EnterGameNotify: this.Data.ToMessage().(*pb.EnterGameNotify),
+			}
 
 		default:
 			panic("no match type")
