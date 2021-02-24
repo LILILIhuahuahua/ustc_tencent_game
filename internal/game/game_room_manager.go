@@ -96,8 +96,18 @@ func (m *GameRoomManager) RegisterGameRoom(room *GameRoom) {
 }
 
 func (m *GameRoomManager) Unicast(roomId int64, sessionId int32, buff []byte) {
+	defer func() {
+		e := recover()
+		if e != nil {
+			fmt.Println("在unicast的时候出错了，错误为：", e)
+		}
+	}()
+
 	r := m.FetchGameRoom(roomId)
 	s := r.FetchConnector(sessionId)
+	if s == nil {
+		panic("没有该玩家")
+	}
 	s.SendMessage(buff)
 	//m.FetchGameRoom(roomId).FetchConnector(sessionId).SendMessage(buff)
 	println("hello")
