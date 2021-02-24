@@ -223,21 +223,22 @@ func (g *GameRoom) FetchHeros() []*model.Hero {
 
 //更新英雄位置
 func (g *GameRoom) UpdateHeroPos() {
+	var needToUpdate []*model.Hero
 	g.Heros.Range(func(k, v interface{}) bool {
-		hero := v.(*model.Hero)
-		nowTime := time.Now().UnixNano() / 1e6
+		needToUpdate = append(needToUpdate, v.(*model.Hero))
+		return true
+	})
+	
+	for _, hero := range needToUpdate {
+		nowTime := time.Now().UnixNano()
 		timeElapse := nowTime - hero.UpdateTime
-		if timeElapse > int64(time.Second) {
-			timeElapse = int64(time.Second)
-		}
 		hero.UpdateTime = nowTime
-		distance := float64(timeElapse) * float64(hero.Speed) / 1000
+		distance := float64(timeElapse) * float64(hero.Speed) / 1e9
 		x, y := tools.CalXY(distance, hero.HeroDirection.X, hero.HeroDirection.Y)
 		hero.HeroPosition.X += x
 		hero.HeroPosition.Y += y
-		g.Heros.Store(k.(int32), hero)
-		return true
-	})
+		g.Heros.Store(hero.ID, hero)
+	}
 }
 
 func (g *GameRoom) DeleteUnavailableSession() error {

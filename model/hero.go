@@ -34,7 +34,7 @@ func (h *Hero) Init() {
 		X: 0.0,
 		Y: 0.0,
 	}
-	nowTime := time.Now().UnixNano() / 1e6
+	nowTime := time.Now().UnixNano()
 	h.ID = tools.UUID_UTIL.GenerateInt32UUID()
 	h.Status = configs.Live
 	h.Size = 45.0
