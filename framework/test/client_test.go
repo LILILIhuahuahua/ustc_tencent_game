@@ -123,8 +123,9 @@ func receive(sess *kcp.UDPSession) {
 			log.Println("Receive enter game response")
 			log.Printf("%+v", msg.Response.EnterGameResponse)
 		case pb.GAME_MSG_CODE_GAME_GLOBAL_INFO_NOTIFY:
+			items := msg.Notify.GameGlobalInfoNotify.ItemMsg
 			log.Println("Receive game global info notify")
-			log.Printf("%+v", msg.Notify.GameGlobalInfoNotify)
+			log.Printf("Item info: type %v, id %v,status %v",items[0].ItemType,items[0].ItemId,items[0].ItemStatus)
 		case pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_RESPONSE:
 			log.Println("Receive entity info change response")
 			log.Printf("%+v", msg.Response.EntityChangeResponse)

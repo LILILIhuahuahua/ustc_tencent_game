@@ -39,8 +39,8 @@ func (item *ItemInfo) CopyFromMessage(obj interface{}) event.Event {
 func (item *ItemInfo) ToMessage() interface{} {
 	pbMsg := &pb.ItemMsg{
 		ItemId: item.ID,
-		//ItemType: (item.Type),
-		//ItemStatus: item.Status,
+		ItemType: pb.ENTITY_TYPE(item.Type),
+		ItemStatus: pb.ITEM_STATUS(item.Status),
 		ItemPosition: item.ItemPosition.ToMessage().(*pb.CoordinateXY),
 	}
 	//todo:补齐类型和状态
