@@ -7,6 +7,7 @@ import (
 	e "github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/notify"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
+	response2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/response"
 )
 
 type GMessage struct {
@@ -52,6 +53,12 @@ func (this *GMessage) ToMessage() interface{} {
 		}
 		break
 	case configs.MsgTypeResponse:
+		switch this.Data.(type) {
+		case *response2.EntityInfoChangeResponse:
+			pbMsgResponse = &pb.Response{
+				EntityChangeResponse: this.Data.ToMessage().(*pb.EntityInfoChangeResponse),
+			}
+		}
 		break
 	default:
 		panic("msg type is incorrect")

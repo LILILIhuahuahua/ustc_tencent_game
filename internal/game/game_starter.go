@@ -49,7 +49,6 @@ func (this *GameStarter) init() {
 	//定时检测客户端kcp是否可连通 每5秒检测一次
 	scheduler.NewTimer(time.Second*time.Duration(5), GAME_ROOM_MANAGER.DeleteUnavailableSession)
 	scheduler.NewTimer(time.Second*time.Duration(5), GAME_ROOM_MANAGER.DeleteDeprecatedHero)
-	//go scheduler.Sched(time.Millisecond * time.Duration(2))
 	go scheduler.Sched(configs.GlobalInfoNotifyInterval)
 }
 

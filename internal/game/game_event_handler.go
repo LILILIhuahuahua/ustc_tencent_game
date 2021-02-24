@@ -7,6 +7,7 @@ import (
 	event2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event"
 	notify2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/notify"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
+	response2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/response"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	"github.com/golang/protobuf/proto"
 	"sync"
@@ -41,7 +42,7 @@ func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReques
 	//heroId := req.HeroId
 	//room := GAME_ROOM_MANAGER.FetchGameRoom(req.RoomId)
 	r := GAME_ROOM_MANAGER.FetchGameRoom(req.RoomId)
-	var pbMsg *pb.GMessage
+	var pbNotifyMsg, pbResponseMsg *pb.GMessage
 	if req.EventType == int32(pb.EVENT_TYPE_HERO_MOVE) {
 		//heros := room.GetHeros()
 		//heroObj, ok := heros.Load(req.HeroMsg.ID)
@@ -82,13 +83,25 @@ func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReques
 			//ItemMsg: nil,
 		}
 
-		msg := event2.GMessage{
+		response := &response2.EntityInfoChangeResponse{
+			ChangeResult: true,
+		}
+
+		notifyMsg := event2.GMessage{
 			MsgType:     configs.MsgTypeNotify,
 			GameMsgCode: configs.EntityInfoNotify, //这里命名之后要修改
 			SessionId:   req.SessionId,
 			Data:        notify,
 		}
-		pbMsg = msg.ToMessage().(*pb.GMessage)
+
+		responseMsg := event2.GMessage{
+			MsgType:	 configs.MsgTypeResponse,
+			GameMsgCode: configs.EntityInfoChangeResponse,
+			SessionId: 	 req.SessionId,
+			Data:		 response,
+		}
+		pbNotifyMsg = notifyMsg.ToMessage().(*pb.GMessage)
+		pbResponseMsg = responseMsg.ToMessage().(*pb.GMessage)
 	}
 
 	//回包
@@ -122,9 +135,11 @@ func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReques
 	//	MsgCode: pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_RESPONSE,
 	//	Response: &resp,
 	//}
-	out, err := proto.Marshal(pbMsg)
+	outNotify, err := proto.Marshal(pbNotifyMsg)
+	outResponse, err := proto.Marshal(pbResponseMsg)
 	if nil == err {
 
 	}
-	GAME_ROOM_MANAGER.Braodcast(req.GetRoomId(), out)
+	GAME_ROOM_MANAGER.Braodcast(req.GetRoomId(), outNotify)
+	GAME_ROOM_MANAGER.Unicast(req.GetRoomId(), req.SessionId ,outResponse)
 }
