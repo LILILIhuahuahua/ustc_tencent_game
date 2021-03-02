@@ -8,6 +8,7 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/kcpnet"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/aoi"
 	event2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/prop"
@@ -29,6 +30,7 @@ type GameRoom struct {
 	Heros          sync.Map
 	SessionHeroMap sync.Map //map[sessionId] *model.Hero
 	props          *prop.PropsManger
+	towers		   []*aoi.Tower
 }
 
 //数据持有；连接者指针列表
@@ -43,6 +45,7 @@ func NewGameRoom(address string) *GameRoom {
 		server:     s,
 		dispatcher: framework.BaseEventDispatcher{},
 		props:      prop.New(),
+		towers:		aoi.InitTowers(),
 		//Heros: make(map[int32]*model.Hero),
 	}
 }
@@ -53,6 +56,10 @@ func (g *GameRoom) GetRoomID() int64 {
 
 func (g *GameRoom) GetHeros() sync.Map {
 	return g.Heros
+}
+
+func (g *GameRoom) GetTowers() []*aoi.Tower {
+	return g.towers
 }
 
 //注册连接者
@@ -228,7 +235,7 @@ func (g *GameRoom) UpdateHeroPos() {
 		needToUpdate = append(needToUpdate, v.(*model.Hero))
 		return true
 	})
-	
+	towers := g.GetTowers()
 	for _, hero := range needToUpdate {
 		nowTime := time.Now().UnixNano()
 		timeElapse := nowTime - hero.UpdateTime
@@ -237,6 +244,17 @@ func (g *GameRoom) UpdateHeroPos() {
 		x, y := tools.CalXY(distance, hero.HeroDirection.X, hero.HeroDirection.Y)
 		hero.HeroPosition.X += x
 		hero.HeroPosition.Y += y
+		towerId := tools.CalTowerId(x, y) //计算更新位置之后的towerId
+		if towerId != hero.TowerId {
+			otherIds := tools.GetOtherTowers(towerId)
+			if otherIds == nil {
+				fmt.Println("获取其他TowerId的时候出错了")
+			}
+			hero.OtherTowers = sync.Map{}
+			for _, id := range otherIds { //重新生成otherTowers
+				hero.OtherTowers.Store(id, towers[id])
+			}
+		}
 		g.Heros.Store(hero.ID, hero)
 	}
 }

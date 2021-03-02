@@ -17,8 +17,8 @@ type Hero struct {
 	HeroPosition  Coordinate
 	CreateTime    int64
 	UpdateTime    int64
-	Tower		  int32 // 所属的towerId
-	OtherTowers	  sync.Map // 九宫格内其他的tower
+	TowerId		  int32 // 所属的towerId
+	OtherTowers	  sync.Map // 九宫格内其他的tower TowerId *aoi.Tower
 }
 
 func NewHero() *Hero {

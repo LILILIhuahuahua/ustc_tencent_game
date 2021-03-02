@@ -1,7 +1,6 @@
 package tools
 
 import (
-	"errors"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"math"
 )
@@ -27,13 +26,15 @@ func getAb(x float32) float32 {
 	}
 }
 
+// 根据游戏坐标计算towerId
 func CalTowerId(coordX, coordY float32) int32 { //通过游戏中的横纵坐标来计算出Tower的ID
 	col := int32((coordX - configs.MapMinX) / configs.TowerDiameter)
 	row := int32((coordY - configs.MapMinY) / configs.TowerDiameter)
 	return row*configs.TowerCols + col
 }
 
-func GetOtherTowers(towerId int32) ([]int32, error) {
+// 根据towerId计算周围towerId
+func GetOtherTowers(towerId int32) []int32 {
 	var towers []int32
 	towerRow := towerId / configs.TowerCols
 	towerCol := towerId % configs.TowerCols
@@ -51,7 +52,7 @@ func GetOtherTowers(towerId int32) ([]int32, error) {
 			towerId - configs.TowerCols + 1,
 			towerId - configs.TowerCols - 1,
 			)
-		return towers, nil
+		return towers
 	}
 
 	if towerRow == 0 {
@@ -63,7 +64,7 @@ func GetOtherTowers(towerId int32) ([]int32, error) {
 				towerId + configs.TowerCols,
 				towerId + configs.TowerCols + 1,
 				)
-			return towers, nil
+			return towers
 		case configs.TowerCols - 1:
 			towers = append(
 				towers,
@@ -71,7 +72,7 @@ func GetOtherTowers(towerId int32) ([]int32, error) {
 				towerId + configs.TowerCols,
 				towerId + configs.TowerCols - 1,
 				)
-			return towers, nil
+			return towers
 		default:
 			towers = append(
 				towers,
@@ -81,7 +82,7 @@ func GetOtherTowers(towerId int32) ([]int32, error) {
 				towerId + configs.TowerCols + 1,
 				towerId + configs.TowerCols - 1,
 				)
-			return towers, nil
+			return towers
 		}
 	} else if towerRow == configs.TowerRows - 1 {
 		switch towerCol {
@@ -92,7 +93,7 @@ func GetOtherTowers(towerId int32) ([]int32, error) {
 				towerId - configs.TowerCols,
 				towerId - configs.TowerCols + 1,
 				)
-			return towers, nil
+			return towers
 		case configs.TowerCols - 1:
 			towers = append(
 				towers,
@@ -100,7 +101,7 @@ func GetOtherTowers(towerId int32) ([]int32, error) {
 				towerId - configs.TowerCols,
 				towerId - configs.TowerCols - 1,
 				)
-			return towers, nil
+			return towers
 		default:
 			towers = append(
 				towers,
@@ -110,7 +111,7 @@ func GetOtherTowers(towerId int32) ([]int32, error) {
 				towerId - configs.TowerCols + 1,
 				towerId - configs.TowerCols - 1,
 				)
-			return towers, nil
+			return towers
 		}
 	} else {
 		switch towerCol {
@@ -123,7 +124,7 @@ func GetOtherTowers(towerId int32) ([]int32, error) {
 				towerId + configs.TowerCols + 1,
 				towerId - configs.TowerCols + 1,
 				)
-			return towers, nil
+			return towers
 		case configs.TowerCols - 1:
 			towers = append(
 				towers,
@@ -133,8 +134,8 @@ func GetOtherTowers(towerId int32) ([]int32, error) {
 				towerId - configs.TowerCols - 1,
 				towerId - 1,
 				)
-			return towers, nil
+			return towers
 		}
 	}
-	return nil, errors.New("在计算其他Tower的时候出错了")
+	return nil
 }
