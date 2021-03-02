@@ -4,6 +4,7 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
+	"sync"
 	"time"
 )
 
@@ -16,6 +17,8 @@ type Hero struct {
 	HeroPosition  Coordinate
 	CreateTime    int64
 	UpdateTime    int64
+	Tower		  int32 // 所属的towerId
+	OtherTowers	  sync.Map // 九宫格内其他的tower
 }
 
 func NewHero() *Hero {

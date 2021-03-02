@@ -1,6 +1,9 @@
 package configs
 
-import "time"
+import (
+	"math"
+	"time"
+)
 
 var (
 	// Map info
@@ -8,6 +11,15 @@ var (
 	MapMaxX float32 = 1507
 	MapMinY float32 = -361
 	MapMaxY float32 = 1118
+
+	// Aoi coordinate
+	TileSize float32 = 1 //地图瓦片大小，一个瓦片对应一个地图坐标
+	TowerRadius float32 = 50 // 灯塔AOI半径
+	TowerDiameter float32 = TowerRadius * 2 //灯塔AOI直径
+	PlayerRange float32 = 100 // 玩家视野半径
+	TowerCols int32 = int32(math.Ceil(float64((MapMaxX - MapMinX) / TowerDiameter))) // 整个地图中有多少列Tower 从1开始
+	TowerRows int32 = int32(math.Ceil(float64((MapMaxY - MapMinY) / TowerDiameter))) // 整个地图中有多少行Tower 从1开始
+
 
 	// Prop max count in map
 	MaxPropCountInMap int = 50
