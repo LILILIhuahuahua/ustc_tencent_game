@@ -187,6 +187,15 @@ func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
 	hero := model.NewHero()
 	g.RegisterHero(hero)
 	g.SessionHeroMap.Store(s.Id, hero)
+	// 视野处理
+	towers := g.GetTowers()
+	towerId := tools.CalTowerId(hero.HeroDirection.X, hero.HeroDirection.Y)
+	otherTowers := tools.GetOtherTowers(towerId)
+	hero.TowerId = towerId
+	for _, id := range otherTowers {  //存储周围的towerId到hero
+		hero.OtherTowers.Store(id, towers[towerId])
+	}
+	towers[towerId].HeroEnter(hero) //将hero存入tower中
 	//回包
 	data := pb.EnterGameResponse{
 		ChangeResult: true,
@@ -244,15 +253,32 @@ func (g *GameRoom) UpdateHeroPos() {
 		x, y := tools.CalXY(distance, hero.HeroDirection.X, hero.HeroDirection.Y)
 		hero.HeroPosition.X += x
 		hero.HeroPosition.Y += y
-		towerId := tools.CalTowerId(x, y) //计算更新位置之后的towerId
+		towerId := tools.CalTowerId(x, y) // 计算更新位置之后的towerId
 		if towerId != hero.TowerId {
+			towers[towerId].HeroEnter(hero) // 将hero加入灯塔中
+			towers[hero.TowerId].HeroLeave(hero) // 将hero从原来灯塔中删除
 			otherIds := tools.GetOtherTowers(towerId)
 			if otherIds == nil {
 				fmt.Println("获取其他TowerId的时候出错了")
 			}
-			hero.OtherTowers = sync.Map{}
-			for _, id := range otherIds { //重新生成otherTowers
-				hero.OtherTowers.Store(id, towers[id])
+			midMap := make(map[int32]bool) // 其实相当于一个set，查询元素是否在其中的时间复杂度为O(1)
+			for _, id := range otherIds {
+				midMap[id] = false
+			}
+			hero.OtherTowers.Range(func(k, v interface{}) bool {
+				if _, ok := midMap[k.(int32)]; !ok {  // 如果新的otherTowerId中没有该key，证明该key所对应的tower不在九宫格范围内
+					hero.OtherTowers.Delete(k)
+				} else {
+					midMap[k.(int32)] = true
+				}
+				return true
+			})
+			// 接下来处理新加入的otherTowerId
+			for k, v := range midMap {
+				if !v {
+					hero.OtherTowers.Store(k, towers[k])
+					midMap[k] = true
+				}
 			}
 		}
 		g.Heros.Store(hero.ID, hero)
@@ -261,7 +287,7 @@ func (g *GameRoom) UpdateHeroPos() {
 
 func (g *GameRoom) DeleteUnavailableSession() error {
 	var needDelete []*framework.BaseSession
-	//将不能正常通信的session存储到needDelete中
+	// 将不能正常通信的session存储到needDelete中
 	g.sessions.Range(func(_, obj interface{}) bool {
 		sess := obj.(*framework.BaseSession)
 		if !sess.IsAvailable() {
