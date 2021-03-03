@@ -122,7 +122,7 @@ func (m *GameRoomManager) Braodcast(roomId int64, buff []byte) {
 func (m *GameRoomManager) MutiplecastToNearBy(roomId int64, buf []byte, hero *model.Hero) {
 	r := m.FetchGameRoom(roomId)
 	sessionToSend := r.GetPlayersNearby(hero)
-	r.Mutiplecast(buf, sessionToSend)
+	r.Multiplecast(buf, sessionToSend)
 }
 
 func (m *GameRoomManager) DeleteUnavailableSession() {

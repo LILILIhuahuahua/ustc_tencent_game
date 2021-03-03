@@ -115,7 +115,7 @@ func (g *GameRoom) Unicast(buff []byte, sessionId int64) error {
 }
 
 //多播
-func (g *GameRoom) Mutiplecast(buff []byte, sessions []*framework.BaseSession) error {
+func (g *GameRoom) Multiplecast(buff []byte, sessions []*framework.BaseSession) error {
 	for _, session := range sessions {
 		err := session.SendMessage(buff)
 		if nil != err {
@@ -141,7 +141,7 @@ func (g *GameRoom) GetPlayersNearby(hero *model.Hero) []*framework.BaseSession {
 		heros = append(heros, tower.GetHeros()...)
 	}
 	for _, hero := range heros {
-		if hero.Session != nil {
+		if hero.Session != nil && hero.Session.Status == configs.SessionStatusCreated {
 			players = append(players, hero.Session)
 		} else {
 			fmt.Println("hero的session为null")

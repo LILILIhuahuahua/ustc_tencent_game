@@ -30,6 +30,7 @@ func (g *GameRoom) DeleteUnavailableSession() error {
 }
 
 func (g *GameRoom) DeleteOfflinePlayer() error {
+	towers := g.GetTowers()
 	var needDelete []*framework.BaseSession
 	g.sessions.Range(func(_, obj interface{}) bool {
 		sess := obj.(*framework.BaseSession)
@@ -46,6 +47,7 @@ func (g *GameRoom) DeleteOfflinePlayer() error {
 		}
 		hero := deletedObj.(*model.Hero)
 		hero.ChangeHeroStatus(configs.Dead)
+		towers[hero.TowerId].HeroLeave(hero)
 		session.ChangOfflineStatus(true)
 		fmt.Println("我调用了玩家删除函数")
 	}
