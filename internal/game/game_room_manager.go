@@ -135,3 +135,9 @@ func (m *GameRoomManager) DeleteDeprecatedHero() {
 		}
 	}
 }
+
+func (m *GameRoomManager) UpdateHeroPosition() {
+	for _, room := range m.roomMap {
+		room.UpdateHeroPos()
+	}
+}
