@@ -110,7 +110,6 @@ func (m *GameRoomManager) Unicast(roomId int64, sessionId int32, buff []byte) {
 	}
 	s.SendMessage(buff)
 	//m.FetchGameRoom(roomId).FetchConnector(sessionId).SendMessage(buff)
-	println("hello")
 }
 
 func (m *GameRoomManager) Braodcast(roomId int64, buff []byte) {

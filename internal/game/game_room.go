@@ -157,7 +157,7 @@ func (g *GameRoom) Handle(session *framework.BaseSession) {
 		msg.SetRoomId(g.ID)
 		m := msg.CopyFromMessage(pbMsg)
 		m.SetRoomId(g.ID)
-		log.Printf("Build event: %+v", m)
+		//log.Printf("Build event: %+v", m)
 		//若为进入世界业务，则不走消息分发，直接创建会话绑定到玩家ID
 		if m.GetCode() == int32(pb.GAME_MSG_CODE_ENTER_GAME_NOTIFY) ||
 			m.GetCode() == int32(pb.GAME_MSG_CODE_ENTER_GAME_REQUEST) {
@@ -192,6 +192,7 @@ func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
 		MsgType:  pb.MSG_TYPE_RESPONSE,
 		MsgCode:  pb.GAME_MSG_CODE_ENTER_GAME_RESPONSE,
 		Response: &resp,
+		SendTime: tools.TIME_UTIL.NowMillis(),
 	}
 	out, _ := proto.Marshal(&msg)
 	GAME_ROOM_MANAGER.Unicast(g.ID, s.Id, out)

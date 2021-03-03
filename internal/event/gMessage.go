@@ -8,6 +8,7 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/notify"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
 	response2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/response"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 )
 
 type GMessage struct {
@@ -16,6 +17,7 @@ type GMessage struct {
 	GameMsgCode int32
 	SessionId   int32
 	SeqId       int32
+	SendTime	int64
 	Data        e.Event
 }
 
@@ -71,6 +73,7 @@ func (this *GMessage) ToMessage() interface{} {
 		Notify:    pbMsgNotify,
 		Request:   pbMsgRequest,
 		Response:  pbMsgResponse,
+		SendTime: tools.TIME_UTIL.NowMillis(),
 	}
 
 	return pbMsg
@@ -84,6 +87,7 @@ func (this *GMessage) CopyFromMessage(obj interface{}) e.Event {
 	}
 	msg.SetCode(int32(pbMsg.MsgCode))
 	msg.SetSessionId(pbMsg.SessionId)
+	msg.SendTime = pbMsg.SendTime
 	event := e.Manager.FetchEvent(msg.GetCode())
 	if pb.MSG_TYPE_NOTIFY == pbMsg.MsgType {
 		msg.Data = event.CopyFromMessage(pbMsg.Notify)
@@ -106,7 +110,7 @@ func (this *GMessage) FromMessage(obj interface{}) {
 	this.Code = int32(pbMsg.MsgCode)
 	this.SessionId = pbMsg.SessionId
 	this.SeqId = pbMsg.SeqId
-
+	this.SendTime = pbMsg.SendTime
 	event := e.Manager.FetchEvent(this.GetCode())
 	if pb.MSG_TYPE_NOTIFY == pbMsg.MsgType {
 		this.Data = event.CopyFromMessage(pbMsg.Notify)
