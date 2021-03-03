@@ -8,6 +8,7 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
 	notify2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/notify"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/scheduler"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	"github.com/golang/protobuf/proto"
 	"log"
 )
@@ -116,6 +117,12 @@ func (m *GameRoomManager) Braodcast(roomId int64, buff []byte) {
 	r := m.FetchGameRoom(roomId)
 	r.BroadcastAll(buff)
 	//m.FetchGameRoom(roomId).FetchConnector(sessionId).SendMessage(buff)
+}
+
+func (m *GameRoomManager) MutiplecastToNearBy(roomId int64, buf []byte, hero *model.Hero) {
+	r := m.FetchGameRoom(roomId)
+	sessionToSend := r.GetPlayersNearby(hero)
+	r.Mutiplecast(buf, sessionToSend)
 }
 
 func (m *GameRoomManager) DeleteUnavailableSession() {

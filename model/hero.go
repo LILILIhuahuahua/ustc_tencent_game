@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/framework"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"sync"
@@ -19,16 +20,17 @@ type Hero struct {
 	UpdateTime    int64
 	TowerId		  int32 // 所属的towerId
 	OtherTowers	  sync.Map // 九宫格内其他的tower TowerId *aoi.Tower
+	Session       *framework.BaseSession //该hero对应的session
 }
 
-func NewHero() *Hero {
+func NewHero(sess *framework.BaseSession) *Hero {
 	h := &Hero{}
 	//初始化英雄数据
-	h.Init()
+	h.Init(sess)
 	return h
 }
 
-func (h *Hero) Init() {
+func (h *Hero) Init(sess *framework.BaseSession) {
 	dcit := Coordinate{
 		X: 0.0,
 		Y: 0.0,
@@ -46,6 +48,7 @@ func (h *Hero) Init() {
 	h.HeroPosition = pos
 	h.CreateTime = nowTime
 	h.UpdateTime = nowTime
+	h.Session = sess
 }
 
 func (h *Hero) ToEvent() info.HeroInfo {
