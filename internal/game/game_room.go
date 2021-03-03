@@ -141,7 +141,11 @@ func (g *GameRoom) GetPlayersNearby(hero *model.Hero) []*framework.BaseSession {
 		heros = append(heros, tower.GetHeros()...)
 	}
 	for _, hero := range heros {
-		players = append(players, hero.Session)
+		if hero.Session != nil {
+			players = append(players, hero.Session)
+		} else {
+			fmt.Println("hero的session为null")
+		}
 	}
 	return players
 }
