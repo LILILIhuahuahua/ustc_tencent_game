@@ -16,6 +16,7 @@ enum GAME_MSG_CODE {
     ENTER_GAME_NOTIFY=6;//EnterGameNotify
     ENTER_GAME_REQUEST=7;
     ENTER_GAME_RESPONSE=8;
+    HERO_VIEW_NOTIFY=9;
 }
 
 enum HERO_STATUS {
@@ -49,5 +50,11 @@ enum ENTITY_TYPE {
 enum RESULT_TYPE {
   SUCCESS = 0; //成功
   FAIL = 1; //失败
+}
+
+// 视野通知的类型
+enum VIEW_TYPE {
+  ENTER = 0; // 进入视野范围
+  LEAVE = 1; // 离开视野范围
 }
 
