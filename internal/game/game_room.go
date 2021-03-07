@@ -1,6 +1,7 @@
 package game
 
 import (
+	"errors"
 	"fmt"
 	pb "github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
@@ -14,7 +15,6 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"github.com/golang/protobuf/proto"
-	"log"
 	"sync"
 	"time"
 )
@@ -101,12 +101,11 @@ func (g *GameRoom) BroadcastAll(buff []byte) error {
 }
 
 //单播
-func (g *GameRoom) Unicast(buff []byte, sessionId int64) error {
-	session, ok := g.sessions.Load(sessionId)
-	if !ok {
-		return nil
+func (g *GameRoom) Unicast(buff []byte, session *framework.BaseSession) error {
+	if session == nil {
+		return errors.New("session 为空")
 	}
-	err := session.(*framework.BaseSession).SendMessage(buff)
+	err := session.SendMessage(buff)
 	if nil != err {
 		println(err)
 		return err
@@ -127,9 +126,8 @@ func (g *GameRoom) Multiplecast(buff []byte, sessions []*framework.BaseSession) 
 }
 
 // 获取某玩家附近的玩家
-func (g *GameRoom) GetPlayersNearby(hero *model.Hero) []*framework.BaseSession {
+func (g *GameRoom) GetPlayersNearby(hero *model.Hero) []*model.Hero {
 	towers := g.GetTowers()
-	var players []*framework.BaseSession
 	var heros []*model.Hero
 	var towersOfPlayer []*aoi.Tower
 	hero.OtherTowers.Range(func(k, v interface{}) bool {
@@ -140,14 +138,7 @@ func (g *GameRoom) GetPlayersNearby(hero *model.Hero) []*framework.BaseSession {
 	for _, tower := range towersOfPlayer {
 		heros = append(heros, tower.GetHeros()...)
 	}
-	for _, hero := range heros {
-		if hero.Session != nil && hero.Session.Status == configs.SessionStatusCreated {
-			players = append(players, hero.Session)
-		} else {
-			fmt.Println("hero的session为null")
-		}
-	}
-	return players
+	return heros
 }
 
 func (g *GameRoom) Serv() error {
@@ -194,7 +185,7 @@ func (g *GameRoom) Handle(session *framework.BaseSession) {
 
 		pbMsg := &pb.GMessage{}
 		proto.Unmarshal(buf, pbMsg)
-		log.Printf("Receive data: %+v", pbMsg)
+		//log.Printf("Receive data: %+v", pbMsg)
 		msg := event2.GMessage{}
 		msg.SetRoomId(g.ID)
 		m := msg.CopyFromMessage(pbMsg)
@@ -257,9 +248,15 @@ func (g *GameRoom) RegisterHero(h *model.Hero) {
 }
 
 // 在修改hero的位置信息的时候，会将灯塔进行更新
-func (g *GameRoom) ModifyHero(hero *model.Hero) {
+func (g *GameRoom) ModifyHero(modifyHero *model.Hero) {
+	heroObj, _ := g.Heros.Load(modifyHero.ID)
+	hero := heroObj.(*model.Hero)
+	hero.HeroPosition = modifyHero.HeroPosition
+	hero.HeroDirection = modifyHero.HeroDirection
+	hero.Speed = modifyHero.Speed
+	hero.Size = modifyHero.Size
 	towers := g.GetTowers()
-	towerId := tools.CalTowerId(hero.HeroPosition.X, hero.HeroPosition.Y) // 计算更新位置之后的towerId
+	towerId := tools.CalTowerId(modifyHero.HeroPosition.X, modifyHero.HeroPosition.Y) // 计算更新位置之后的towerId
 	if towerId != hero.TowerId {
 		towers[towerId].HeroEnter(hero) // 将hero加入灯塔中
 		towers[hero.TowerId].HeroLeave(hero) // 将hero从原来灯塔中删除
@@ -272,17 +269,23 @@ func (g *GameRoom) ModifyHero(hero *model.Hero) {
 		for _, id := range otherIds {
 			midMap[id] = false
 		}
+		var needToDelete []*aoi.Tower
 		hero.OtherTowers.Range(func(k, v interface{}) bool {
 			if _, ok := midMap[k.(int32)]; !ok {  // 如果新的otherTowerId中没有该key，证明该key所对应的tower不在九宫格范围内
-				hero.OtherTowers.Delete(k)
+				needToDelete = append(needToDelete, v.(*aoi.Tower))
 			} else {
 				midMap[k.(int32)] = true
 			}
 			return true
 		})
+		for _, tower := range needToDelete {
+			tower.NotifyHeroMsg(hero, configs.Leave, g.SendHeroViewNotify)
+			hero.OtherTowers.Delete(towerId)
+		}
 		// 接下来处理新加入的otherTowerId
 		for k, v := range midMap {
 			if !v {
+				towers[k].NotifyHeroMsg(hero, configs.Enter, g.SendHeroViewNotify)
 				hero.OtherTowers.Store(k, towers[k])
 				midMap[k] = true
 			}
@@ -318,6 +321,7 @@ func (g *GameRoom) UpdateHeroPos() {
 		x, y := tools.CalXY(distance, hero.HeroDirection.X, hero.HeroDirection.Y)
 		hero.HeroPosition.X += x
 		hero.HeroPosition.Y += y
+		//需要判断是否出现了碰撞
 		g.ModifyHero(hero)
 	}
 }

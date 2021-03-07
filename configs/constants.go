@@ -32,4 +32,15 @@ var (
 
 	// debug mode
 	Debug bool = false
+
+	// Hero msg
+	HeroInitSize float32 = 45
+	SizeBig float32 = 5
+	HeroMoveSpeed float32 = 100
+	HeroInitPositionX float32 = 0
+	HeroInitPositionY float32 = 0
+	HeroInitDirectionX float32 = 1
+	HeroInitDirectionY float32 = 0
+
+	FoodRadius float32 = 20
 )

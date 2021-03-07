@@ -16,6 +16,7 @@ const (
 	EnterGameNotify          int32 = 6
 	EnterGameRequest         int32 = 7
 	EnterGameResponse        int32 = 8
+	HeroViewNotify			 int32 = 9
 
 	// 英雄状态
 	Live       int32 = 0
@@ -40,4 +41,8 @@ const (
 	// response的枚举
 	Success int32 = 0
 	Fail    int32 = 1
+
+	// heroViewNotify的枚举
+	Enter int32 = 0
+	Leave int32 = 1
 )

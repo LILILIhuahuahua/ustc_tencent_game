@@ -41,6 +41,10 @@ func (this *GMessage) ToMessage() interface{} {
 			pbMsgNotify = &pb.Notify{
 				EnterGameNotify: this.Data.ToMessage().(*pb.EnterGameNotify),
 			}
+		case *notify.HeroViewNotify:
+			pbMsgNotify = &pb.Notify{
+				HeroViewNotify: this.Data.ToMessage().(*pb.HeroViewNotify),
+			}
 
 		default:
 			panic("no match type")

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
@@ -27,23 +28,24 @@ func NewHero(sess *framework.BaseSession) *Hero {
 	h := &Hero{}
 	//初始化英雄数据
 	h.Init(sess)
+	fmt.Printf("新生成的heroId为%d \n", h.ID)
 	return h
 }
 
 func (h *Hero) Init(sess *framework.BaseSession) {
 	dcit := Coordinate{
-		X: 0.0,
-		Y: 0.0,
+		X: configs.HeroInitDirectionX,
+		Y: configs.HeroInitDirectionY,
 	}
 	pos := Coordinate{
-		X: 0.0,
-		Y: 0.0,
+		X: configs.HeroInitPositionX,
+		Y: configs.HeroInitPositionY,
 	}
 	nowTime := time.Now().UnixNano()
 	h.ID = tools.UUID_UTIL.GenerateInt32UUID()
 	h.Status = configs.Live
-	h.Size = 45.0
-	h.Speed = 8.0
+	h.Size = configs.HeroInitSize
+	h.Speed = configs.HeroMoveSpeed
 	h.HeroDirection = dcit
 	h.HeroPosition = pos
 	h.CreateTime = nowTime
