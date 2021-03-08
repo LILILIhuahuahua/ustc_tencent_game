@@ -33,6 +33,10 @@ var (
 	// Server addr
 	ServerAddr = "127.0.0.1:8888"
 
+
+	// RemoteAddr is the address of kubernetes cluster, you could use this addr for testing
+	RemoteAddr ="1.15.135.248:31000"
+
 	// debug mode
 	Debug bool = false
 
