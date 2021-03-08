@@ -1,6 +1,60 @@
-
-enum SNAKE_STATUS {
-  LIVE = 1; //存活
-  DEAD = 2; //死亡
-  INVINCIBLE = 3; //暂时无敌
+syntax = "proto3";
+package proto;
+enum MSG_TYPE {
+  NOTIFY = 0; //通知类型
+  REQUEST = 1; //请求类型
+  RESPONSE = 2; //答复类型
 }
+
+enum GAME_MSG_CODE {
+    ENTITY_INFO_CHANGE_REQUEST=0; //EntityInfoChangeRequest
+    ENTITY_INFO_CHANGE_RESPONSE=1; //EntityInfoChangeResponse
+    ENTITY_INFO_NOTIFY=2; //EntityInfoChangeNotify
+    HERO_QUIT_REQUEST =3;//HeroQuitRequest
+    GAME_GLOBAL_INFO_NOTIFY=4;//GameGlobalInfoNotify
+    TIME_NOTIFY=5; //TimeNotify
+    ENTER_GAME_NOTIFY=6;//EnterGameNotify
+    ENTER_GAME_REQUEST=7;
+    ENTER_GAME_RESPONSE=8;
+    HERO_VIEW_NOTIFY=9;
+}
+
+enum HERO_STATUS {
+  LIVE = 0; //存活
+  DEAD = 1; //死亡
+  INVINCIBLE = 2; //暂时无敌
+}
+
+enum ITEM_STATUS {
+  ITEM_LIVE = 0; //存活
+  ITEM_DEAD = 1; //死亡
+}
+
+/* eventType的枚举 */
+enum EVENT_TYPE {
+  HERO_COLLISION = 0; //玩家碰撞事件
+  ITEM_COLLISION = 1; //道具碰撞事件
+  HERO_MOVE = 2; //玩家移动事件
+  HERO_GROW = 3; //玩家变大事件
+  
+}
+
+/* entityType的枚举 */
+enum ENTITY_TYPE {
+  HERO_TYPE = 0; //Hero类型
+  PROP_TYPE = 1; //Prop类型--道具
+  FOOD_TYPE = 2; //Food类型--食物
+}
+
+/* response的result枚举 */
+enum RESULT_TYPE {
+  SUCCESS = 0; //成功
+  FAIL = 1; //失败
+}
+
+// 视野通知的类型
+enum VIEW_TYPE {
+  ENTER = 0; // 进入视野范围
+  LEAVE = 1; // 离开视野范围
+}
+

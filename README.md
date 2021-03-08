@@ -1,16 +1,19 @@
-# ustc_tencent_game
+# Single dgs
 
-## Get Started
+This branch deals with game service.
+## Layout explained
 
-```shell script
-# Clone this repo to GOPATH/github.com/LILILIhuahuahua , create directory if not exist
-git clone git@github.com:LILILIhuahuahua/ustc_tencent_game.git
+- model
+    放置实体模型
+  
+- service
+    dgs对外暴露的接口
+  
+- network
+    网络组件，收发KCP以及广播。
 
-# Then use any IDE/Editor(recommend Goland) to open this project.
-```
 
-Enjoy coding.
+## Q&A
 
 
-## Note
 1. Check meaning of project layout from [here](https://github.com/golang-standards/project-layout) ,try to follow the standard as possible as you can.
