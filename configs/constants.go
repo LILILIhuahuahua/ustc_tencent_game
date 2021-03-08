@@ -20,6 +20,9 @@ var (
 	TowerCols int32 = int32(math.Ceil(float64((MapMaxX - MapMinX) / TowerDiameter))) // 整个地图中有多少列Tower 从1开始
 	TowerRows int32 = int32(math.Ceil(float64((MapMaxY - MapMinY) / TowerDiameter))) // 整个地图中有多少行Tower 从1开始
 
+	// Collision-Check info
+	MaxObjectNum int32 = 5
+	MaxLevelNum	int32 = 5
 
 	// Prop max count in map
 	MaxPropCountInMap int = 50

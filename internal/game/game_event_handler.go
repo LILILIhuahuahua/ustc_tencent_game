@@ -43,6 +43,19 @@ func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReques
 	//room := GAME_ROOM_MANAGER.FetchGameRoom(req.RoomId)
 	r := GAME_ROOM_MANAGER.FetchGameRoom(req.RoomId)
 	var pbNotifyMsg, pbResponseMsg *pb.GMessage
+
+	hero := &model.Hero{}
+	hero.ID = req.HeroMsg.ID
+	hero.Speed = req.HeroMsg.Speed
+	hero.Size = req.HeroMsg.Size
+	hero.Status = req.HeroMsg.Status
+	hero.HeroPosition = model.Coordinate{}
+	hero.HeroPosition.X = req.HeroMsg.HeroPosition.CoordinateX
+	hero.HeroPosition.Y = req.HeroMsg.HeroPosition.CoordinateY
+	hero.HeroDirection = model.Coordinate{}
+	hero.HeroDirection.X = req.HeroMsg.HeroDirection.CoordinateX
+	hero.HeroDirection.Y = req.HeroMsg.HeroDirection.CoordinateY
+
 	if req.EventType == int32(pb.EVENT_TYPE_HERO_MOVE) {
 		//heros := room.GetHeros()
 		//heroObj, ok := heros.Load(req.HeroMsg.ID)
@@ -60,17 +73,6 @@ func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReques
 		//}
 
 		//todo:封装解包类方法
-		hero := &model.Hero{}
-		hero.ID = req.HeroMsg.ID
-		hero.Speed = req.HeroMsg.Speed
-		hero.Size = req.HeroMsg.Size
-		hero.Status = req.HeroMsg.Status
-		hero.HeroPosition = model.Coordinate{}
-		hero.HeroPosition.X = req.HeroMsg.HeroPosition.CoordinateX
-		hero.HeroPosition.Y = req.HeroMsg.HeroPosition.CoordinateY
-		hero.HeroDirection = model.Coordinate{}
-		hero.HeroDirection.X = req.HeroMsg.HeroDirection.CoordinateX
-		hero.HeroDirection.Y = req.HeroMsg.HeroDirection.CoordinateY
 		var lock = sync.Mutex{}
 		lock.Lock()
 		r.ModifyHero(hero)
@@ -102,44 +104,26 @@ func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReques
 		}
 		pbNotifyMsg = notifyMsg.ToMessage().(*pb.GMessage)
 		pbResponseMsg = responseMsg.ToMessage().(*pb.GMessage)
+		outNotify, err := proto.Marshal(pbNotifyMsg)
+		outResponse, err := proto.Marshal(pbResponseMsg)
+		if nil == err {
+		}
+		GAME_ROOM_MANAGER.Braodcast(req.GetRoomId(), outNotify)
+		GAME_ROOM_MANAGER.Unicast(req.GetRoomId(), req.SessionId ,outResponse)
+	} else if req.EventType == int32(pb.EVENT_TYPE_HERO_COLLISION) {
+		collisionRes := true
+		//todo:碰撞检测
+		response := &response2.EntityInfoChangeResponse{
+			ChangeResult: collisionRes,
+		}
+		responseMsg := event2.GMessage{
+			MsgType:	 configs.MsgTypeResponse,
+			GameMsgCode: configs.EntityInfoChangeResponse,
+			SessionId: 	 req.SessionId,
+			Data:		 response,
+		}
+		pbResponseMsg = responseMsg.ToMessage().(*pb.GMessage)
+		outResponse, _ := proto.Marshal(pbResponseMsg)
+		GAME_ROOM_MANAGER.Unicast(req.GetRoomId(), req.SessionId ,outResponse)
 	}
-
-	//回包
-	//heros := g.FetchHeros()
-	//data := pb.GameGlobalInfoNotify{
-	//	HeroNumber: int32(len(heros)),
-	//}
-	//for _, h := range heros {
-	//	hMsg := &pb.HeroMsg{}
-	//	hMsg.HeroId = h.ID
-	//	hMsg.HeroSize = h.Size
-	//	hMsg.HeroSpeed = h.Speed
-	//	hMsg.HeroPosition = &pb.CoordinateXY{}
-	//	hMsg.HeroPosition.CoordinateX = h.HeroPosition.X
-	//	hMsg.HeroPosition.CoordinateY = h.HeroPosition.Y
-	//	hMsg.HeroDirection = &pb.CoordinateXY{}
-	//	hMsg.HeroDirection.CoordinateX = h.HeroDirection.X
-	//	hMsg.HeroDirection.CoordinateY = h.HeroDirection.Y
-	//	data.HeroMsg = append(data.HeroMsg, hMsg)
-	//}
-	//
-
-	//data := pb.EntityInfoChangeResponse{
-	//	ChangeResult: true,
-	//}
-	//resp:=pb.Response{
-	//	EntityChangeResponse: &data,
-	//}
-	//msg := pb.GMessage{
-	//	MsgType: pb.MSG_TYPE_RESPONSE,
-	//	MsgCode: pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_RESPONSE,
-	//	Response: &resp,
-	//}
-	outNotify, err := proto.Marshal(pbNotifyMsg)
-	outResponse, err := proto.Marshal(pbResponseMsg)
-	if nil == err {
-
-	}
-	GAME_ROOM_MANAGER.Braodcast(req.GetRoomId(), outNotify)
-	GAME_ROOM_MANAGER.Unicast(req.GetRoomId(), req.SessionId ,outResponse)
 }

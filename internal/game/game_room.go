@@ -126,7 +126,7 @@ func (g *GameRoom) Serv() error {
 		if err != nil {
 			return err
 		}
-		go g.Handle(session)
+		g.Handle(session)
 	}
 }
 
