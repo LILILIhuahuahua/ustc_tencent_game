@@ -15,7 +15,6 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"github.com/golang/protobuf/proto"
-	"log"
 	"sync"
 	"time"
 )
@@ -102,17 +101,44 @@ func (g *GameRoom) BroadcastAll(buff []byte) error {
 }
 
 //单播
-func (g *GameRoom) Unicast(buff []byte, sessionId int64) error {
-	session, ok := g.sessions.Load(sessionId)
-	if !ok {
-		return nil
+func (g *GameRoom) Unicast(buff []byte, session *framework.BaseSession) error {
+	if session == nil {
+		return errors.New("session 为空")
 	}
-	err := session.(*framework.BaseSession).SendMessage(buff)
+	err := session.SendMessage(buff)
 	if nil != err {
 		println(err)
 		return err
 	}
 	return nil
+}
+
+//多播
+func (g *GameRoom) Multiplecast(buff []byte, sessions []*framework.BaseSession) error {
+	for _, session := range sessions {
+		err := session.SendMessage(buff)
+		if nil != err {
+			println(err.Error())
+			return err
+		}
+	}
+	return nil
+}
+
+// 获取某玩家附近的玩家
+func (g *GameRoom) GetPlayersNearby(hero *model.Hero) []*model.Hero {
+	towers := g.GetTowers()
+	var heros []*model.Hero
+	var towersOfPlayer []*aoi.Tower
+	hero.OtherTowers.Range(func(k, v interface{}) bool {
+		towersOfPlayer = append(towersOfPlayer, v.(*aoi.Tower))
+		return true
+	})
+	towersOfPlayer = append(towersOfPlayer, towers[hero.TowerId])
+	for _, tower := range towersOfPlayer {
+		heros = append(heros, tower.GetHeros()...)
+	}
+	return heros
 }
 
 func (g *GameRoom) Serv() error {
@@ -159,7 +185,7 @@ func (g *GameRoom) Handle(session *framework.BaseSession) {
 
 		pbMsg := &pb.GMessage{}
 		proto.Unmarshal(buf, pbMsg)
-		log.Printf("Receive data: %+v", pbMsg)
+		//log.Printf("Receive data: %+v", pbMsg)
 		msg := event2.GMessage{}
 		msg.SetRoomId(g.ID)
 		m := msg.CopyFromMessage(pbMsg)
@@ -184,7 +210,7 @@ func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
 	g.RegisterConnector(s)
 	//}
 	//初始化hero加入到对局中
-	hero := model.NewHero()
+	hero := model.NewHero(s)
 	g.RegisterHero(hero)
 	g.SessionHeroMap.Store(s.Id, hero)
 	// 视野处理
@@ -221,9 +247,51 @@ func (g *GameRoom) RegisterHero(h *model.Hero) {
 	}
 }
 
-func (g *GameRoom) ModifyHero(h *model.Hero) {
-	g.Heros.Delete(h.ID)
-	g.Heros.Store(h.ID, h)
+// 在修改hero的位置信息的时候，会将灯塔进行更新
+func (g *GameRoom) ModifyHero(modifyHero *model.Hero) {
+	heroObj, _ := g.Heros.Load(modifyHero.ID)
+	hero := heroObj.(*model.Hero)
+	hero.HeroPosition = modifyHero.HeroPosition
+	hero.HeroDirection = modifyHero.HeroDirection
+	hero.Speed = modifyHero.Speed
+	hero.Size = modifyHero.Size
+	towers := g.GetTowers()
+	towerId := tools.CalTowerId(modifyHero.HeroPosition.X, modifyHero.HeroPosition.Y) // 计算更新位置之后的towerId
+	if towerId != hero.TowerId {
+		towers[towerId].HeroEnter(hero) // 将hero加入灯塔中
+		towers[hero.TowerId].HeroLeave(hero) // 将hero从原来灯塔中删除
+		hero.TowerId = towerId
+		otherIds := tools.GetOtherTowers(towerId)
+		if otherIds == nil {
+			fmt.Println("获取其他TowerId的时候出错了")
+		}
+		midMap := make(map[int32]bool) // 其实相当于一个set，查询元素是否在其中的时间复杂度为O(1)
+		for _, id := range otherIds {
+			midMap[id] = false
+		}
+		var needToDelete []*aoi.Tower
+		hero.OtherTowers.Range(func(k, v interface{}) bool {
+			if _, ok := midMap[k.(int32)]; !ok {  // 如果新的otherTowerId中没有该key，证明该key所对应的tower不在九宫格范围内
+				needToDelete = append(needToDelete, v.(*aoi.Tower))
+			} else {
+				midMap[k.(int32)] = true
+			}
+			return true
+		})
+		for _, tower := range needToDelete {
+			tower.NotifyHeroMsg(hero, configs.Leave, g.SendHeroViewNotify)
+			hero.OtherTowers.Delete(towerId)
+		}
+		// 接下来处理新加入的otherTowerId
+		for k, v := range midMap {
+			if !v {
+				towers[k].NotifyHeroMsg(hero, configs.Enter, g.SendHeroViewNotify)
+				hero.OtherTowers.Store(k, towers[k])
+				midMap[k] = true
+			}
+		}
+	}
+	g.Heros.Store(hero.ID, hero)
 }
 
 func (g *GameRoom) FetchHeros() []*model.Hero {
@@ -245,7 +313,6 @@ func (g *GameRoom) UpdateHeroPos() {
 		needToUpdate = append(needToUpdate, v.(*model.Hero))
 		return true
 	})
-	towers := g.GetTowers()
 	for _, hero := range needToUpdate {
 		nowTime := time.Now().UnixNano()
 		timeElapse := nowTime - hero.UpdateTime
@@ -254,78 +321,9 @@ func (g *GameRoom) UpdateHeroPos() {
 		x, y := tools.CalXY(distance, hero.HeroDirection.X, hero.HeroDirection.Y)
 		hero.HeroPosition.X += x
 		hero.HeroPosition.Y += y
-		towerId := tools.CalTowerId(x, y) // 计算更新位置之后的towerId
-		if towerId != hero.TowerId {
-			towers[towerId].HeroEnter(hero) // 将hero加入灯塔中
-			towers[hero.TowerId].HeroLeave(hero) // 将hero从原来灯塔中删除
-			otherIds := tools.GetOtherTowers(towerId)
-			if otherIds == nil {
-				fmt.Println("获取其他TowerId的时候出错了")
-			}
-			midMap := make(map[int32]bool) // 其实相当于一个set，查询元素是否在其中的时间复杂度为O(1)
-			for _, id := range otherIds {
-				midMap[id] = false
-			}
-			hero.OtherTowers.Range(func(k, v interface{}) bool {
-				if _, ok := midMap[k.(int32)]; !ok {  // 如果新的otherTowerId中没有该key，证明该key所对应的tower不在九宫格范围内
-					hero.OtherTowers.Delete(k)
-				} else {
-					midMap[k.(int32)] = true
-				}
-				return true
-			})
-			// 接下来处理新加入的otherTowerId
-			for k, v := range midMap {
-				if !v {
-					hero.OtherTowers.Store(k, towers[k])
-					midMap[k] = true
-				}
-			}
-		}
-		g.Heros.Store(hero.ID, hero)
+		//需要判断是否出现了碰撞
+		g.ModifyHero(hero)
 	}
 }
 
-func (g *GameRoom) DeleteUnavailableSession() error {
-	var needDelete []*framework.BaseSession
-	// 将不能正常通信的session存储到needDelete中
-	g.sessions.Range(func(_, obj interface{}) bool {
-		sess := obj.(*framework.BaseSession)
-		if !sess.IsAvailable() {
-			needDelete = append(needDelete, sess)
-		}
-		return true
-	})
-	//fmt.Println(needDelete)
-	for _, session := range needDelete {
-		session.ChangeStatus(configs.SessionStatusDead)
-		err := session.CloseKcpSession()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
 
-func (g *GameRoom) DeleteOfflinePlayer() error {
-	var needDelete []*framework.BaseSession
-	g.sessions.Range(func(_, obj interface{}) bool {
-		sess := obj.(*framework.BaseSession)
-		if sess.IsDeprecated() {
-			needDelete = append(needDelete, sess)
-		}
-		return true
-	})
-
-	for _, session := range needDelete {
-		deletedObj, ok := g.SessionHeroMap.Load(session.Id)
-		if !ok {
-			return errors.New("玩家不存在")
-		}
-		hero := deletedObj.(*model.Hero)
-		hero.ChangeHeroStatus(configs.Dead)
-		session.ChangOfflineStatus(true)
-		fmt.Println("我调用了玩家删除函数")
-	}
-	return nil
-}

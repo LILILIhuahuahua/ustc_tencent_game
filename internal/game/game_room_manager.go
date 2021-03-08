@@ -4,10 +4,12 @@ import (
 	"fmt"
 	pb "github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/framework"
 	event2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
 	notify2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/notify"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/scheduler"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	"github.com/golang/protobuf/proto"
 	"log"
 )
@@ -33,7 +35,7 @@ func NewGameRoomManager() *GameRoomManager {
 // Cron initialize timer for GameRoomManager. It will broadcast props/food info of each room to its clients.
 func GlobalInfoNotify() {
 	// set cron function for room
-	log.Printf("Len of roomMap: %d", len(GAME_ROOM_MANAGER.roomMap))
+	//log.Printf("Len of roomMap: %d", len(GAME_ROOM_MANAGER.roomMap))
 	if GAME_ROOM_MANAGER != nil && len(GAME_ROOM_MANAGER.roomMap) != 0 {
 		for _, room := range GAME_ROOM_MANAGER.roomMap {
 			var pbMsg *pb.GMessage
@@ -55,32 +57,43 @@ func GlobalInfoNotify() {
 				}
 			}
 
-			var heroNum int32
-			room.sessions.Range(func(_, _ interface{}) bool {
-				heroNum++
+			roomHeros := room.GetHeros()
+			// 该房间内所有的小球
+			var heroNeedToNotify []*model.Hero
+			roomHeros.Range(func(k, v interface{}) bool {
+				heroNeedToNotify = append(heroNeedToNotify, v.(*model.Hero))
 				return true
 			})
-			notify := notify2.GameGlobalInfoNotify{
-				HeroNumber: heroNum,
-				//Time:       0,
-				//HeroInfos:  nil,
-				ItemInfos: items,
-				//MapInfo:    info.MapInfo{},
-			}
-			msg := event2.GMessage{
-				MsgType:     configs.MsgTypeNotify,
-				GameMsgCode: configs.GameGlobalInfoNotify,
-				//SessionId:   this.room.,
-				Data: &notify,
+			for _, hero := range heroNeedToNotify {
+				var heroInfos []info.HeroInfo
+				players := room.GetPlayersNearby(hero)
+				for _, player := range players {
+					heroInfo := player.ToEvent()
+					heroInfos = append(heroInfos, heroInfo)
+				}
+				heroNum := int32(len(players))
+				notify := notify2.GameGlobalInfoNotify{
+					HeroNumber: heroNum,
+					//Time:       0,
+					HeroInfos:  heroInfos,
+					ItemInfos: items,
+					//MapInfo:    info.MapInfo{},
+				}
+				msg := event2.GMessage{
+					MsgType:     configs.MsgTypeNotify,
+					GameMsgCode: configs.GameGlobalInfoNotify,
+					//SessionId:   this.room.,
+					Data: &notify,
+				}
+
+				pbMsg = msg.ToMessage().(*pb.GMessage)
+				data, err := proto.Marshal(pbMsg)
+				if err != nil {
+					log.Printf("fail to marshal: %s", err.Error())
+				}
+				GAME_ROOM_MANAGER.Unicast(room.GetRoomID(), hero.Session.Id, data)
 			}
 
-			pbMsg = msg.ToMessage().(*pb.GMessage)
-			data, err := proto.Marshal(pbMsg)
-			if err != nil {
-				log.Printf("fail to marshal: %s", err.Error())
-			}
-
-			GAME_ROOM_MANAGER.Braodcast(room.GetRoomID(), data)
 		}
 	}
 }
@@ -116,6 +129,20 @@ func (m *GameRoomManager) Braodcast(roomId int64, buff []byte) {
 	r := m.FetchGameRoom(roomId)
 	r.BroadcastAll(buff)
 	//m.FetchGameRoom(roomId).FetchConnector(sessionId).SendMessage(buff)
+}
+
+func (m *GameRoomManager) MutiplecastToNearBy(roomId int64, buf []byte, hero *model.Hero) {
+	r := m.FetchGameRoom(roomId)
+	var sessionToSend []*framework.BaseSession
+	heroToSend := r.GetPlayersNearby(hero)
+	for _, hero := range heroToSend {
+		if hero.Session != nil && hero.Session.Status == configs.SessionStatusCreated {
+			sessionToSend = append(sessionToSend, hero.Session)
+		} else {
+			fmt.Println("hero的session为null")
+		}
+	}
+	r.Multiplecast(buf, sessionToSend)
 }
 
 func (m *GameRoomManager) DeleteUnavailableSession() {

@@ -10,6 +10,7 @@ message Notify {
   TimeNotify time = 3; //对局时间信息通知
   MapInfo mapInfo = 4; //地图信息
   EnterGameNotify enterGameNotify  = 5; //进入游戏包
+  HeroViewNotify heroViewNotify = 6; //小球视野管理
 }
 
 message EntityInfoChangeNotify {
@@ -39,5 +40,11 @@ message TimeNotify { //对局时间信息通知
 
 message MapInfo {
   MapMsg mapMsg = 1; //地图信息
+}
+
+message HeroViewNotify {
+  int32 heroId = 1;
+  VIEW_TYPE viewType = 2;
+  HeroMsg heroMsg = 3;
 }
 
