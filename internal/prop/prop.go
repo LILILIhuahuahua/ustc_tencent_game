@@ -23,6 +23,7 @@ type prop struct {
 	id     int32
 	status int32
 	pos    info.CoordinateXYInfo
+	radius float32
 }
 
 type PropsManger struct {
@@ -33,6 +34,11 @@ type PropsManger struct {
 // ID returns the id of prop
 func (p *prop) ID() int32 {
 	return p.id
+}
+
+// Radius returns the radius of prop
+func (p *prop) Radius() float32 {
+	return p.radius
 }
 
 // Status returns the status (alive or dead) of prop
@@ -54,7 +60,8 @@ func (p *prop) GetY() float32 {
 func New() *PropsManger {
 	return &PropsManger{
 		mu:    &sync.RWMutex{},
-		props: newProps(configs.MapMinX, configs.MapMaxX, configs.MapMinY, configs.MapMaxY, configs.MaxPropCountInMap),
+		props: newProps(configs.MapMinX, configs.MapMaxX, configs.MapMinY, configs.MapMaxY,
+			configs.MaxPropCountInMap, configs.PropRadius),
 	}
 }
 
@@ -101,7 +108,7 @@ func (p *PropsManger) RemoveProp(id int32) error {
 }
 
 // newProps generate a bunch of props randomly
-func newProps(minX float32, maxX float32, minY float32, maxY float32, count int) map[int32]*prop {
+func newProps(minX float32, maxX float32, minY float32, maxY float32, count int, radius float32) map[int32]*prop {
 	s := rand.NewSource(time.Now().Unix())
 	r := rand.New(s)
 
@@ -119,6 +126,7 @@ func newProps(minX float32, maxX float32, minY float32, maxY float32, count int)
 				CoordinateX: x,
 				CoordinateY: y,
 			},
+			radius: radius,
 		}
 	}
 

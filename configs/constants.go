@@ -31,7 +31,7 @@ var (
 	GlobalInfoNotifyInterval time.Duration = 5000 * time.Millisecond
 
 	// Server addr
-	ServerAddr = "127.0.0.1:8888"
+	ServerAddr = "0.0.0.0:8888"
 
 
 	// RemoteAddr is the address of kubernetes cluster, you could use this addr for testing
@@ -49,5 +49,7 @@ var (
 	HeroInitDirectionX float32 = 1
 	HeroInitDirectionY float32 = 0
 
-	FoodRadius float32 = 20
+
+	// Initial prop radius
+	PropRadius float32 = 20
 )
