@@ -54,6 +54,8 @@ func GlobalInfoNotify() {
 						CoordinateX: v.GetX(),
 						CoordinateY: v.GetY(),
 					},
+					ItemRadius: v.Radius(),
+
 				}
 			}
 

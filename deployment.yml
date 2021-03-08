@@ -5,7 +5,7 @@ metadata:
   labels:
     app: greedy-snake
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: greedy-snake

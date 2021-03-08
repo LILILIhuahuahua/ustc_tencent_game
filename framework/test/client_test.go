@@ -138,8 +138,9 @@ func TestGlobalPropInfoNotify(t *testing.T) {
 	var sessionID int32 = 1234
 	buf := make([]byte, 4096)
 
-	remoteServ := "1.15.135.248:31000"
-	sess, err := kcp.DialWithOptions(remoteServ, nil, 0, 0)
+	remoteServ := "1.15.79.161" + ":" + "31000"
+	_ = remoteServ
+	sess, err := kcp.DialWithOptions(configs.ServerAddr, nil, 0, 0)
 	if err == nil {
 		enterGameReq := getEnterGameReq(sessionID, &pb.ConnectMsg{
 			Ip:   "127.0.0.1",
