@@ -29,6 +29,7 @@ var (
 
 	// GlobalInfoNotify interval
 	GlobalInfoNotifyInterval time.Duration = 5000 * time.Millisecond
+	GlobalScheduleConfig time.Duration = 20 * time.Millisecond
 
 	// Server addr
 	ServerAddr = "0.0.0.0:8888"

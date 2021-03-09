@@ -52,6 +52,7 @@ func (this *GameStarter) init() {
 	//定期更新小球位置，每50ms检测一次
 	scheduler.NewTimer(time.Millisecond*time.Duration(50), GAME_ROOM_MANAGER.UpdateHeroPosition)
 	go scheduler.Sched(configs.GlobalInfoNotifyInterval)
+	go scheduler.Sched(configs.GlobalScheduleConfig)
 }
 
 func (this *GameStarter) Boot() {
