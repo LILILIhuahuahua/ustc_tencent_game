@@ -152,7 +152,7 @@ func (g *GameRoom) Serv() error {
 		if err != nil {
 			return err
 		}
-		g.Handle(session)
+		go g.Handle(session)
 	}
 }
 
@@ -323,7 +323,12 @@ func (g *GameRoom) UpdateHeroPos() {
 		distance := float64(timeElapse) * float64(hero.Speed) / 1e9
 		x, y := tools.CalXY(distance, hero.HeroDirection.X, hero.HeroDirection.Y)
 		hero.HeroPosition.X += x
+		hero.HeroPosition.X = tools.GetMax(hero.HeroPosition.X, configs.MapMinX)
+		hero.HeroPosition.X = tools.GetMin(hero.HeroPosition.X, configs.MapMaxX)
 		hero.HeroPosition.Y += y
+		hero.HeroPosition.Y = tools.GetMax(hero.HeroPosition.Y, configs.MapMinY)
+		hero.HeroPosition.Y = tools.GetMin(hero.HeroPosition.Y, configs.MapMaxY)
+		fmt.Printf("小球的横坐标为%f, 纵坐标为%f \n", hero.HeroPosition.X, hero.HeroPosition.Y)
 		//需要判断是否出现了碰撞
 		g.ModifyHero(hero)
 	}
