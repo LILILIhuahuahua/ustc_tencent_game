@@ -25,7 +25,7 @@ var (
 	MaxLevelNum	int32 = 5
 
 	// Prop max count in map
-	MaxPropCountInMap int = 50
+	MaxPropCountInMap int = 30
 
 	// GlobalInfoNotify interval
 	GlobalInfoNotifyInterval time.Duration = 5000 * time.Millisecond
