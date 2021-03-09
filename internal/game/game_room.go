@@ -257,6 +257,9 @@ func (g *GameRoom) ModifyHero(modifyHero *model.Hero) {
 	hero.Size = modifyHero.Size
 	towers := g.GetTowers()
 	towerId := tools.CalTowerId(modifyHero.HeroPosition.X, modifyHero.HeroPosition.Y) // 计算更新位置之后的towerId
+	if towerId >= int32(len(towers)) || towerId < 0 {
+		panic("计算towerId时出错")
+	}
 	if towerId != hero.TowerId {
 		towers[towerId].HeroEnter(hero) // 将hero加入灯塔中
 		towers[hero.TowerId].HeroLeave(hero) // 将hero从原来灯塔中删除

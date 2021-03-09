@@ -44,6 +44,9 @@ func (c *BaseSession) SendMessage(buff []byte) error {
 	if c.Status == configs.SessionStatusDead {
 		return errors.New("该session已经关闭，不能写入数据")
 	}
+	if len(buff) > 1350 {
+		return errors.New("发送的包太大了")
+	}
 	_, err := c.Sess.Write(buff)
 	return err
 }
