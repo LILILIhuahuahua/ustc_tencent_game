@@ -18,7 +18,7 @@ type Hero struct {
 	HeroDirection Coordinate
 	HeroPosition  Coordinate
 	CreateTime    int64
-	UpdateTime    int64
+	UpdateTime    int64  // ns
 	TowerId		  int32 // 所属的towerId
 	OtherTowers	  sync.Map // 九宫格内其他的tower TowerId *aoi.Tower
 	Session       *framework.BaseSession //该hero对应的session

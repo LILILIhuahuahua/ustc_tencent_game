@@ -23,7 +23,6 @@ func (item *ItemInfo) FromMessage(obj interface{}) {
 	coordi := CoordinateXYInfo{}
 	coordi.FromMessage(pbMsg.GetItemPosition())
 	item.ItemPosition = coordi
-	item.ItemRadius = pbMsg.ItemRadius
 }
 
 func (item *ItemInfo) CopyFromMessage(obj interface{}) event.Event {
@@ -35,7 +34,6 @@ func (item *ItemInfo) CopyFromMessage(obj interface{}) event.Event {
 		Type:         int32(pbMsg.GetItemType()),
 		Status:       int32(pbMsg.GetItemStatus()),
 		ItemPosition: coordi,
-		ItemRadius: pbMsg.ItemRadius,
 	}
 }
 
@@ -45,7 +43,6 @@ func (item *ItemInfo) ToMessage() interface{} {
 		ItemType: pb.ENTITY_TYPE(item.Type),
 		ItemStatus: pb.ITEM_STATUS(item.Status),
 		ItemPosition: item.ItemPosition.ToMessage().(*pb.CoordinateXY),
-		ItemRadius: item.ItemRadius,
 	}
 	return pbMsg
 }
