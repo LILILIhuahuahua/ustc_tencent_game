@@ -9,6 +9,7 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/kcpnet"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/aoi"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/collision"
 	event2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/prop"
@@ -30,6 +31,7 @@ type GameRoom struct {
 	SessionHeroMap sync.Map //map[sessionId] *model.Hero
 	props          *prop.PropsManger
 	towers		   []*aoi.Tower
+	quadTree	   *collision.QuadTree	//对局内四叉树，用于进行碰撞检测
 }
 
 //数据持有；连接者指针列表
@@ -45,6 +47,7 @@ func NewGameRoom(address string) *GameRoom {
 		dispatcher: framework.BaseEventDispatcher{},
 		props:      prop.New(),
 		towers:		aoi.InitTowers(),
+		quadTree:	collision.NewQuadTree(0, collision.NewRectangleByBounds(configs.MapMinX, configs.MapMinY, configs.MapMaxX, configs.MapMaxY)),
 		//Heros: make(map[int32]*model.Hero),
 	}
 }
@@ -152,7 +155,7 @@ func (g *GameRoom) Serv() error {
 		if err != nil {
 			return err
 		}
-		g.Handle(session)
+		go g.Handle(session)
 	}
 }
 
@@ -321,8 +324,109 @@ func (g *GameRoom) UpdateHeroPos() {
 		x, y := tools.CalXY(distance, hero.HeroDirection.X, hero.HeroDirection.Y)
 		hero.HeroPosition.X += x
 		hero.HeroPosition.Y += y
-		//需要判断是否出现了碰撞
 		g.ModifyHero(hero)
+	}
+	//g.onCollision()
+}
+
+func (room *GameRoom) onCollision() {
+	// 清空四叉树
+	room.quadTree.Clear()
+	// 四叉树插入物体
+	for _, hero := range room.FetchHeros() {
+		// 如果玩家状态为阵亡，则跳过该玩家检测流程
+		if hero.Status == int32(pb.HERO_STATUS_DEAD) {
+			continue
+		}
+		//初始化hero加入到四叉树中进行碰撞检测
+		room.quadTree.InsertObj(collision.NewRectangleByObj(hero.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), hero.Size, hero.HeroPosition.X, hero.HeroPosition.Y))
+	}
+	props, _ := room.props.GetProps()
+	for _, prop := range props {
+		// 如果道具状态为阵亡，则跳过该玩家检测流程
+		if prop.Status() == int32(pb.ITEM_STATUS_ITEM_DEAD) {
+			continue
+		}
+		// 初始化道具加入到四叉树中进行碰撞检测
+		room.quadTree.InsertObj(collision.NewRectangleByObj(prop.ID(), int32(pb.ENTITY_TYPE_PROP_TYPE), 0, prop.GetX(), prop.GetY()))
+	}
+	room.quadTree.Show()
+	// 遍历玩家集合，检测碰撞
+	heros := room.FetchHeros()
+	for heroIndex := 0; heroIndex < len(heros); heroIndex++{
+		hero := heros[heroIndex]
+		// 如果玩家状态为阵亡，则跳过该玩家检测流程
+		if hero.Status == int32(pb.HERO_STATUS_DEAD) {
+			continue
+		}
+		heroObj := collision.NewRectangleByObj(hero.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), hero.Size, hero.HeroPosition.X, hero.HeroPosition.Y)
+		collisionCandidates := room.quadTree.GetObjsInSameDistrict(heroObj)
+		for candidateIndex := 0; candidateIndex < len(collisionCandidates); candidateIndex++{
+			candidate := collisionCandidates[candidateIndex]
+			if collision.CheckCollision(heroObj, candidate) {
+				// 检测到发生了碰撞
+				// 双方均是英雄，开启碰撞仲裁流程
+				if candidate.Type == int32(pb.ENTITY_TYPE_HERO_TYPE) {
+					var loser, winner *model.Hero
+					// 仲裁胜负
+					if hero.Size > candidate.Size {
+						l, _ := room.Heros.Load(candidate.ID)
+						loser =  l.(*model.Hero)
+						w, _ := room.Heros.Load(hero.ID)
+						winner = w.(*model.Hero)
+						if int32(pb.HERO_STATUS_DEAD) == loser.Status || int32(pb.HERO_STATUS_DEAD) == winner.Status {
+							continue
+						}
+
+					} else if hero.Size < candidate.Size {
+						l, _ := room.Heros.Load(hero.ID)
+						loser =  l.(*model.Hero)
+						w, _ := room.Heros.Load(candidate.ID)
+						winner = w.(*model.Hero)
+						if int32(pb.HERO_STATUS_DEAD) == loser.Status || int32(pb.HERO_STATUS_DEAD) == winner.Status {
+							continue
+						}
+					}
+					fmt.Printf("检测到玩家发生碰撞！胜者信息：%+v，败者信息：%+v", winner, loser)
+					// 败者退场
+					room.Heros.Delete(loser.ID)
+					loser.Status = int32(pb.HERO_STATUS_DEAD)
+					room.Heros.Store(loser.ID, loser)
+					room.quadTree.DeleteObj(collision.NewRectangleByObj(loser.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), loser.Size, loser.HeroPosition.X, loser.HeroPosition.Y))
+					// 胜者增大
+					room.Heros.Delete(winner.ID)
+					winner.Size += candidate.Size
+					room.Heros.Store(winner.ID, winner)
+					room.quadTree.UpdateObj(collision.NewRectangleByObj(winner.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), winner.Size, winner.HeroPosition.X, winner.HeroPosition.Y))
+					// 发包
+				}
+
+				// 一方为食物，开启吃道具流程
+				if candidate.Type == int32(pb.ENTITY_TYPE_PROP_TYPE) {
+					var prop(*prop.Prop)
+					var eater (*model.Hero)
+					prop, _ = room.props.GetProp(candidate.ID)
+					e, _ := room.Heros.Load(hero.ID)
+					eater = e.(*model.Hero)
+					if int32(pb.ITEM_STATUS_ITEM_DEAD) == prop.Status()|| int32(pb.HERO_STATUS_DEAD) == eater.Status {
+						continue
+					}
+					fmt.Printf("检测到玩家吃道具！玩家信息：%+v，道具信息：%+v", eater, prop)
+					// 道具退场
+					room.props.RemoveProp(prop.ID())
+					prop.SetStatus(int32(pb.ITEM_STATUS_ITEM_DEAD))
+					room.props.AddProp(prop)
+					room.quadTree.DeleteObj(collision.NewRectangleByObj(prop.ID(), int32(pb.ENTITY_TYPE_PROP_TYPE), 0, prop.GetX(), prop.GetY()))
+					// 玩家增大
+					room.Heros.Delete(eater.ID)
+					eater.Size += eater.Size / 2
+					room.Heros.Store(eater.ID, eater)
+					room.quadTree.UpdateObj(collision.NewRectangleByObj(eater.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), eater.Size, eater.HeroPosition.X, eater.HeroPosition.Y))
+					// 发包
+				}
+
+			}
+		}
 	}
 }
 
