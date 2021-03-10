@@ -211,7 +211,6 @@ func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
 	//}
 	//初始化hero加入到对局中
 	hero := model.NewHero(s)
-	g.RegisterHero(hero)
 	g.SessionHeroMap.Store(s.Id, hero)
 	// 视野处理
 	towers := g.GetTowers()
@@ -219,9 +218,8 @@ func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
 	otherTowers := tools.GetOtherTowers(towerId)
 	hero.TowerId = towerId
 	for _, id := range otherTowers {  //存储周围的towerId到hero
-		hero.OtherTowers.Store(id, towers[towerId])
+		hero.OtherTowers.Store(id, towers[id])
 	}
-	towers[towerId].HeroEnter(hero) //将hero存入tower中
 	//回包
 	data := pb.EnterGameResponse{
 		ChangeResult: true,
@@ -238,6 +236,8 @@ func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
 	}
 	out, _ := proto.Marshal(&msg)
 	GAME_ROOM_MANAGER.Unicast(g.ID, s.Id, out)
+	g.RegisterHero(hero) //调整hero的注册位置
+	towers[towerId].HeroEnter(hero, g.SendHeroPropGlobalInfoNotify) //将hero存入tower中
 }
 
 func (g *GameRoom) RegisterHero(h *model.Hero) {
@@ -261,7 +261,7 @@ func (g *GameRoom) ModifyHero(modifyHero *model.Hero) {
 		panic("计算towerId时出错")
 	}
 	if towerId != hero.TowerId {
-		towers[towerId].HeroEnter(hero) // 将hero加入灯塔中
+		towers[towerId].HeroEnter(hero, g.SendHeroPropGlobalInfoNotify) // 将hero加入灯塔中
 		towers[hero.TowerId].HeroLeave(hero) // 将hero从原来灯塔中删除
 		hero.TowerId = towerId
 		otherIds := tools.GetOtherTowers(towerId)
@@ -273,6 +273,7 @@ func (g *GameRoom) ModifyHero(modifyHero *model.Hero) {
 			midMap[id] = false
 		}
 		var needToDelete []*aoi.Tower
+		hero.OtherTowers.Delete(towerId) // 要把当前最新的TowerId在原来的OhterTowers里面删除，不然会报错
 		hero.OtherTowers.Range(func(k, v interface{}) bool {
 			if _, ok := midMap[k.(int32)]; !ok {  // 如果新的otherTowerId中没有该key，证明该key所对应的tower不在九宫格范围内
 				needToDelete = append(needToDelete, v.(*aoi.Tower))
@@ -283,7 +284,7 @@ func (g *GameRoom) ModifyHero(modifyHero *model.Hero) {
 		})
 		for _, tower := range needToDelete {
 			tower.NotifyHeroMsg(hero, configs.Leave, g.SendHeroViewNotify)
-			hero.OtherTowers.Delete(towerId)
+			hero.OtherTowers.Delete(tower.GetId())
 		}
 		// 接下来处理新加入的otherTowerId
 		for k, v := range midMap {
