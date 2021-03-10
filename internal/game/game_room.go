@@ -47,7 +47,7 @@ func NewGameRoom(address string) *GameRoom {
 		dispatcher: framework.BaseEventDispatcher{},
 		props:      prop.New(),
 		towers:		aoi.InitTowers(),
-		quadTree:	collision.NewQuadTree(0, collision.NewRectangleByBounds(configs.MapMinX, configs.MapMinY, configs.MapMaxX, configs.MapMaxY)),
+		quadTree:	collision.NewQuadTree("0", 0, collision.NewRectangleByBounds(configs.MapMinX, configs.MapMinY, configs.MapMaxX, configs.MapMaxY)),
 		//Heros: make(map[int32]*model.Hero),
 	}
 	gameroom.AdjustPropsIntoTower()
