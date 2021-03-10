@@ -412,6 +412,8 @@ func (room *GameRoom) onCollision() {
 					fmt.Printf("检测到玩家发生碰撞！胜者信息：%+v，败者信息：%+v\n", winner, loser)
 					// 败者退场
 					room.Heros.Delete(loser.ID)
+					roomTowers := room.GetTowers()
+					roomTowers[loser.TowerId].HeroLeave(loser)
 					loser.Status = int32(pb.HERO_STATUS_DEAD)
 					room.Heros.Store(loser.ID, loser)
 					room.quadTree.DeleteObj(collision.NewRectangleByObj(loser.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), loser.Size, loser.HeroPosition.X, loser.HeroPosition.Y))
@@ -497,6 +499,7 @@ func (room *GameRoom) onCollision() {
 					fmt.Printf("[碰撞检测]检测到玩家吃道具！玩家信息：%+v，道具信息：%+v\n", eater, prop)
 					// 道具退场
 					room.props.RemoveProp(prop.ID())
+					// 这里加上道具视野管理
 					prop.SetStatus(int32(pb.ITEM_STATUS_ITEM_DEAD))
 					room.props.AddProp(prop)
 					room.quadTree.DeleteObj(collision.NewRectangleByObj(prop.ID(), int32(pb.ENTITY_TYPE_PROP_TYPE), 0, prop.GetX(), prop.GetY()))
