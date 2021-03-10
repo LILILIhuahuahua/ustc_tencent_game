@@ -441,7 +441,7 @@ func (room *GameRoom) onCollision() {
 						EntityInfoChangeNotify: data,
 					}
 					msg := pb.GMessage{
-						MsgType:  pb.MSG_TYPE_RESPONSE,
+						MsgType:  pb.MSG_TYPE_NOTIFY,
 						MsgCode:  pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_NOTIFY,
 						Notify: notify,
 						SendTime: tools.TIME_UTIL.NowMillis(),
@@ -472,7 +472,7 @@ func (room *GameRoom) onCollision() {
 						EntityInfoChangeNotify: data,
 					}
 					msg = pb.GMessage{
-						MsgType:  pb.MSG_TYPE_RESPONSE,
+						MsgType:  pb.MSG_TYPE_NOTIFY,
 						MsgCode:  pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_NOTIFY,
 						Notify: notify,
 						SendTime: tools.TIME_UTIL.NowMillis(),
@@ -521,7 +521,7 @@ func (room *GameRoom) onCollision() {
 						EntityInfoChangeNotify: data,
 					}
 					msg := pb.GMessage{
-						MsgType:  pb.MSG_TYPE_RESPONSE,
+						MsgType:  pb.MSG_TYPE_NOTIFY,
 						MsgCode:  pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_NOTIFY,
 						Notify: notify,
 						SendTime: tools.TIME_UTIL.NowMillis(),
@@ -552,7 +552,7 @@ func (room *GameRoom) onCollision() {
 						EntityInfoChangeNotify: data,
 					}
 					msg = pb.GMessage{
-						MsgType:  pb.MSG_TYPE_RESPONSE,
+						MsgType:  pb.MSG_TYPE_NOTIFY,
 						MsgCode:  pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_NOTIFY,
 						Notify: notify,
 						SendTime: tools.TIME_UTIL.NowMillis(),
