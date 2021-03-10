@@ -41,8 +41,8 @@ func (this *Tower) HeroLeave(hero *model.Hero) { // 后期做优化
 	this.heros.Delete(hero.ID)
 }
 
-func (this *Tower) PropLeave(prop *model.Prop) {
-	this.props.Delete(prop.Id)
+func (this *Tower) PropLeave(prop *prop.Prop) {
+	this.props.Delete(prop.ID())
 }
 
 func (this *Tower) GetHeros() []*model.Hero {

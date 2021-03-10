@@ -23,6 +23,7 @@ type Prop struct {
 	id     int32
 	status int32
 	pos    info.CoordinateXYInfo
+	towerId int32
 	//radius float32
 }
 
@@ -55,6 +56,14 @@ func (p *Prop) GetY() float32 {
 	return p.pos.CoordinateY
 }
 
+func (p *Prop) SetTowerId(towerId int32) {
+	p.towerId = towerId
+}
+
+func (p *Prop) GetTowerId() int32 {
+	return p.towerId
+}
+
 // New return an instance of propsManger, which contains many props
 func New() *PropsManger {
 	return &PropsManger{
@@ -65,14 +74,14 @@ func New() *PropsManger {
 }
 
 // GetProps return all props in propManager
-func (p *PropsManger) GetProps() ([]Prop, error) {
+func (p *PropsManger) GetProps() ([]*Prop, error) {
 	if p == nil {
 		return nil, ErrNilPropManager
 	}
 
-	var props []Prop
+	var props []*Prop
 	for _, v := range p.props {
-		props = append(props, *v)
+		props = append(props, v)
 	}
 	return props, nil
 }

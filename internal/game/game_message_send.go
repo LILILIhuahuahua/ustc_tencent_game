@@ -55,6 +55,9 @@ func (r *GameRoom) SendHeroPropGlobalInfoNotify(towers []int32, session *framewo
 	}
 	var items []info.ItemInfo
 	for _, prop := range propMsg {
+		if prop.Status() != configs.PropStatusLive {
+			continue
+		}
 		item := info.ItemInfo{
 			ID:           prop.ID(),
 			Type:         int32(pb.ENTITY_TYPE_FOOD_TYPE),

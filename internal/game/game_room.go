@@ -146,12 +146,13 @@ func (g *GameRoom) AdjustPropsIntoTower() {
 		fmt.Printf("在调整props的时候出错了")
 	}
 	//fmt.Printf("灯塔的个数为%d", len(towers))
-	for i, prop := range props {
+	for _, prop := range props {
 		if prop.Status() == configs.PropStatusDead {
 			continue
 		}
 		towerId := tools.CalTowerId(prop.GetX(), prop.GetY())
-		towers[towerId].PropEnter(&props[i]) // 注意这里一定要写这样， 写成&prop会导致数组中的结果都是一样的
+		prop.SetTowerId(towerId)
+		towers[towerId].PropEnter(prop)
 		//fmt.Printf("把编号为%d的道具放入%d号灯塔中\n, 该灯塔的坐标为X:%f, Y:%f \n", prop.ID(), towerId, prop.GetX(), prop.GetY())
 	}
 }
@@ -370,6 +371,7 @@ func (g *GameRoom) UpdateHeroPos() {
 }
 
 func (room *GameRoom) onCollision() {
+	roomTowers := room.GetTowers()
 	// 清空四叉树
 	room.quadTree.Clear()
 	// 四叉树插入物体
@@ -434,7 +436,6 @@ func (room *GameRoom) onCollision() {
 					fmt.Printf("检测到玩家发生碰撞！胜者信息：%+v，败者信息：%+v\n", winner, loser)
 					// 败者退场
 					room.Heros.Delete(loser.ID)
-					roomTowers := room.GetTowers()
 					roomTowers[loser.TowerId].HeroLeave(loser)
 					loser.Status = int32(pb.HERO_STATUS_DEAD)
 					room.Heros.Store(loser.ID, loser)
@@ -532,6 +533,7 @@ func (room *GameRoom) onCollision() {
 					// 这里加上道具视野管理
 					prop.SetStatus(int32(pb.ITEM_STATUS_ITEM_DEAD))
 					room.props.AddProp(prop)
+					roomTowers[prop.GetTowerId()].PropLeave(prop)
 					room.quadTree.DeleteObj(collision.NewRectangleByObj(prop.ID(), int32(pb.ENTITY_TYPE_PROP_TYPE), 0, prop.GetX(), prop.GetY()))
 					// 玩家增大变慢
 					room.Heros.Delete(eater.ID)
