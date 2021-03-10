@@ -24,6 +24,11 @@ var (
 	MaxObjectNum int32 = 5
 	MaxLevelNum	int32 = 5
 
+	// Hero info
+	HeroSizeGrowthStep float32 = 1.0 // 英雄吃道具以后size增长步长
+	HeroSpeedSlowStep float32 = 0.5	 // 英雄吃道具以后速度减缓步长
+	HeroSizeUpLimit float32 = 200.0	 // 英雄size上限
+	HeroSpeedDownLimit float32 = 10.0// 英雄速度下限
 	// Prop max count in map
 	MaxPropCountInMap int = 50
 

@@ -412,9 +412,17 @@ func (room *GameRoom) onCollision() {
 					loser.Status = int32(pb.HERO_STATUS_DEAD)
 					room.Heros.Store(loser.ID, loser)
 					room.quadTree.DeleteObj(collision.NewRectangleByObj(loser.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), loser.Size, loser.HeroPosition.X, loser.HeroPosition.Y))
-					// 胜者增大
+					// 胜者增大变慢
 					room.Heros.Delete(winner.ID)
 					winner.Size += candidate.Size
+					//eater.Size += configs.HeroSizeGrowthStep
+					if winner.Size > configs.HeroSizeUpLimit {
+						winner.Size = configs.HeroSizeUpLimit
+					}
+					winner.Speed -= configs.HeroSpeedSlowStep
+					if winner.Speed < configs.HeroSpeedDownLimit {
+						winner.Speed = configs.HeroSpeedDownLimit
+					}
 					room.Heros.Store(winner.ID, winner)
 					room.quadTree.UpdateObj(collision.NewRectangleByObj(winner.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), winner.Size, winner.HeroPosition.X, winner.HeroPosition.Y))
 					// 发包
@@ -497,15 +505,22 @@ func (room *GameRoom) onCollision() {
 					prop.SetStatus(int32(pb.ITEM_STATUS_ITEM_DEAD))
 					room.props.AddProp(prop)
 					room.quadTree.DeleteObj(collision.NewRectangleByObj(prop.ID(), int32(pb.ENTITY_TYPE_PROP_TYPE), 0, prop.GetX(), prop.GetY()))
-					// 玩家增大
+					// 玩家增大变慢
 					room.Heros.Delete(eater.ID)
-					eater.Size += eater.Size / 2
+					eater.Size += configs.HeroSizeGrowthStep
+					if eater.Size > configs.HeroSizeUpLimit {
+						eater.Size = configs.HeroSizeUpLimit
+					}
+					eater.Speed -= configs.HeroSpeedSlowStep
+					if eater.Speed < configs.HeroSpeedDownLimit {
+						eater.Speed = configs.HeroSpeedDownLimit
+					}
 					room.Heros.Store(eater.ID, eater)
 					room.quadTree.UpdateObj(collision.NewRectangleByObj(eater.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), eater.Size, eater.HeroPosition.X, eater.HeroPosition.Y))
 					// 发包
 					itemInfo := &pb.ItemMsg{
 						ItemId: prop.ID(),
-						ItemType: pb.ENTITY_TYPE_PROP_TYPE,
+						ItemType: pb.ENTITY_TYPE_FOOD_TYPE,
 						ItemPosition: &pb.CoordinateXY{
 							CoordinateX: prop.GetX(),
 							CoordinateY: prop.GetY(),
@@ -513,7 +528,7 @@ func (room *GameRoom) onCollision() {
 						ItemStatus: pb.ITEM_STATUS_ITEM_DEAD,
 					}
 					data := &pb.EntityInfoChangeNotify{
-						EntityType: pb.ENTITY_TYPE_PROP_TYPE,
+						EntityType: pb.ENTITY_TYPE_FOOD_TYPE,
 						EntityId:   prop.ID(),
 						ItemMsg: itemInfo,
 					}
