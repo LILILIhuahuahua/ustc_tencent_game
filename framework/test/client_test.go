@@ -139,10 +139,14 @@ func receive(sess *kcp.UDPSession) {
 		case pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_RESPONSE:
 			log.Println("Receive entity info change response")
 			log.Printf("%+v", msg.Response.EntityChangeResponse)
+		default:
+			log.Println(msg.MsgType, " ",msg.MsgType)
+			log.Println("New packet received")
 		}
 	}
 }
 
+// 模拟客户端登录服务器，并且接收服务器的广播信息
 func TestGlobalPropInfoNotify(t *testing.T) {
 	time.Sleep(time.Second)
 	var sessionID int32 = 1234
@@ -188,7 +192,7 @@ func TestHeroMove1(t *testing.T) {
 
 	remoteServ := "127.0.0.1" + ":" + "8888"
 	_ = remoteServ
-	sess, err := kcp.DialWithOptions(configs.ServerAddr, nil, 0, 0)
+	sess, err := kcp.DialWithOptions(configs.RemoteAddr, nil, 0, 0)
 	if err == nil {
 		enterGameReq := getEnterGameReq(sessionID, &pb.ConnectMsg{
 			Ip:   "127.0.0.1",
@@ -221,7 +225,7 @@ func TestHeroMove2(t *testing.T) {
 
 	remoteServ := "127.0.0.1" + ":" + "8888"
 	_ = remoteServ
-	sess, err := kcp.DialWithOptions(configs.ServerAddr, nil, 0, 0)
+	sess, err := kcp.DialWithOptions(configs.RemoteAddr, nil, 0, 0)
 	if err == nil {
 		enterGameReq := getEnterGameReq(sessionID, &pb.ConnectMsg{
 			Ip:   "127.0.0.1",
