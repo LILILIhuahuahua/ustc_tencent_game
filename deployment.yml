@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: snake-dev-deployment
+  name: snake-deployment-dev
   labels:
     app: greedy-snake-dev
 spec:

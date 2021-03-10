@@ -22,10 +22,10 @@ on:
 
 # Environment variables available to all jobs and steps in this workflow
 env:
-  TKE_IMAGE_URL: ccr.ccs.tencentyun.com/tke_cluster/tke_cluster
+  TKE_IMAGE_URL: hkccr.ccs.tencentyun.com/tke_cluster/tke_cluster
   TKE_REGION: ap-shanghai
   TKE_CLUSTER_ID: cls-iw9xj6c7
-  DEPLOYMENT_NAME: snake-dev-deployment
+  DEPLOYMENT_NAME: snake-deployment-dev
 
 jobs:
   setup-build-publish-deploy:
