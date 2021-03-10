@@ -1,8 +1,9 @@
 package aoi
 
 import (
-	"fmt"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/framework"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"sync"
 )
 
@@ -16,9 +17,15 @@ func InitTower(id int32) *Tower {
 	return &Tower{id: id}
 }
 
-func (this *Tower) HeroEnter(hero *model.Hero) {
+func (this *Tower) GetId() int32 {
+	return this.id
+}
+
+func (this *Tower) HeroEnter(hero *model.Hero, callback func([]int32, *framework.BaseSession)) {
 	this.heros.Store(hero.ID, hero)
-	fmt.Printf("hero加入了新的灯塔\n")
+	towerIds := tools.GetOtherTowers(this.id)
+	towerIds = append(towerIds, this.id)
+	callback(towerIds, hero.Session)
 }
 
 func (this *Tower) HeroLeave(hero *model.Hero) {

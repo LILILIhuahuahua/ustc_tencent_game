@@ -121,7 +121,10 @@ func (m *GameRoomManager) Unicast(roomId int64, sessionId int32, buff []byte) {
 	if s == nil {
 		panic("没有该玩家")
 	}
-	s.SendMessage(buff)
+	err := s.SendMessage(buff)
+	if err != nil {
+		panic(err)
+	}
 	//m.FetchGameRoom(roomId).FetchConnector(sessionId).SendMessage(buff)
 }
 

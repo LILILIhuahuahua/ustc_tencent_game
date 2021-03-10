@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: snake-deployment-dev
+  labels:
+    app: greedy-snake
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: greedy-snake
+  template:
+    metadata:
+      labels:
+        app: greedy-snake
+    spec:
+      containers:
+        - name: greedy-snake
+          image: ccr.ccs.tencentyun.com/tke_cluster/tke_cluster
+          ports:
+            - containerPort: 8888
+              protocol: UDP
+      imagePullSecrets:
+        - name: regcred

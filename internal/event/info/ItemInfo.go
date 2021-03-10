@@ -12,6 +12,7 @@ type ItemInfo struct {
 	Type         int32
 	Status       int32
 	ItemPosition CoordinateXYInfo
+	ItemRadius float32
 }
 
 func (item *ItemInfo) FromMessage(obj interface{}) {
@@ -43,6 +44,5 @@ func (item *ItemInfo) ToMessage() interface{} {
 		ItemStatus: pb.ITEM_STATUS(item.Status),
 		ItemPosition: item.ItemPosition.ToMessage().(*pb.CoordinateXY),
 	}
-	//todo:补齐类型和状态
 	return pbMsg
 }

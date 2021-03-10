@@ -23,6 +23,7 @@ type Prop struct {
 	id     int32
 	status int32
 	pos    info.CoordinateXYInfo
+	//radius float32
 }
 
 type PropsManger struct {
@@ -58,7 +59,8 @@ func (p *Prop) GetY() float32 {
 func New() *PropsManger {
 	return &PropsManger{
 		mu:    &sync.RWMutex{},
-		props: newProps(configs.MapMinX, configs.MapMaxX, configs.MapMinY, configs.MapMaxY, configs.MaxPropCountInMap),
+		props: newProps(configs.MapMinX, configs.MapMaxX, configs.MapMinY, configs.MapMaxY,
+			configs.MaxPropCountInMap),
 	}
 }
 

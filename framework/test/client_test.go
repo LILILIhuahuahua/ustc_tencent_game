@@ -88,10 +88,14 @@ func getEntityInfoChange(sessionID int32, heroID int32) []byte {
 	hMsg := &pb.HeroMsg{
 		HeroId:       heroID,
 		HeroPosition: &pb.CoordinateXY{},
+		HeroDirection: &pb.CoordinateXY{},
+		HeroSpeed: 1000,
 	}
 
 	hMsg.HeroPosition.CoordinateX = 1.0
 	hMsg.HeroPosition.CoordinateY = 1.0
+	hMsg.HeroDirection.CoordinateX = 1.0
+	hMsg.HeroDirection.CoordinateY = 0
 	entityChangeReq.HeroMsg = hMsg
 
 	msg1 := &pb.GMessage{}
@@ -122,10 +126,16 @@ func receive(sess *kcp.UDPSession) {
 		case pb.GAME_MSG_CODE_ENTER_GAME_RESPONSE:
 			log.Println("Receive enter game response")
 			log.Printf("%+v", msg.Response.EnterGameResponse)
+			break
 		case pb.GAME_MSG_CODE_GAME_GLOBAL_INFO_NOTIFY:
 			items := msg.Notify.GameGlobalInfoNotify.ItemMsg
 			log.Println("Receive game global info notify")
 			log.Printf("Item info: type %v, id %v,status %v",items[0].ItemType,items[0].ItemId,items[0].ItemStatus)
+			break
+		case pb.GAME_MSG_CODE_ENTITY_INFO_NOTIFY:
+			log.Println("Receive entity info change notify")
+			log.Printf("")
+			break
 		case pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_RESPONSE:
 			log.Println("Receive entity info change response")
 			log.Printf("%+v", msg.Response.EntityChangeResponse)
@@ -138,6 +148,8 @@ func TestGlobalPropInfoNotify(t *testing.T) {
 	var sessionID int32 = 1234
 	buf := make([]byte, 4096)
 
+	remoteServ := "127.0.0.1" + ":" + "8888"
+	_ = remoteServ
 	sess, err := kcp.DialWithOptions(configs.ServerAddr, nil, 0, 0)
 	if err == nil {
 		enterGameReq := getEnterGameReq(sessionID, &pb.ConnectMsg{
@@ -150,7 +162,6 @@ func TestGlobalPropInfoNotify(t *testing.T) {
 		if err != nil {
 			log.Printf("%v", err.Error())
 		}
-
 		msg := &pb.GMessage{}
 		err = proto.Unmarshal(buf[:n], msg)
 		if err != nil {
@@ -170,3 +181,72 @@ func TestGlobalPropInfoNotify(t *testing.T) {
 		log.Fatal(err)
 	}
 }
+
+func TestHeroMove1(t *testing.T) {
+	var sessionID int32 = 1234
+	buf := make([]byte, 4096)
+
+	remoteServ := "127.0.0.1" + ":" + "8888"
+	_ = remoteServ
+	sess, err := kcp.DialWithOptions(configs.ServerAddr, nil, 0, 0)
+	if err == nil {
+		enterGameReq := getEnterGameReq(sessionID, &pb.ConnectMsg{
+			Ip:   "127.0.0.1",
+			Port: 4567,
+		})
+
+		sess.Write(enterGameReq)
+		n, err := sess.Read(buf)
+		if err != nil {
+			log.Printf("%v", err.Error())
+		}
+		msg := &pb.GMessage{}
+		err = proto.Unmarshal(buf[:n], msg)
+		if err != nil {
+			log.Println("fail to unmarshal data to GMessage")
+		}
+
+		log.Printf("receive %v", msg.MsgCode.String())
+		heroID := msg.Response.EnterGameResponse.HeroId
+		data := getEntityInfoChange(sessionID, heroID)
+		sess.Write(data)
+	} else {
+		log.Fatal(err)
+	}
+}
+
+func TestHeroMove2(t *testing.T) {
+	var sessionID int32 = 4567
+	buf := make([]byte, 4096)
+
+	remoteServ := "127.0.0.1" + ":" + "8888"
+	_ = remoteServ
+	sess, err := kcp.DialWithOptions(configs.ServerAddr, nil, 0, 0)
+	if err == nil {
+		enterGameReq := getEnterGameReq(sessionID, &pb.ConnectMsg{
+			Ip:   "127.0.0.1",
+			Port: 4567,
+		})
+
+		sess.Write(enterGameReq)
+		n, err := sess.Read(buf)
+		if err != nil {
+			log.Printf("%v", err.Error())
+		}
+		msg := &pb.GMessage{}
+		err = proto.Unmarshal(buf[:n], msg)
+		if err != nil {
+			log.Println("fail to unmarshal data to GMessage")
+		}
+
+		log.Printf("receive %v", msg.MsgCode.String())
+		heroID := msg.Response.EnterGameResponse.HeroId
+		fmt.Println("hedo是", heroID)
+		data := getEntityInfoChange(sessionID, heroID)
+		sess.Write(data)
+	} else {
+		log.Fatal(err)
+	}
+}
+
+
