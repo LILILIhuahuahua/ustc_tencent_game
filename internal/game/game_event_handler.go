@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	pb "github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
@@ -44,7 +45,10 @@ func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReques
 	//room := GAME_ROOM_MANAGER.FetchGameRoom(req.RoomId)
 	r := GAME_ROOM_MANAGER.FetchGameRoom(req.RoomId)
 	var pbNotifyMsg, pbResponseMsg *pb.GMessage
-
+	if req.HeroMsg.Speed == float32(0) {
+		req.HeroMsg.Speed = float32(100)
+	}
+	fmt.Printf("我收到的X为%f, Y为%f", req.HeroMsg.HeroDirection.CoordinateX, req.HeroMsg.HeroDirection.CoordinateY)
 	hero := &model.Hero{
 		ID:            req.HeroMsg.ID,
 		Status:        req.HeroMsg.Status,
@@ -75,6 +79,7 @@ func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReques
 		var lock = sync.Mutex{}
 		lock.Lock()
 		r.ModifyHero(hero)
+		hero = r.GetHero(hero.ID)
 		lock.Unlock()
 
 		notify := &notify2.EntityInfoChangeNotify{
@@ -102,6 +107,7 @@ func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReques
 			Data:        response,
 		}
 		pbNotifyMsg = notifyMsg.ToMessage().(*pb.GMessage)
+		fmt.Printf("发送的消息为%v \n", pbNotifyMsg)
 		pbResponseMsg = responseMsg.ToMessage().(*pb.GMessage)
 		outNotify, err := proto.Marshal(pbNotifyMsg)
 		outResponse, err := proto.Marshal(pbResponseMsg)

@@ -64,6 +64,14 @@ func (g *GameRoom) GetTowers() []*aoi.Tower {
 	return g.towers
 }
 
+func (g *GameRoom) GetHero(heroId int32) *model.Hero {
+	hero, ok := g.Heros.Load(heroId)
+	if !ok {
+		return nil
+	}
+	return hero.(*model.Hero)
+}
+
 //注册连接者
 func (g *GameRoom) RegisterConnector(c *framework.BaseSession) error {
 	g.sessions.Store(c.Id, c)
@@ -252,8 +260,7 @@ func (g *GameRoom) RegisterHero(h *model.Hero) {
 
 // 在修改hero的位置信息的时候，会将灯塔进行更新
 func (g *GameRoom) ModifyHero(modifyHero *model.Hero) {
-	heroObj, _ := g.Heros.Load(modifyHero.ID)
-	hero := heroObj.(*model.Hero)
+	hero := g.GetHero(modifyHero.ID)
 	hero.HeroPosition = modifyHero.HeroPosition
 	hero.HeroDirection = modifyHero.HeroDirection
 	hero.Speed = modifyHero.Speed
@@ -332,7 +339,6 @@ func (g *GameRoom) UpdateHeroPos() {
 		hero.HeroPosition.Y += y
 		hero.HeroPosition.Y = tools.GetMax(hero.HeroPosition.Y, configs.MapMinY)
 		hero.HeroPosition.Y = tools.GetMin(hero.HeroPosition.Y, configs.MapMaxY)
-		fmt.Printf("小球的横坐标为%f, 纵坐标为%f \n", hero.HeroPosition.X, hero.HeroPosition.Y)
 		g.ModifyHero(hero)
 	}
 	g.onCollision()
