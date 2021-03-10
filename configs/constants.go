@@ -55,7 +55,8 @@ var (
 	HeroInitDirectionX float32 = 1
 	HeroInitDirectionY float32 = 0
 
-
-	// Initial prop radius
-	PropRadius float32 = 20
+	// props
+	PropRadius float32 = 20 	// Initial prop radius
+	PropStatusLive int32 = 0
+	PropStatusDead int32 = 1
 )
