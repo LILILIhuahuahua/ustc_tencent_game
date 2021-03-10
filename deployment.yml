@@ -1,24 +1,34 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: snake-deployment-dev
+  name: snake-dev-deployment
   labels:
-    app: greedy-snake
+    app: greedy-snake-dev
 spec:
   replicas: 2
+  minReadySeconds: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
   selector:
     matchLabels:
-      app: greedy-snake
+      app: greedy-snake-dev
+      stage: dev
   template:
     metadata:
       labels:
-        app: greedy-snake
+        app: greedy-snake-dev
+        stage: dev
     spec:
       containers:
-        - name: greedy-snake
+        - name: greedy-snake-dev
           image: ccr.ccs.tencentyun.com/tke_cluster/tke_cluster
+          imagePullPolicy: Always
           ports:
             - containerPort: 8888
               protocol: UDP
       imagePullSecrets:
         - name: regcred
+      restartPolicy: Always
