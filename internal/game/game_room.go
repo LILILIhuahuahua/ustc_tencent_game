@@ -439,7 +439,6 @@ func (room *GameRoom) onCollision() {
 					loser.Status = int32(pb.HERO_STATUS_DEAD)
 					room.Heros.Store(loser.ID, loser)
 					room.quadTree.DeleteObj(collision.NewRectangleByObj(loser.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), loser.Size, loser.HeroPosition.X, loser.HeroPosition.Y))
-<<<<<<< HEAD
 					// 胜者增大变慢
 					room.Heros.Delete(winner.ID)
 					winner.Size += candidate.Size
@@ -452,12 +451,6 @@ func (room *GameRoom) onCollision() {
 						winner.Speed = configs.HeroSpeedDownLimit
 					}
 					room.Heros.Store(winner.ID, winner)
-=======
-					// 胜者增大
-					//room.Heros.Delete(winner.ID)
-					//winner.Size += candidate.Size
-					//room.Heros.Store(winner.ID, winner)
->>>>>>> f33e6fc3977b73707a4100d5c6baba86691837c2
 					room.quadTree.UpdateObj(collision.NewRectangleByObj(winner.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), winner.Size, winner.HeroPosition.X, winner.HeroPosition.Y))
 					// 发包
 					heroInfo := &pb.HeroMsg{
