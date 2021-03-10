@@ -134,7 +134,7 @@ func (tree *QuadTree)UpdateObj(obj *Rectangle)  {
 	for e:=tree.objects.Front();e!=nil;e=e.Next() {
 		if e.Value.(*Rectangle).ID == obj.ID && e.Value.(*Rectangle).Type == obj.Type {
 			tree.objects.Remove(e)
-			tree.objects.PushBack(e)
+			tree.objects.PushBack(obj)
 		}
 	}
 }

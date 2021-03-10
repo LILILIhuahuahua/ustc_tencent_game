@@ -335,7 +335,7 @@ func (g *GameRoom) UpdateHeroPos() {
 		fmt.Printf("小球的横坐标为%f, 纵坐标为%f \n", hero.HeroPosition.X, hero.HeroPosition.Y)
 		g.ModifyHero(hero)
 	}
-	//g.onCollision()
+	g.onCollision()
 }
 
 func (room *GameRoom) onCollision() {
@@ -359,7 +359,7 @@ func (room *GameRoom) onCollision() {
 		// 初始化道具加入到四叉树中进行碰撞检测
 		room.quadTree.InsertObj(collision.NewRectangleByObj(prop.ID(), int32(pb.ENTITY_TYPE_PROP_TYPE), 0, prop.GetX(), prop.GetY()))
 	}
-	room.quadTree.Show()
+	//room.quadTree.Show()
 	// 遍历玩家集合，检测碰撞
 	heros := room.FetchHeros()
 	for heroIndex := 0; heroIndex < len(heros); heroIndex++{
@@ -371,6 +371,10 @@ func (room *GameRoom) onCollision() {
 		heroObj := collision.NewRectangleByObj(hero.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), hero.Size, hero.HeroPosition.X, hero.HeroPosition.Y)
 		collisionCandidates := room.quadTree.GetObjsInSameDistrict(heroObj)
 		for candidateIndex := 0; candidateIndex < len(collisionCandidates); candidateIndex++{
+			// 如果玩家状态为阵亡，则跳过该玩家检测流程
+			if hero.Status == int32(pb.HERO_STATUS_DEAD) {
+				break
+			}
 			candidate := collisionCandidates[candidateIndex]
 			if collision.CheckCollision(heroObj, candidate) {
 				// 检测到发生了碰撞
@@ -396,7 +400,7 @@ func (room *GameRoom) onCollision() {
 							continue
 						}
 					}
-					fmt.Printf("检测到玩家发生碰撞！胜者信息：%+v，败者信息：%+v", winner, loser)
+					fmt.Printf("检测到玩家发生碰撞！胜者信息：%+v，败者信息：%+v\n", winner, loser)
 					// 败者退场
 					room.Heros.Delete(loser.ID)
 					loser.Status = int32(pb.HERO_STATUS_DEAD)
@@ -408,6 +412,67 @@ func (room *GameRoom) onCollision() {
 					room.Heros.Store(winner.ID, winner)
 					room.quadTree.UpdateObj(collision.NewRectangleByObj(winner.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), winner.Size, winner.HeroPosition.X, winner.HeroPosition.Y))
 					// 发包
+					heroInfo := &pb.HeroMsg{
+						HeroId: loser.ID,
+						HeroSpeed: loser.Speed,
+						HeroSize: loser.Size,
+						HeroStatus: pb.HERO_STATUS_DEAD,
+						HeroPosition: &pb.CoordinateXY{
+							CoordinateX: loser.HeroPosition.X,
+							CoordinateY: loser.HeroPosition.Y,
+						},
+						HeroDirection: &pb.CoordinateXY{
+							CoordinateX: loser.HeroDirection.X,
+							CoordinateY: loser.HeroDirection.Y,
+						},
+					}
+					data := &pb.EntityInfoChangeNotify{
+						EntityType: pb.ENTITY_TYPE_HERO_TYPE,
+						EntityId:   loser.ID,
+						HeroMsg: heroInfo,
+					}
+					notify := &pb.Notify{
+						EntityInfoChangeNotify: data,
+					}
+					msg := pb.GMessage{
+						MsgType:  pb.MSG_TYPE_RESPONSE,
+						MsgCode:  pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_NOTIFY,
+						Notify: notify,
+						SendTime: tools.TIME_UTIL.NowMillis(),
+					}
+					out, _ := proto.Marshal(&msg)
+					GAME_ROOM_MANAGER.Braodcast(room.ID, out)
+
+					heroInfo = &pb.HeroMsg{
+						HeroId: winner.ID,
+						HeroSpeed: winner.Speed,
+						HeroSize: winner.Size,
+						HeroStatus: pb.HERO_STATUS_LIVE,
+						HeroPosition: &pb.CoordinateXY{
+							CoordinateX: winner.HeroPosition.X,
+							CoordinateY: winner.HeroPosition.Y,
+						},
+						HeroDirection: &pb.CoordinateXY{
+							CoordinateX: winner.HeroDirection.X,
+							CoordinateY: winner.HeroDirection.Y,
+						},
+					}
+					data = &pb.EntityInfoChangeNotify{
+						EntityType: pb.ENTITY_TYPE_HERO_TYPE,
+						EntityId:   winner.ID,
+						HeroMsg: heroInfo,
+					}
+					notify = &pb.Notify{
+						EntityInfoChangeNotify: data,
+					}
+					msg = pb.GMessage{
+						MsgType:  pb.MSG_TYPE_RESPONSE,
+						MsgCode:  pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_NOTIFY,
+						Notify: notify,
+						SendTime: tools.TIME_UTIL.NowMillis(),
+					}
+					out, _ = proto.Marshal(&msg)
+					GAME_ROOM_MANAGER.Braodcast(room.ID, out)
 				}
 
 				// 一方为食物，开启吃道具流程
@@ -420,7 +485,7 @@ func (room *GameRoom) onCollision() {
 					if int32(pb.ITEM_STATUS_ITEM_DEAD) == prop.Status()|| int32(pb.HERO_STATUS_DEAD) == eater.Status {
 						continue
 					}
-					fmt.Printf("检测到玩家吃道具！玩家信息：%+v，道具信息：%+v", eater, prop)
+					fmt.Printf("[碰撞检测]检测到玩家吃道具！玩家信息：%+v，道具信息：%+v\n", eater, prop)
 					// 道具退场
 					room.props.RemoveProp(prop.ID())
 					prop.SetStatus(int32(pb.ITEM_STATUS_ITEM_DEAD))
@@ -432,6 +497,62 @@ func (room *GameRoom) onCollision() {
 					room.Heros.Store(eater.ID, eater)
 					room.quadTree.UpdateObj(collision.NewRectangleByObj(eater.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), eater.Size, eater.HeroPosition.X, eater.HeroPosition.Y))
 					// 发包
+					itemInfo := &pb.ItemMsg{
+						ItemId: prop.ID(),
+						ItemType: pb.ENTITY_TYPE_PROP_TYPE,
+						ItemPosition: &pb.CoordinateXY{
+							CoordinateX: prop.GetX(),
+							CoordinateY: prop.GetY(),
+						},
+						ItemStatus: pb.ITEM_STATUS_ITEM_DEAD,
+					}
+					data := &pb.EntityInfoChangeNotify{
+						EntityType: pb.ENTITY_TYPE_PROP_TYPE,
+						EntityId:   prop.ID(),
+						ItemMsg: itemInfo,
+					}
+					notify := &pb.Notify{
+						EntityInfoChangeNotify: data,
+					}
+					msg := pb.GMessage{
+						MsgType:  pb.MSG_TYPE_RESPONSE,
+						MsgCode:  pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_NOTIFY,
+						Notify: notify,
+						SendTime: tools.TIME_UTIL.NowMillis(),
+					}
+					out, _ := proto.Marshal(&msg)
+					GAME_ROOM_MANAGER.Braodcast(room.ID, out)
+
+					heroInfo := &pb.HeroMsg{
+						HeroId: eater.ID,
+						HeroSpeed: eater.Speed,
+						HeroSize: eater.Size,
+						HeroStatus: pb.HERO_STATUS_LIVE,
+						HeroPosition: &pb.CoordinateXY{
+							CoordinateX: eater.HeroPosition.X,
+							CoordinateY: eater.HeroPosition.Y,
+						},
+						HeroDirection: &pb.CoordinateXY{
+							CoordinateX: eater.HeroDirection.X,
+							CoordinateY: eater.HeroDirection.Y,
+						},
+					}
+					data = &pb.EntityInfoChangeNotify{
+						EntityType: pb.ENTITY_TYPE_HERO_TYPE,
+						EntityId:   eater.ID,
+						HeroMsg: heroInfo,
+					}
+					notify = &pb.Notify{
+						EntityInfoChangeNotify: data,
+					}
+					msg = pb.GMessage{
+						MsgType:  pb.MSG_TYPE_RESPONSE,
+						MsgCode:  pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_NOTIFY,
+						Notify: notify,
+						SendTime: tools.TIME_UTIL.NowMillis(),
+					}
+					out, _ = proto.Marshal(&msg)
+					GAME_ROOM_MANAGER.Braodcast(room.ID, out)
 				}
 
 			}
