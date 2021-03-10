@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: snake-deployment-dev
   labels:
-    app: greedy-snake-dev
+    app: greedy-snake
 spec:
   replicas: 2
   minReadySeconds: 5
@@ -14,16 +14,14 @@ spec:
       maxUnavailable: 1
   selector:
     matchLabels:
-      app: greedy-snake-dev
-      stage: dev
+      app: greedy-snake
   template:
     metadata:
       labels:
-        app: greedy-snake-dev
-        stage: dev
+        app: greedy-snake
     spec:
       containers:
-        - name: greedy-snake-dev
+        - name: greedy-snake
           image: hkccr.ccs.tencentyun.com/tke_cluster/tke_cluster
           imagePullPolicy: Always
           ports:

@@ -12,8 +12,7 @@ spec:
   #  externalIPs:
   #    - 42.192.43.222
   selector:
-    app: greedy-snake-dev
-    stage: dev
+    app: greedy-snake
 #  sessionAffinity: ClientIP
 #  sessionAffinityConfig:
 #    clientIP:
