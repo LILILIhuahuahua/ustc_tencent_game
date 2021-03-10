@@ -24,11 +24,17 @@ var (
 	MaxObjectNum int32 = 5
 	MaxLevelNum	int32 = 5
 
+	// Hero info
+	HeroSizeGrowthStep float32 = 1.0 // 英雄吃道具以后size增长步长
+	HeroSpeedSlowStep float32 = 0.5	 // 英雄吃道具以后速度减缓步长
+	HeroSizeUpLimit float32 = 200.0	 // 英雄size上限
+	HeroSpeedDownLimit float32 = 10.0// 英雄速度下限
 	// Prop max count in map
 	MaxPropCountInMap int = 50
 
 	// GlobalInfoNotify interval
 	GlobalInfoNotifyInterval time.Duration = 5000 * time.Millisecond
+	GlobalScheduleConfig time.Duration = 20 * time.Millisecond
 
 	// Server addr
 	ServerAddr = "0.0.0.0:8888"
@@ -49,7 +55,8 @@ var (
 	HeroInitDirectionX float32 = 1
 	HeroInitDirectionY float32 = 0
 
-
-	// Initial prop radius
-	PropRadius float32 = 20
+	// props
+	PropRadius float32 = 20 	// Initial prop radius
+	PropStatusLive int32 = 0
+	PropStatusDead int32 = 1
 )

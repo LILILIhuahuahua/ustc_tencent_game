@@ -10,11 +10,28 @@ import (
 //y^2 = dis^2 / (0.3 + 1)
 //通过球移动的距离来计算横纵坐标的变化
 func CalXY(dis float64, coordX, coordY float32) (x, y float32) {
-
+	if coordX == float32(0) {
+		if coordY >= 0 {
+			return float32(0), float32(dis)
+		}
+		return float32(0), float32(-dis)
+	}
+	if coordY == float32(0) {
+		if coordX >= 0 {
+			return float32(dis), float32(0)
+		}
+		return float32(-dis), float32(0)
+	}
 	xDivY := coordX / coordY //x相当于多少个y
-	ySquare := dis * dis / float64(1+xDivY)
+	ySquare := dis * dis / float64(1+ xDivY * xDivY)
 	y = float32(math.Sqrt(ySquare))
 	x = y * xDivY
+	if coordX < 0 {
+		x = -getAb(x)
+	}
+	if coordY < 0 {
+		y = -getAb(y)
+	}
 	return x, y
 }
 
@@ -138,4 +155,20 @@ func GetOtherTowers(towerId int32) []int32 {
 		}
 	}
 	return nil
+}
+
+func GetMax(x, y float32) float32 {
+	if x > y {
+		return x
+	} else {
+		return y
+	}
+}
+
+func GetMin(x, y float32) float32 {
+	if x < y {
+		return x
+	} else {
+		return y
+	}
 }

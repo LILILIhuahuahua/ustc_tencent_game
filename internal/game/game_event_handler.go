@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	pb "github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
@@ -11,6 +12,7 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	"github.com/golang/protobuf/proto"
 	"sync"
+	"time"
 )
 
 type GameEventHandler struct{}
@@ -43,18 +45,19 @@ func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReques
 	//room := GAME_ROOM_MANAGER.FetchGameRoom(req.RoomId)
 	r := GAME_ROOM_MANAGER.FetchGameRoom(req.RoomId)
 	var pbNotifyMsg, pbResponseMsg *pb.GMessage
-
-	hero := &model.Hero{}
-	hero.ID = req.HeroMsg.ID
-	hero.Speed = req.HeroMsg.Speed
-	hero.Size = req.HeroMsg.Size
-	hero.Status = req.HeroMsg.Status
-	hero.HeroPosition = model.Coordinate{}
-	hero.HeroPosition.X = req.HeroMsg.HeroPosition.CoordinateX
-	hero.HeroPosition.Y = req.HeroMsg.HeroPosition.CoordinateY
-	hero.HeroDirection = model.Coordinate{}
-	hero.HeroDirection.X = req.HeroMsg.HeroDirection.CoordinateX
-	hero.HeroDirection.Y = req.HeroMsg.HeroDirection.CoordinateY
+	if req.HeroMsg.Speed == float32(0) {
+		req.HeroMsg.Speed = float32(100)
+	}
+	fmt.Printf("我收到的X为%f, Y为%f", req.HeroMsg.HeroDirection.CoordinateX, req.HeroMsg.HeroDirection.CoordinateY)
+	hero := &model.Hero{
+		ID:            req.HeroMsg.ID,
+		Status:        req.HeroMsg.Status,
+		Size:          req.HeroMsg.Size,
+		Speed:         req.HeroMsg.Speed,
+		UpdateTime:    time.Now().UnixNano(),
+		HeroDirection: model.Coordinate{X: req.HeroMsg.HeroDirection.CoordinateX, Y: req.HeroMsg.HeroDirection.CoordinateY},
+		HeroPosition:  model.Coordinate{X: req.HeroMsg.HeroPosition.CoordinateX, Y: req.HeroMsg.HeroPosition.CoordinateY},
+	}
 
 	if req.EventType == int32(pb.EVENT_TYPE_HERO_MOVE) {
 		//heros := room.GetHeros()
@@ -76,6 +79,7 @@ func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReques
 		var lock = sync.Mutex{}
 		lock.Lock()
 		r.ModifyHero(hero)
+		hero = r.GetHero(hero.ID)
 		lock.Unlock()
 
 		notify := &notify2.EntityInfoChangeNotify{
@@ -97,19 +101,21 @@ func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReques
 		}
 
 		responseMsg := event2.GMessage{
-			MsgType:	 configs.MsgTypeResponse,
+			MsgType:     configs.MsgTypeResponse,
 			GameMsgCode: configs.EntityInfoChangeResponse,
-			SessionId: 	 req.SessionId,
-			Data:		 response,
+			SessionId:   req.SessionId,
+			Data:        response,
 		}
 		pbNotifyMsg = notifyMsg.ToMessage().(*pb.GMessage)
+		fmt.Printf("发送的消息为%v \n", pbNotifyMsg)
 		pbResponseMsg = responseMsg.ToMessage().(*pb.GMessage)
 		outNotify, err := proto.Marshal(pbNotifyMsg)
 		outResponse, err := proto.Marshal(pbResponseMsg)
 		if nil == err {
 		}
-		GAME_ROOM_MANAGER.Braodcast(req.GetRoomId(), outNotify)
-		GAME_ROOM_MANAGER.Unicast(req.GetRoomId(), req.SessionId ,outResponse)
+		//GAME_ROOM_MANAGER.Braodcast(req.GetRoomId(), outNotify)
+		GAME_ROOM_MANAGER.MutiplecastToNearBy(r.ID, outNotify, hero) // 只通知视野范围内的玩家,而非广播给所有的玩家
+		GAME_ROOM_MANAGER.Unicast(req.GetRoomId(), req.SessionId, outResponse)
 	} else if req.EventType == int32(pb.EVENT_TYPE_HERO_COLLISION) {
 		collisionRes := true
 		//todo:碰撞检测
@@ -117,13 +123,13 @@ func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReques
 			ChangeResult: collisionRes,
 		}
 		responseMsg := event2.GMessage{
-			MsgType:	 configs.MsgTypeResponse,
+			MsgType:     configs.MsgTypeResponse,
 			GameMsgCode: configs.EntityInfoChangeResponse,
-			SessionId: 	 req.SessionId,
-			Data:		 response,
+			SessionId:   req.SessionId,
+			Data:        response,
 		}
 		pbResponseMsg = responseMsg.ToMessage().(*pb.GMessage)
 		outResponse, _ := proto.Marshal(pbResponseMsg)
-		GAME_ROOM_MANAGER.Unicast(req.GetRoomId(), req.SessionId ,outResponse)
+		GAME_ROOM_MANAGER.Unicast(req.GetRoomId(), req.SessionId, outResponse)
 	}
 }

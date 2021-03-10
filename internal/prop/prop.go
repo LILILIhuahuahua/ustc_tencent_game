@@ -13,47 +13,55 @@ import (
 )
 
 var (
-	ErrNilProp        = errors.New("nil prop value")
-	ErrPropNotExist   = errors.New("prop not exist in propManger")
-	ErrPropDuplicate  = errors.New("prop duplicate in propManger")
+	ErrNilProp        = errors.New("nil Prop value")
+	ErrPropNotExist   = errors.New("Prop not exist in propManger")
+	ErrPropDuplicate  = errors.New("Prop duplicate in propManger")
 	ErrNilPropManager = errors.New("nil propManger")
 )
 
-type prop struct {
+type Prop struct {
 	id     int32
 	status int32
 	pos    info.CoordinateXYInfo
-	radius float32
+	towerId int32
+	//radius float32
 }
 
 type PropsManger struct {
 	mu    *sync.RWMutex
-	props map[int32]*prop
+	props map[int32]*Prop
 }
 
-// ID returns the id of prop
-func (p *prop) ID() int32 {
+// ID returns the id of Prop
+func (p *Prop) ID() int32 {
 	return p.id
 }
 
-// Radius returns the radius of prop
-func (p *prop) Radius() float32 {
-	return p.radius
-}
-
-// Status returns the status (alive or dead) of prop
-func (p *prop) Status() int32 {
+// Status returns the status (alive or dead) of Prop
+func (p *Prop) Status() int32 {
 	return p.status
 }
 
-// GetX returns the x coordinate of prop
-func (p *prop) GetX() float32 {
+func (p *Prop) SetStatus(status int32) {
+	p.status = status
+}
+
+// GetX returns the x coordinate of Prop
+func (p *Prop) GetX() float32 {
 	return p.pos.CoordinateX
 }
 
-// GetY returns the y coordinate of prop
-func (p *prop) GetY() float32 {
+// GetY returns the y coordinate of Prop
+func (p *Prop) GetY() float32 {
 	return p.pos.CoordinateY
+}
+
+func (p *Prop) SetTowerId(towerId int32) {
+	p.towerId = towerId
+}
+
+func (p *Prop) GetTowerId() int32 {
+	return p.towerId
 }
 
 // New return an instance of propsManger, which contains many props
@@ -61,25 +69,34 @@ func New() *PropsManger {
 	return &PropsManger{
 		mu:    &sync.RWMutex{},
 		props: newProps(configs.MapMinX, configs.MapMaxX, configs.MapMinY, configs.MapMaxY,
-			configs.MaxPropCountInMap, configs.PropRadius),
+			configs.MaxPropCountInMap),
 	}
 }
 
 // GetProps return all props in propManager
-func (p *PropsManger) GetProps() ([]prop, error) {
+func (p *PropsManger) GetProps() ([]*Prop, error) {
 	if p == nil {
 		return nil, ErrNilPropManager
 	}
 
-	var props []prop
+	var props []*Prop
 	for _, v := range p.props {
-		props = append(props, *v)
+		props = append(props, v)
 	}
 	return props, nil
 }
 
-// AddProp add prop to propManger,if prop is nil or prop has existed on propManager, it will return error.
-func (p *PropsManger) AddProp(pr *prop) error {
+func (p *PropsManger) GetProp(id int32) (*Prop, error) {
+	if p == nil {
+		return nil, ErrNilPropManager
+	}
+	var prop *Prop
+	prop = p.props[id]
+	return prop, nil
+}
+
+// AddProp add Prop to propManger,if Prop is nil or Prop has existed on propManager, it will return error.
+func (p *PropsManger) AddProp(pr *Prop) error {
 	if pr == nil {
 		return ErrNilProp
 	}
@@ -94,7 +111,7 @@ func (p *PropsManger) AddProp(pr *prop) error {
 	return nil
 }
 
-// RemoveProp remove prop according to prop id. If prop does not exist in propManger, it will return error
+// RemoveProp remove Prop according to Prop id. If Prop does not exist in propManger, it will return error
 func (p *PropsManger) RemoveProp(id int32) error {
 	if _, ok := p.props[id]; !ok {
 		return ErrPropNotExist
@@ -108,17 +125,17 @@ func (p *PropsManger) RemoveProp(id int32) error {
 }
 
 // newProps generate a bunch of props randomly
-func newProps(minX float32, maxX float32, minY float32, maxY float32, count int, radius float32) map[int32]*prop {
+func newProps(minX float32, maxX float32, minY float32, maxY float32, count int) map[int32]*Prop {
 	s := rand.NewSource(time.Now().Unix())
 	r := rand.New(s)
 
-	m := make(map[int32]*prop, count)
+	m := make(map[int32]*Prop, count)
 	for i := 0; i < count; i++ {
 		x := minX + r.Float32()*(maxX-minX)
 		y := minY + r.Float32()*(maxY-minY)
 		pid := int32(guuid.New().ID())
 
-		m[int32(i)] = &prop{
+		m[pid] = &Prop{
 			id:     pid,
 			status: int32(proto.ITEM_STATUS_ITEM_LIVE),
 			pos: info.CoordinateXYInfo{
@@ -126,7 +143,6 @@ func newProps(minX float32, maxX float32, minY float32, maxY float32, count int,
 				CoordinateX: x,
 				CoordinateY: y,
 			},
-			radius: radius,
 		}
 	}
 

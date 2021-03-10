@@ -2,6 +2,7 @@ package collision
 
 import (
 	"container/list"
+	"fmt"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 )
 
@@ -9,10 +10,11 @@ import (
 type QuadTree struct {
 	maxObjectNum int32	//区域内可容纳的最大物体数量
 	maxLevelNum  int32	//四叉树最大层数
-	curLevel int32	//四叉树当前层数
+	curLevel int32		//四叉树当前层数
 	bounds	*Rectangle	//四叉树边界数据
 	objects *list.List	//四叉树中物体集合
 	childs []*QuadTree	//四叉树子节点集合
+	objCount int32		//四叉树中物体个数
 }
 
 // @title    NewQuadTree
@@ -27,7 +29,8 @@ func NewQuadTree(curLevel int32, bounds *Rectangle) *QuadTree{
 	tree.curLevel = curLevel
 	tree.bounds = bounds
 	tree.objects = list.New()
-	tree.childs = make([]*QuadTree, 4)
+	tree.childs = make([]*QuadTree, 0)
+	tree.objCount = 0
 	return tree
 }
 
@@ -82,7 +85,8 @@ func (tree *QuadTree)InsertObj(obj *Rectangle)  {
 	}
 	//tree.objects = append(tree.objects, obj)
 	tree.objects.PushBack(obj)
-	if tree.objects.Len() > int(tree.maxObjectNum) {
+	tree.objCount++
+	if tree.objects.Len() > int(tree.maxObjectNum) && tree.curLevel < tree.maxLevelNum{
 		tree.Split()	//分裂下一层节点
 		var next *list.Element
 		for e:= tree.objects.Front(); e!=nil; e=next {	//将本层中的物体移动至下一层
@@ -90,8 +94,47 @@ func (tree *QuadTree)InsertObj(obj *Rectangle)  {
 			eIndex := tree.GetDistrictIndex(obj)
 			if -1 != eIndex {
 				tree.objects.Remove(e)
+				tree.objCount--
 				tree.childs[eIndex].InsertObj(e.Value.(*Rectangle))
 			}
+		}
+	}
+}
+
+// @title    DeleteObj
+// @description   从四叉树中删除物体
+// @param     obj        *Rectangle         "物体"
+func (tree *QuadTree)DeleteObj(obj *Rectangle)  {
+	if len(tree.childs) > 0 {
+		index := tree.GetDistrictIndex(obj)
+		if -1 != index {
+			tree.childs[index].DeleteObj(obj)
+			return
+		}
+	}
+	for e:=tree.objects.Front();e!=nil;e=e.Next() {
+		if e.Value.(*Rectangle).ID == obj.ID && e.Value.(*Rectangle).Type == obj.Type {
+			tree.objects.Remove(e)
+			tree.objCount--
+		}
+ 	}
+}
+
+// @title    UpdateObj
+// @description   从四叉树中更新物体
+// @param     obj        *Rectangle         "物体"
+func (tree *QuadTree)UpdateObj(obj *Rectangle)  {
+	if len(tree.childs) > 0 {
+		index := tree.GetDistrictIndex(obj)
+		if -1 != index {
+			tree.childs[index].UpdateObj(obj)
+			return
+		}
+	}
+	for e:=tree.objects.Front();e!=nil;e=e.Next() {
+		if e.Value.(*Rectangle).ID == obj.ID && e.Value.(*Rectangle).Type == obj.Type {
+			tree.objects.Remove(e)
+			tree.objects.PushBack(obj)
 		}
 	}
 }
@@ -101,13 +144,13 @@ func (tree *QuadTree)InsertObj(obj *Rectangle)  {
 // @param     obj        *Rectangle         "目标物体"
 // @return    objs        []*Rectangle      "同区物体集合"
 func (tree *QuadTree)GetObjsInSameDistrict(obj *Rectangle) []*Rectangle {
-	objs := []*Rectangle{}
+	var objs []*Rectangle
 	index := tree.GetDistrictIndex(obj)
 	if -1 != index && len(tree.childs) > 0{
 		return tree.childs[index].GetObjsInSameDistrict(obj)
 	}
 	for e:= tree.objects.Front();e!=nil;e=e.Next() {
-		if e.Value.(*Rectangle) != obj { //去除自己
+		if e.Value.(*Rectangle) != obj && !(e.Value.(*Rectangle).ID == obj.ID && e.Value.(*Rectangle).Type == obj.Type){ //去除自己
 			objs = append(objs, e.Value.(*Rectangle))
 		}
 	}
@@ -121,13 +164,28 @@ func (tree *QuadTree)Clear()  {
 	for e:= tree.objects.Front(); e!=nil; e=next {	//将本层中的物体移动至下一层
 		next = e.Next()
 		tree.objects.Remove(e)
+		tree.objCount--
 	}
-	for i,child := range tree.childs {
+	for _,child := range tree.childs {
 		if nil != child {
 			child.Clear()
-			tree.childs[i] = nil
 		}
 	}
+	tree.childs = nil
+}
+
+func (tree *QuadTree)Show() {
+	if nil == tree {return}
+	tree.ShowCurLevel()
+	for _,child := range tree.childs {
+		if nil != child {
+			child.Show()
+		}
+	}
+}
+
+func (tree *QuadTree)ShowCurLevel() {
+	fmt.Printf("%+v\n", tree)
 }
 
 
