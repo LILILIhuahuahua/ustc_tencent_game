@@ -4,10 +4,12 @@ import (
 	"container/list"
 	"fmt"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
+	"math"
 )
 
 // QuadTree	四叉树，用于在碰撞检测时快速返回目标物体的邻近物体
 type QuadTree struct {
+	name string			//区域名 “0-2-2-3-1”
 	maxObjectNum int32	//区域内可容纳的最大物体数量
 	maxLevelNum  int32	//四叉树最大层数
 	curLevel int32		//四叉树当前层数
@@ -22,8 +24,9 @@ type QuadTree struct {
 // @param     curLevel        int32         "四叉树当前层数"
 // @param     bounds        *Rectangle         "四叉树区域边界"
 // @return    tree        *QuadTree         "四叉树指针"
-func NewQuadTree(curLevel int32, bounds *Rectangle) *QuadTree{
+func NewQuadTree(name string, curLevel int32, bounds *Rectangle) *QuadTree{
 	tree := &QuadTree{}
+	tree.name = name
 	tree.maxObjectNum = configs.MaxObjectNum
 	tree.maxLevelNum = configs.MaxLevelNum
 	tree.curLevel = curLevel
@@ -37,14 +40,14 @@ func NewQuadTree(curLevel int32, bounds *Rectangle) *QuadTree{
 // @title    Split
 // @description   四叉树节点分裂(由于当前节点中物体数量大于区域内可容纳的最大物体数量)
 func (tree *QuadTree)Split()  {
-	halfX := (tree.bounds.MaxX - tree.bounds.MinX)/2
-	halfY := (tree.bounds.MaxY - tree.bounds.MinY)/2
+	halfX := float32(math.Abs(float64(tree.bounds.MaxX - tree.bounds.MinX)/2))
+	halfY := float32(math.Abs(float64(tree.bounds.MaxY - tree.bounds.MinY)/2))
 	originX := tree.bounds.GetX()
 	originY := tree.bounds.GetY()
-	child0 := NewQuadTree(tree.curLevel+1, NewRectangleByBounds(originX, originY, originX+halfX, originY+halfY))
-	child1 := NewQuadTree(tree.curLevel+1, NewRectangleByBounds(originX-halfX, originY, originX, originY+halfY))
-	child2 := NewQuadTree(tree.curLevel+1, NewRectangleByBounds(originX-halfX, originY-halfY, originX, originY))
-	child3 := NewQuadTree(tree.curLevel+1, NewRectangleByBounds(originX, originY-halfY, originX+halfX, originY))
+	child0 := NewQuadTree(tree.name+"-0", tree.curLevel+1, NewRectangleByBounds(originX, originY, originX+halfX, originY+halfY))
+	child1 := NewQuadTree(tree.name+"-1", tree.curLevel+1, NewRectangleByBounds(originX-halfX, originY, originX, originY+halfY))
+	child2 := NewQuadTree(tree.name+"-2", tree.curLevel+1, NewRectangleByBounds(originX-halfX, originY-halfY, originX, originY))
+	child3 := NewQuadTree(tree.name+"-3", tree.curLevel+1, NewRectangleByBounds(originX, originY-halfY, originX+halfX, originY))
 	tree.childs = append(tree.childs, child0)
 	tree.childs = append(tree.childs, child1)
 	tree.childs = append(tree.childs, child2)
@@ -91,7 +94,7 @@ func (tree *QuadTree)InsertObj(obj *Rectangle)  {
 		var next *list.Element
 		for e:= tree.objects.Front(); e!=nil; e=next {	//将本层中的物体移动至下一层
 			next = e.Next()
-			eIndex := tree.GetDistrictIndex(obj)
+			eIndex := tree.GetDistrictIndex(e.Value.(*Rectangle))
 			if -1 != eIndex {
 				tree.objects.Remove(e)
 				tree.objCount--
@@ -185,7 +188,13 @@ func (tree *QuadTree)Show() {
 }
 
 func (tree *QuadTree)ShowCurLevel() {
-	fmt.Printf("%+v\n", tree)
+	fmt.Printf("--------start---------\n")
+	fmt.Printf("district:%v, bounder:%+v, objCount:%v\n", tree.name, tree.bounds, tree.objCount)
+	for e:= tree.objects.Front(); e!=nil; e=e.Next() {	//将本层中的物体移动至下一层
+		rec := e.Value.(*Rectangle)
+		fmt.Printf("%+v\n", rec)
+	}
+	fmt.Printf("--------end---------\n\n")
 }
 
 
