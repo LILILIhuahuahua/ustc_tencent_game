@@ -11,10 +11,16 @@ import (
 //通过球移动的距离来计算横纵坐标的变化
 func CalXY(dis float64, coordX, coordY float32) (x, y float32) {
 	if coordX == float32(0) {
-		return float32(0), float32(dis)
+		if coordY >= 0 {
+			return float32(0), float32(dis)
+		}
+		return float32(0), float32(-dis)
 	}
 	if coordY == float32(0) {
-		return float32(dis), float32(0)
+		if coordX >= 0 {
+			return float32(dis), float32(0)
+		}
+		return float32(-dis), float32(0)
 	}
 	xDivY := coordX / coordY //x相当于多少个y
 	ySquare := dis * dis / float64(1+ xDivY * xDivY)
