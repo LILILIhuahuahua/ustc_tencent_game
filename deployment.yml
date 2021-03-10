@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: greedy-snake-dev
-          image: ccr.ccs.tencentyun.com/tke_cluster/tke_cluster
+          image: hkccr.ccs.tencentyun.com/tke_cluster/tke_cluster
           imagePullPolicy: Always
           ports:
             - containerPort: 8888
