@@ -328,6 +328,9 @@ func (g *GameRoom) UpdateHeroPos() {
 		return true
 	})
 	for _, hero := range needToUpdate {
+		if hero.Status == configs.Dead {
+			continue
+		}
 		nowTime := time.Now().UnixNano()
 		timeElapse := nowTime - hero.UpdateTime
 		hero.UpdateTime = nowTime
