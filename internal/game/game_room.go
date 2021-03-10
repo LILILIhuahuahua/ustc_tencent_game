@@ -40,7 +40,7 @@ func NewGameRoom(address string) *GameRoom {
 	if err != nil {
 		return nil
 	}
-	return &GameRoom{
+	gameroom :=  &GameRoom{
 		ID:         tools.UUID_UTIL.GenerateInt64UUID(),
 		addr:       address,
 		server:     s,
@@ -50,6 +50,8 @@ func NewGameRoom(address string) *GameRoom {
 		quadTree:	collision.NewQuadTree(0, collision.NewRectangleByBounds(configs.MapMinX, configs.MapMinY, configs.MapMaxX, configs.MapMaxY)),
 		//Heros: make(map[int32]*model.Hero),
 	}
+	gameroom.AdjustPropsIntoTower()
+	return gameroom
 }
 
 func (g *GameRoom) GetRoomID() int64 {
@@ -136,10 +138,29 @@ func (g *GameRoom) Multiplecast(buff []byte, sessions []*framework.BaseSession) 
 	return nil
 }
 
-// 获取某玩家附近的玩家
-func (g *GameRoom) GetPlayersNearby(hero *model.Hero) []*model.Hero {
+func (g *GameRoom) AdjustPropsIntoTower() {
+	towers := g.GetTowers()
+	propManager := g.props
+	props, err := propManager.GetProps()
+	if err != nil {
+		fmt.Printf("在调整props的时候出错了")
+	}
+	//fmt.Printf("灯塔的个数为%d", len(towers))
+	for i, prop := range props {
+		if prop.Status() == configs.PropStatusDead {
+			continue
+		}
+		towerId := tools.CalTowerId(prop.GetX(), prop.GetY())
+		towers[towerId].PropEnter(&props[i]) // 注意这里一定要写这样， 写成&prop会导致数组中的结果都是一样的
+		//fmt.Printf("把编号为%d的道具放入%d号灯塔中\n, 该灯塔的坐标为X:%f, Y:%f \n", prop.ID(), towerId, prop.GetX(), prop.GetY())
+	}
+}
+
+// 获取某玩家附近的玩家和道具
+func (g *GameRoom) GetItemsNearby(hero *model.Hero) ([]*model.Hero, []*prop.Prop) {
 	towers := g.GetTowers()
 	var heros []*model.Hero
+	var props []*prop.Prop
 	var towersOfPlayer []*aoi.Tower
 	hero.OtherTowers.Range(func(k, v interface{}) bool {
 		towersOfPlayer = append(towersOfPlayer, v.(*aoi.Tower))
@@ -148,8 +169,9 @@ func (g *GameRoom) GetPlayersNearby(hero *model.Hero) []*model.Hero {
 	towersOfPlayer = append(towersOfPlayer, towers[hero.TowerId])
 	for _, tower := range towersOfPlayer {
 		heros = append(heros, tower.GetHeros()...)
+		props = append(props, tower.GetProps()...)
 	}
-	return heros
+	return heros, props
 }
 
 func (g *GameRoom) Serv() error {
@@ -328,6 +350,9 @@ func (g *GameRoom) UpdateHeroPos() {
 		return true
 	})
 	for _, hero := range needToUpdate {
+		if hero.Status == configs.Dead {
+			continue
+		}
 		nowTime := time.Now().UnixNano()
 		timeElapse := nowTime - hero.UpdateTime
 		hero.UpdateTime = nowTime
@@ -409,9 +434,12 @@ func (room *GameRoom) onCollision() {
 					fmt.Printf("检测到玩家发生碰撞！胜者信息：%+v，败者信息：%+v\n", winner, loser)
 					// 败者退场
 					room.Heros.Delete(loser.ID)
+					roomTowers := room.GetTowers()
+					roomTowers[loser.TowerId].HeroLeave(loser)
 					loser.Status = int32(pb.HERO_STATUS_DEAD)
 					room.Heros.Store(loser.ID, loser)
 					room.quadTree.DeleteObj(collision.NewRectangleByObj(loser.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), loser.Size, loser.HeroPosition.X, loser.HeroPosition.Y))
+<<<<<<< HEAD
 					// 胜者增大变慢
 					room.Heros.Delete(winner.ID)
 					winner.Size += candidate.Size
@@ -424,6 +452,12 @@ func (room *GameRoom) onCollision() {
 						winner.Speed = configs.HeroSpeedDownLimit
 					}
 					room.Heros.Store(winner.ID, winner)
+=======
+					// 胜者增大
+					//room.Heros.Delete(winner.ID)
+					//winner.Size += candidate.Size
+					//room.Heros.Store(winner.ID, winner)
+>>>>>>> f33e6fc3977b73707a4100d5c6baba86691837c2
 					room.quadTree.UpdateObj(collision.NewRectangleByObj(winner.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), winner.Size, winner.HeroPosition.X, winner.HeroPosition.Y))
 					// 发包
 					heroInfo := &pb.HeroMsg{
@@ -502,6 +536,7 @@ func (room *GameRoom) onCollision() {
 					fmt.Printf("[碰撞检测]检测到玩家吃道具！玩家信息：%+v，道具信息：%+v\n", eater, prop)
 					// 道具退场
 					room.props.RemoveProp(prop.ID())
+					// 这里加上道具视野管理
 					prop.SetStatus(int32(pb.ITEM_STATUS_ITEM_DEAD))
 					room.props.AddProp(prop)
 					room.quadTree.DeleteObj(collision.NewRectangleByObj(prop.ID(), int32(pb.ENTITY_TYPE_PROP_TYPE), 0, prop.GetX(), prop.GetY()))
