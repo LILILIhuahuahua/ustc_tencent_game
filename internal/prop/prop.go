@@ -2,7 +2,6 @@ package prop
 
 import (
 	"errors"
-	"fmt"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework"
@@ -125,7 +124,6 @@ func newProps(minX float32, maxX float32, minY float32, maxY float32, count int)
 	for i := 0; i < count; i++ {
 		x := minX + r.Float32()*(maxX-minX)
 		y := minY + r.Float32()*(maxY-minY)
-		fmt.Printf("",x,y)
 		pid := int32(guuid.New().ID())
 
 		m[pid] = &Prop{

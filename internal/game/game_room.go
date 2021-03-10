@@ -40,7 +40,7 @@ func NewGameRoom(address string) *GameRoom {
 	if err != nil {
 		return nil
 	}
-	return &GameRoom{
+	gameroom :=  &GameRoom{
 		ID:         tools.UUID_UTIL.GenerateInt64UUID(),
 		addr:       address,
 		server:     s,
@@ -50,6 +50,8 @@ func NewGameRoom(address string) *GameRoom {
 		quadTree:	collision.NewQuadTree(0, collision.NewRectangleByBounds(configs.MapMinX, configs.MapMinY, configs.MapMaxX, configs.MapMaxY)),
 		//Heros: make(map[int32]*model.Hero),
 	}
+	gameroom.AdjustPropsIntoTower()
+	return gameroom
 }
 
 func (g *GameRoom) GetRoomID() int64 {
@@ -136,10 +138,29 @@ func (g *GameRoom) Multiplecast(buff []byte, sessions []*framework.BaseSession) 
 	return nil
 }
 
-// 获取某玩家附近的玩家
-func (g *GameRoom) GetPlayersNearby(hero *model.Hero) []*model.Hero {
+func (g *GameRoom) AdjustPropsIntoTower() {
+	towers := g.GetTowers()
+	propManager := g.props
+	props, err := propManager.GetProps()
+	if err != nil {
+		fmt.Printf("在调整props的时候出错了")
+	}
+	//fmt.Printf("灯塔的个数为%d", len(towers))
+	for i, prop := range props {
+		if prop.Status() == configs.PropStatusDead {
+			continue
+		}
+		towerId := tools.CalTowerId(prop.GetX(), prop.GetY())
+		towers[towerId].PropEnter(&props[i]) // 注意这里一定要写这样， 写成&prop会导致数组中的结果都是一样的
+		//fmt.Printf("把编号为%d的道具放入%d号灯塔中\n, 该灯塔的坐标为X:%f, Y:%f \n", prop.ID(), towerId, prop.GetX(), prop.GetY())
+	}
+}
+
+// 获取某玩家附近的玩家和道具
+func (g *GameRoom) GetItemsNearby(hero *model.Hero) ([]*model.Hero, []*prop.Prop) {
 	towers := g.GetTowers()
 	var heros []*model.Hero
+	var props []*prop.Prop
 	var towersOfPlayer []*aoi.Tower
 	hero.OtherTowers.Range(func(k, v interface{}) bool {
 		towersOfPlayer = append(towersOfPlayer, v.(*aoi.Tower))
@@ -148,8 +169,9 @@ func (g *GameRoom) GetPlayersNearby(hero *model.Hero) []*model.Hero {
 	towersOfPlayer = append(towersOfPlayer, towers[hero.TowerId])
 	for _, tower := range towersOfPlayer {
 		heros = append(heros, tower.GetHeros()...)
+		props = append(props, tower.GetProps()...)
 	}
-	return heros
+	return heros, props
 }
 
 func (g *GameRoom) Serv() error {
@@ -418,9 +440,9 @@ func (room *GameRoom) onCollision() {
 					room.Heros.Store(loser.ID, loser)
 					room.quadTree.DeleteObj(collision.NewRectangleByObj(loser.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), loser.Size, loser.HeroPosition.X, loser.HeroPosition.Y))
 					// 胜者增大
-					room.Heros.Delete(winner.ID)
-					winner.Size += candidate.Size
-					room.Heros.Store(winner.ID, winner)
+					//room.Heros.Delete(winner.ID)
+					//winner.Size += candidate.Size
+					//room.Heros.Store(winner.ID, winner)
 					room.quadTree.UpdateObj(collision.NewRectangleByObj(winner.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), winner.Size, winner.HeroPosition.X, winner.HeroPosition.Y))
 					// 发包
 					heroInfo := &pb.HeroMsg{

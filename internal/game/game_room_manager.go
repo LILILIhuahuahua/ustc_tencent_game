@@ -39,23 +39,6 @@ func GlobalInfoNotify() {
 	if GAME_ROOM_MANAGER != nil && len(GAME_ROOM_MANAGER.roomMap) != 0 {
 		for _, room := range GAME_ROOM_MANAGER.roomMap {
 			var pbMsg *pb.GMessage
-			ps, err := room.props.GetProps()
-			if err != nil {
-				log.Printf("GlobalInfoNotify: %s", err.Error())
-			}
-
-			items := make([]info.ItemInfo, len(ps))
-			for k, v := range ps {
-				items[k] = info.ItemInfo{
-					ID:     v.ID(),
-					Type:   int32(pb.ENTITY_TYPE_FOOD_TYPE),
-					Status: v.Status(),
-					ItemPosition: info.CoordinateXYInfo{
-						CoordinateX: v.GetX(),
-						CoordinateY: v.GetY(),
-					},
-				}
-			}
 
 			roomHeros := room.GetHeros()
 			// 该房间内所有的小球
@@ -66,7 +49,20 @@ func GlobalInfoNotify() {
 			})
 			for _, hero := range heroNeedToNotify {
 				var heroInfos []info.HeroInfo
-				players := room.GetPlayersNearby(hero)
+				players, props := room.GetItemsNearby(hero)
+				var items []info.ItemInfo
+				for _, v := range props {
+					itemInfo := info.ItemInfo{
+						ID:     v.ID(),
+						Type:   int32(pb.ENTITY_TYPE_FOOD_TYPE),
+						Status: v.Status(),
+						ItemPosition: info.CoordinateXYInfo{
+							CoordinateX: v.GetX(),
+							CoordinateY: v.GetY(),
+						},
+					}
+					items = append(items, itemInfo)
+				}
 				for _, player := range players {
 					heroInfo := player.ToEvent()
 					heroInfos = append(heroInfos, heroInfo)
@@ -137,7 +133,7 @@ func (m *GameRoomManager) Braodcast(roomId int64, buff []byte) {
 func (m *GameRoomManager) MutiplecastToNearBy(roomId int64, buf []byte, hero *model.Hero) {
 	r := m.FetchGameRoom(roomId)
 	var sessionToSend []*framework.BaseSession
-	heroToSend := r.GetPlayersNearby(hero)
+	heroToSend, _ := r.GetItemsNearby(hero)
 	for _, hero := range heroToSend {
 		if hero.Session != nil && hero.Session.Status == configs.SessionStatusCreated {
 			sessionToSend = append(sessionToSend, hero.Session)
