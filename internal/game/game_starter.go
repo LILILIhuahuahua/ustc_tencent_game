@@ -47,8 +47,8 @@ func (this *GameStarter) init() {
 
 	//todo:启动定时任务
 	//定时检测客户端kcp是否可连通 每5秒检测一次
-	//scheduler.NewTimer(time.Second*time.Duration(5), GAME_ROOM_MANAGER.DeleteUnavailableSession)
-	//scheduler.NewTimer(time.Second*time.Duration(5), GAME_ROOM_MANAGER.DeleteDeprecatedHero)
+	scheduler.NewTimer(time.Second*time.Duration(5), GAME_ROOM_MANAGER.DeleteUnavailableSession)
+	scheduler.NewTimer(time.Second*time.Duration(5), GAME_ROOM_MANAGER.DeleteDeprecatedHero)
 	//定期更新小球位置，每50ms检测一次
 	scheduler.NewTimer(time.Millisecond*time.Duration(50), GAME_ROOM_MANAGER.UpdateHeroPosition)
 	go scheduler.Sched(configs.GlobalScheduleConfig)

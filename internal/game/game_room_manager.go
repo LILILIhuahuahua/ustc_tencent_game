@@ -108,7 +108,7 @@ func (m *GameRoomManager) Unicast(roomId int64, sessionId int32, buff []byte) {
 	defer func() {
 		e := recover()
 		if e != nil {
-			fmt.Println("在unicast的时候出错了，错误为：", e)
+			//fmt.Println("在unicast的时候出错了，错误为：", e)
 		}
 	}()
 
