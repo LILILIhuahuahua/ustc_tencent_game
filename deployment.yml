@@ -29,4 +29,4 @@ spec:
               protocol: UDP
       imagePullSecrets:
         - name: regcred
-      restartPolicy: OnFailure
+      restartPolicy: Always
