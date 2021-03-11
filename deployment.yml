@@ -7,11 +7,11 @@ metadata:
 spec:
   replicas: 2
   minReadySeconds: 5
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
+#  strategy:
+#    type: RollingUpdate
+#    rollingUpdate:
+#      maxSurge: 1
+#      maxUnavailable: 1
   selector:
     matchLabels:
       app: greedy-snake
@@ -23,10 +23,10 @@ spec:
       containers:
         - name: greedy-snake
           image: hkccr.ccs.tencentyun.com/tke_cluster/tke_cluster
-          imagePullPolicy: Always
+#          imagePullPolicy: Always
           ports:
             - containerPort: 8888
               protocol: UDP
       imagePullSecrets:
         - name: regcred
-      restartPolicy: Always
+      restartPolicy: OnFailure
