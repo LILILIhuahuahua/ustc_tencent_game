@@ -45,21 +45,26 @@ func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReques
 	//room := GAME_ROOM_MANAGER.FetchGameRoom(req.RoomId)
 	r := GAME_ROOM_MANAGER.FetchGameRoom(req.RoomId)
 	var pbNotifyMsg, pbResponseMsg *pb.GMessage
-	if req.HeroMsg.Speed == float32(0) {
-		req.HeroMsg.Speed = float32(100)
-	}
-	fmt.Printf("我收到的X为%f, Y为%f", req.HeroMsg.HeroDirection.CoordinateX, req.HeroMsg.HeroDirection.CoordinateY)
-	hero := &model.Hero{
-		ID:            req.HeroMsg.ID,
-		Status:        req.HeroMsg.Status,
-		Size:          req.HeroMsg.Size,
-		Speed:         req.HeroMsg.Speed,
-		UpdateTime:    time.Now().UnixNano(),
-		HeroDirection: model.Coordinate{X: req.HeroMsg.HeroDirection.CoordinateX, Y: req.HeroMsg.HeroDirection.CoordinateY},
-		HeroPosition:  model.Coordinate{X: req.HeroMsg.HeroPosition.CoordinateX, Y: req.HeroMsg.HeroPosition.CoordinateY},
-	}
+
 
 	if req.EventType == int32(pb.EVENT_TYPE_HERO_MOVE) {
+		if r.GetHero(req.HeroMsg.ID) == nil {
+			fmt.Println("hero为nil，不ok")
+			return
+		}
+		if req.HeroMsg.Speed == float32(0) {
+			req.HeroMsg.Speed = float32(100)
+		}
+		fmt.Printf("我收到的X为%f, Y为%f", req.HeroMsg.HeroDirection.CoordinateX, req.HeroMsg.HeroDirection.CoordinateY)
+		hero := &model.Hero{
+			ID:            req.HeroMsg.ID,
+			Status:        req.HeroMsg.Status,
+			Size:          req.HeroMsg.Size,
+			Speed:         req.HeroMsg.Speed,
+			UpdateTime:    time.Now().UnixNano(),
+			HeroDirection: model.Coordinate{X: req.HeroMsg.HeroDirection.CoordinateX, Y: req.HeroMsg.HeroDirection.CoordinateY},
+			HeroPosition:  model.Coordinate{X: req.HeroMsg.HeroPosition.CoordinateX, Y: req.HeroMsg.HeroPosition.CoordinateY},
+		}
 		//heros := room.GetHeros()
 		//heroObj, ok := heros.Load(req.HeroMsg.ID)
 		//if !ok {

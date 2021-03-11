@@ -1,7 +1,6 @@
 package game
 
 import (
-	"errors"
 	"fmt"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework"
@@ -43,7 +42,8 @@ func (g *GameRoom) DeleteOfflinePlayer() error {
 	for _, session := range needDelete {
 		deletedObj, ok := g.SessionHeroMap.Load(session.Id)
 		if !ok {
-			return errors.New("玩家不存在")
+			continue
+			//return errors.New("玩家不存在")
 		}
 		hero := deletedObj.(*model.Hero)
 		hero.ChangeHeroStatus(configs.Dead)
