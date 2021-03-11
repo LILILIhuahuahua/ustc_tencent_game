@@ -56,7 +56,7 @@ func (c *BaseSession) SendMessage(buff []byte) error {
 func (c *BaseSession) IsAvailable() bool {
 	nowTime := time.Now().UnixNano()
 	if c.Status != configs.SessionStatusDead &&
-		nowTime-c.LastUpdateTime >= 5*int64(time.Second) {
+		nowTime-c.LastUpdateTime >= 30*int64(time.Second) {
 		return false
 	}
 	return true
