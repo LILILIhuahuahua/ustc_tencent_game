@@ -57,8 +57,14 @@ func (this *accountCollection) FindAccount(accountId string) (*Account, error) {
 func (this *accountCollection) UpdateAccount(accountId string, account *Account) {
 	collection := this.getCollection()
 	accIdObject, err := primitive.ObjectIDFromHex(accountId)
+	update := bson.M{
+		"$set": bson.M{
+			"phone": account.Phone,
+		},
+	}
+
 	if err != nil {
 		return
 	}
-	collection.UpdateByID(context.TODO(), accIdObject, )
+	collection.UpdateByID(context.TODO(), accIdObject, update)
 }
