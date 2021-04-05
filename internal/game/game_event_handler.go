@@ -28,11 +28,14 @@ func (g GameEventHandler) OnEvent(e event.Event) {
 	data := msg.Data
 	switch data.GetCode() {
 
-	case int32(pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_REQUEST):
-		g.onEntityInfoChange(data.(*request.EntityInfoChangeRequest))
+		case int32(pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_REQUEST):
+			g.onEntityInfoChange(data.(*request.EntityInfoChangeRequest))
 
-	default:
-		return
+		case int32(pb.GAME_MSG_CODE_HEART_BEAT_REQUEST):
+			g.onHeartBeat(data.(*request.HeartBeatRequest))
+
+		default:
+			return
 	}
 }
 
@@ -40,9 +43,26 @@ func (g GameEventHandler) OnEventToSession(e event.Event, s event.Session) {
 
 }
 
+func (g GameEventHandler)onHeartBeat(req *request.HeartBeatRequest)  {
+	sendTime := req.SendTime
+	heartBeatPBMsg := response2.ToHeartBeatRespPBMsg(sendTime)
+	respPBMsg := &pb.Response{
+		HeartBeatResponse: heartBeatPBMsg,
+	}
+	PBMsg := pb.GMessage{
+		MsgType:   pb.MSG_TYPE_RESPONSE,
+		MsgCode:   pb.GAME_MSG_CODE_HEART_BEAT_RESPONSE,
+		SessionId: req.SessionId,
+		Notify:    nil,
+		Request:   nil,
+		Response:  respPBMsg,
+		SendTime:  sendTime,
+	}
+	outResponse, _ := proto.Marshal(&PBMsg)
+	GAME_ROOM_MANAGER.Unicast(req.GetRoomId(), req.SessionId, outResponse)
+}
+
 func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeRequest) {
-	//heroId := req.HeroId
-	//room := GAME_ROOM_MANAGER.FetchGameRoom(req.RoomId)
 	r := GAME_ROOM_MANAGER.FetchGameRoom(req.RoomId)
 	var pbNotifyMsg, pbResponseMsg *pb.GMessage
 
@@ -120,21 +140,6 @@ func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReques
 		}
 		//GAME_ROOM_MANAGER.Braodcast(req.GetRoomId(), outNotify)
 		GAME_ROOM_MANAGER.MutiplecastToNearBy(r.ID, outNotify, hero) // 只通知视野范围内的玩家,而非广播给所有的玩家
-		GAME_ROOM_MANAGER.Unicast(req.GetRoomId(), req.SessionId, outResponse)
-	} else if req.EventType == int32(pb.EVENT_TYPE_HERO_COLLISION) {
-		collisionRes := true
-		//todo:碰撞检测
-		response := &response2.EntityInfoChangeResponse{
-			ChangeResult: collisionRes,
-		}
-		responseMsg := event2.GMessage{
-			MsgType:     configs.MsgTypeResponse,
-			GameMsgCode: configs.EntityInfoChangeResponse,
-			SessionId:   req.SessionId,
-			Data:        response,
-		}
-		pbResponseMsg = responseMsg.ToMessage().(*pb.GMessage)
-		outResponse, _ := proto.Marshal(pbResponseMsg)
 		GAME_ROOM_MANAGER.Unicast(req.GetRoomId(), req.SessionId, outResponse)
 	}
 }

@@ -8,6 +8,7 @@ message Request {
   EntityInfoChangeRequest entityChangeRequest = 1; //实体改变请求，例如两条蛇相撞的时候、蛇吃道具的时候要发此类请求
   HeroQuitRequest heroQuitRequest = 2; //玩家退出请求
   EnterGameRequest enterGameRequest = 3;
+  HeartBeatRequest heartBeatRequest = 4;
 }
 
 message EnterGameRequest {
@@ -27,4 +28,8 @@ message EntityInfoChangeRequest {
 message HeroQuitRequest {
   int64 heroId = 1; //玩家Id
   int64 time = 2; //离开时间
+}
+
+message HeartBeatRequest { // 心跳请求
+  int64 sendTime = 1; //消息发送时间，用于测试网络时延
 }
