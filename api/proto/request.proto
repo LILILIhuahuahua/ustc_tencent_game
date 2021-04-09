@@ -26,7 +26,7 @@ message EntityInfoChangeRequest {
 
 
 message HeroQuitRequest {
-  int64 heroId = 1; //玩家Id
+  int32 heroId = 1; //玩家Id
   int64 time = 2; //离开时间
 }
 

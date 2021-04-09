@@ -10,6 +10,7 @@ message Response {
   EntityInfoChangeResponse entityChangeResponse = 3;
   EnterGameResponse enterGameResponse = 4;
   HeartBeatResponse heartBeatResponse = 5;
+  HeroQuitResponse heroQuitResponse = 6;
 }
 
 message EnterGameResponse {
@@ -22,7 +23,7 @@ message EntityInfoChangeResponse {
 }
 
 message HeroQuitResponse { //玩家退出通知
-  bool quitResponse = 1;
+  bool quitResult = 1;
 }
 
 message HeartBeatResponse { // 心跳回包

@@ -10,6 +10,7 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
 	response2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/response"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"github.com/golang/protobuf/proto"
 	"sync"
 	"time"
@@ -33,6 +34,9 @@ func (g GameEventHandler) OnEvent(e event.Event) {
 
 		case int32(pb.GAME_MSG_CODE_HEART_BEAT_REQUEST):
 			g.onHeartBeat(data.(*request.HeartBeatRequest))
+
+		case int32(pb.GAME_MSG_CODE_HERO_QUIT_REQUEST):
+			g.onHeroQuit(data.(*request.HeroQuitRequest))
 
 		default:
 			return
@@ -61,6 +65,53 @@ func (g GameEventHandler)onHeartBeat(req *request.HeartBeatRequest)  {
 	outResponse, _ := proto.Marshal(&PBMsg)
 	GAME_ROOM_MANAGER.Unicast(req.GetRoomId(), req.SessionId, outResponse)
 }
+
+func (g GameEventHandler)onHeroQuit(req *request.HeroQuitRequest)  {
+	heroID := req.HeroId
+	//1.更改玩家状态为dead
+	roomID := req.GetRoomId()
+	room := GAME_ROOM_MANAGER.FetchGameRoom(roomID)
+	h, _ := room.Heros.Load(heroID)
+	if nil == h {
+		fmt.Println("[HeroQuitErr]无法找到对应英雄！")
+	}
+	hero := h.(*model.Hero)
+	room.Heros.Delete(heroID)
+	hero.Status = int32(pb.HERO_STATUS_DEAD)
+	room.Heros.Store(heroID, hero)
+	//2.广播给其他玩家
+	heroInfo := &pb.HeroMsg{
+		HeroId: hero.ID,
+		HeroSpeed: hero.Speed,
+		HeroSize: hero.Size,
+		HeroStatus: pb.HERO_STATUS_DEAD,
+		HeroPosition: &pb.CoordinateXY{
+			CoordinateX: hero.HeroPosition.X,
+			CoordinateY: hero.HeroPosition.Y,
+		},
+		HeroDirection: &pb.CoordinateXY{
+			CoordinateX: hero.HeroDirection.X,
+			CoordinateY: hero.HeroDirection.Y,
+		},
+	}
+	data := &pb.EntityInfoChangeNotify{
+		EntityType: pb.ENTITY_TYPE_HERO_TYPE,
+		EntityId:   hero.ID,
+		HeroMsg: heroInfo,
+	}
+	notify := &pb.Notify{
+		EntityInfoChangeNotify: data,
+	}
+	msg := pb.GMessage{
+		MsgType:  pb.MSG_TYPE_NOTIFY,
+		MsgCode:  pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_NOTIFY,
+		Notify: notify,
+		SendTime: tools.TIME_UTIL.NowMillis(),
+	}
+	out, _ := proto.Marshal(&msg)
+	GAME_ROOM_MANAGER.Braodcast(room.ID, out)
+}
+
 
 func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeRequest) {
 	r := GAME_ROOM_MANAGER.FetchGameRoom(req.RoomId)
