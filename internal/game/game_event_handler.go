@@ -6,11 +6,11 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
 	event2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
 	notify2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/notify"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
 	response2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/response"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"github.com/golang/protobuf/proto"
 	"sync"
 	"time"
@@ -68,6 +68,7 @@ func (g GameEventHandler)onHeartBeat(req *request.HeartBeatRequest)  {
 
 func (g GameEventHandler)onHeroQuit(req *request.HeroQuitRequest)  {
 	heroID := req.HeroId
+	sessionId := req.SessionId
 	//1.更改玩家状态为dead
 	roomID := req.GetRoomId()
 	room := GAME_ROOM_MANAGER.FetchGameRoom(roomID)
@@ -80,36 +81,14 @@ func (g GameEventHandler)onHeroQuit(req *request.HeroQuitRequest)  {
 	hero.Status = int32(pb.HERO_STATUS_DEAD)
 	room.Heros.Store(heroID, hero)
 	//2.广播给其他玩家
-	heroInfo := &pb.HeroMsg{
-		HeroId: hero.ID,
-		HeroSpeed: hero.Speed,
-		HeroSize: hero.Size,
-		HeroStatus: pb.HERO_STATUS_DEAD,
-		HeroPosition: &pb.CoordinateXY{
-			CoordinateX: hero.HeroPosition.X,
-			CoordinateY: hero.HeroPosition.Y,
-		},
-		HeroDirection: &pb.CoordinateXY{
-			CoordinateX: hero.HeroDirection.X,
-			CoordinateY: hero.HeroDirection.Y,
-		},
-	}
-	data := &pb.EntityInfoChangeNotify{
-		EntityType: pb.ENTITY_TYPE_HERO_TYPE,
-		EntityId:   hero.ID,
-		HeroMsg: heroInfo,
-	}
-	notify := &pb.Notify{
-		EntityInfoChangeNotify: data,
-	}
-	msg := pb.GMessage{
-		MsgType:  pb.MSG_TYPE_NOTIFY,
-		MsgCode:  pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_NOTIFY,
-		Notify: notify,
-		SendTime: tools.TIME_UTIL.NowMillis(),
-	}
-	out, _ := proto.Marshal(&msg)
+	heroInfo := info.NewHeroInfo(hero)
+	notify := notify2.NewEntityInfoChangeNotify(int32(pb.ENTITY_TYPE_HERO_TYPE), hero.ID, heroInfo, nil)
+	out := notify.ToGMessageBytes()
 	GAME_ROOM_MANAGER.Braodcast(room.ID, out)
+	//3.单播返回离开结果
+	resp := response2.NewHeroQuitResponse(true)
+	out = resp.ToGMessageBytes()
+	GAME_ROOM_MANAGER.Unicast(roomID, sessionId, out)
 }
 
 
@@ -161,7 +140,8 @@ func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReques
 		notify := &notify2.EntityInfoChangeNotify{
 			EntityType: configs.HeroType,
 			EntityId:   hero.ID,
-			HeroMsg:    hero.ToEvent(),
+			//HeroMsg:    hero.ToEvent(),
+			HeroMsg:    info.NewHeroInfo(hero),
 			//ItemMsg: nil,
 		}
 

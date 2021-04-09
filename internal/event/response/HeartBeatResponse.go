@@ -12,7 +12,7 @@ type HeartBeatResponse struct {
 }
 
 func (e *HeartBeatResponse) ToMessage() interface{} {
-	return pb.HeartBeatResponse{
+	return &pb.HeartBeatResponse{
 		SendTime: e.SendTime,
 	}
 }

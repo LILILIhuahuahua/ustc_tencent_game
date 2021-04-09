@@ -18,7 +18,8 @@ func (r *GameRoom) SendHeroViewNotify(changeHero *model.Hero, notifyHero *model.
 	heroViewNotify := &notify.HeroViewNotify{
 		HeroId:    changeHero.ID,
 		ViewType:  notifyType,
-		HeroMsg:   changeHero.ToEvent(),
+		//HeroMsg:   changeHero.ToEvent(),
+		HeroMsg:   *info.NewHeroInfo(changeHero),
 	}
 	notifyMsg := event2.GMessage{
 		MsgType:     configs.MsgTypeNotify,
@@ -50,7 +51,8 @@ func (r *GameRoom) SendHeroPropGlobalInfoNotify(towers []int32, session *framewo
 		propMsg = append(propMsg, ps...)
 	}
 	for _, h := range heroMsg {
-		heroEvent = append(heroEvent, h.ToEvent())
+		//heroEvent = append(heroEvent, h.ToEvent())
+		heroEvent = append(heroEvent, *info.NewHeroInfo(h))
 		//fmt.Printf("向%d，发送%d的位置信息 -------刚刚进入灯塔\n", session.Id, h.Session.Id)
 	}
 	var items []info.ItemInfo

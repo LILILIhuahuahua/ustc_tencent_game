@@ -64,7 +64,8 @@ func GlobalInfoNotify() {
 					items = append(items, itemInfo)
 				}
 				for _, player := range players {
-					heroInfo := player.ToEvent()
+					//heroInfo := player.ToEvent()
+					heroInfo := *info.NewHeroInfo(player)
 					heroInfos = append(heroInfos, heroInfo)
 				}
 				heroNum := int32(len(players))

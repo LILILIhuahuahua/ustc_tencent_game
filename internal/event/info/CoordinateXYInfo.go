@@ -12,6 +12,13 @@ type CoordinateXYInfo struct {
 	CoordinateY float32
 }
 
+func NewCoordinateInfo(x float32, y float32) *CoordinateXYInfo{
+	return &CoordinateXYInfo{
+		CoordinateX: x,
+		CoordinateY: y,
+	}
+}
+
 func (c *CoordinateXYInfo) FromMessage(obj interface{}) {
 	pbMsg := obj.(*pb.CoordinateXY)
 	if nil != pbMsg {
