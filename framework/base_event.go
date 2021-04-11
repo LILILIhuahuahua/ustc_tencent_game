@@ -4,6 +4,7 @@ type BaseEvent struct {
 	SessionId int32
 	Code      int32
 	RoomId    int64
+	SeqId	  int32
 }
 
 func (e *BaseEvent) GetCode() int32 {
@@ -28,6 +29,14 @@ func (e *BaseEvent) GetRoomId() int64 {
 
 func (e *BaseEvent) SetRoomId(roomId int64) {
 	e.RoomId = roomId
+}
+
+func (e *BaseEvent) GetSeqId() int32 {
+	return e.SeqId
+}
+
+func (e *BaseEvent) SetSeqId(seqId int32) {
+	e.SeqId = seqId
 }
 
 //func NewBaseEvent(code int32) BaseEvent{

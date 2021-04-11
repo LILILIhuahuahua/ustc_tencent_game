@@ -40,7 +40,7 @@ func (e *HeroQuitResponse) ToMessage() interface{} {
 	}
 }
 
-func (e *HeroQuitResponse) ToGMessageBytes() []byte {
+func (e *HeroQuitResponse) ToGMessageBytes(seqId int32) []byte {
 	resp := &pb.Response{
 		HeroQuitResponse: e.ToMessage().(*pb.HeroQuitResponse),
 	}
@@ -48,6 +48,7 @@ func (e *HeroQuitResponse) ToGMessageBytes() []byte {
 		MsgType:  pb.MSG_TYPE_RESPONSE,
 		MsgCode:  pb.GAME_MSG_CODE_HERO_QUIT_RESPONSE,
 		Response: resp,
+		SeqId: seqId,
 		SendTime: tools.TIME_UTIL.NowMillis(),
 	}
 	out, _ := proto.Marshal(&msg)

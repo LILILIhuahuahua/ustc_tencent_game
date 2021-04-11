@@ -40,7 +40,7 @@ func (e *HeartBeatResponse) CopyFromMessage(obj interface{}) event.Event {
 	return resp
 }
 
-func (e *HeartBeatResponse) ToGMessageBytes() []byte {
+func (e *HeartBeatResponse) ToGMessageBytes(seqId int32) []byte {
 	resp := &pb.Response{
 		HeartBeatResponse: e.ToMessage().(*pb.HeartBeatResponse),
 	}
@@ -48,6 +48,7 @@ func (e *HeartBeatResponse) ToGMessageBytes() []byte {
 		MsgType:  pb.MSG_TYPE_RESPONSE,
 		MsgCode:  pb.GAME_MSG_CODE_HEART_BEAT_RESPONSE,
 		Response: resp,
+		SeqId: seqId,
 		SendTime: tools.TIME_UTIL.NowMillis(),
 	}
 	out, _ := proto.Marshal(&msg)

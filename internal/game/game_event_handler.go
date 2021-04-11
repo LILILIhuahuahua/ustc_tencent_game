@@ -50,7 +50,7 @@ func (g GameEventHandler) OnEventToSession(e event.Event, s event.Session) {
 func (g GameEventHandler)onHeartBeat(req *request.HeartBeatRequest)  {
 	sendTime := req.SendTime
 	heartBeatRsp := response2.NewHeartBeatResponse(sendTime)
-	outResponse := heartBeatRsp.ToGMessageBytes()
+	outResponse := heartBeatRsp.ToGMessageBytes(req.SeqId)
 	GAME_ROOM_MANAGER.Unicast(req.GetRoomId(), req.SessionId, outResponse)
 }
 
@@ -75,7 +75,7 @@ func (g GameEventHandler)onHeroQuit(req *request.HeroQuitRequest)  {
 	GAME_ROOM_MANAGER.Braodcast(room.ID, out)
 	//3.单播返回离开结果
 	resp := response2.NewHeroQuitResponse(true)
-	out = resp.ToGMessageBytes()
+	out = resp.ToGMessageBytes(req.SeqId)
 	GAME_ROOM_MANAGER.Unicast(roomID, sessionId, out)
 }
 
@@ -148,6 +148,7 @@ func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReques
 			MsgType:     configs.MsgTypeResponse,
 			GameMsgCode: configs.EntityInfoChangeResponse,
 			SessionId:   req.SessionId,
+			SeqId: req.SeqId,
 			Data:        response,
 		}
 		pbNotifyMsg = notifyMsg.ToMessage().(*pb.GMessage)
