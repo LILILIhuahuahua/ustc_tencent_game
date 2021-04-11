@@ -4,11 +4,19 @@ import (
 	pb "github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
+	"github.com/golang/protobuf/proto"
 )
 
 type HeartBeatResponse struct {
 	framework.BaseEvent
 	SendTime int64
+}
+
+func NewHeartBeatResponse(time int64)  *HeartBeatResponse{
+	return &HeartBeatResponse{
+		SendTime: time,
+	}
 }
 
 func (e *HeartBeatResponse) ToMessage() interface{} {
@@ -32,8 +40,16 @@ func (e *HeartBeatResponse) CopyFromMessage(obj interface{}) event.Event {
 	return resp
 }
 
-func ToHeartBeatRespPBMsg(sendTime int64) *pb.HeartBeatResponse{
-	return &pb.HeartBeatResponse{
-		SendTime: sendTime,
+func (e *HeartBeatResponse) ToGMessageBytes() []byte {
+	resp := &pb.Response{
+		HeartBeatResponse: e.ToMessage().(*pb.HeartBeatResponse),
 	}
+	msg := pb.GMessage{
+		MsgType:  pb.MSG_TYPE_RESPONSE,
+		MsgCode:  pb.GAME_MSG_CODE_HEART_BEAT_RESPONSE,
+		Response: resp,
+		SendTime: tools.TIME_UTIL.NowMillis(),
+	}
+	out, _ := proto.Marshal(&msg)
+	return out
 }

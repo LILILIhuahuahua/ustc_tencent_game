@@ -49,20 +49,8 @@ func (g GameEventHandler) OnEventToSession(e event.Event, s event.Session) {
 
 func (g GameEventHandler)onHeartBeat(req *request.HeartBeatRequest)  {
 	sendTime := req.SendTime
-	heartBeatPBMsg := response2.ToHeartBeatRespPBMsg(sendTime)
-	respPBMsg := &pb.Response{
-		HeartBeatResponse: heartBeatPBMsg,
-	}
-	PBMsg := pb.GMessage{
-		MsgType:   pb.MSG_TYPE_RESPONSE,
-		MsgCode:   pb.GAME_MSG_CODE_HEART_BEAT_RESPONSE,
-		SessionId: req.SessionId,
-		Notify:    nil,
-		Request:   nil,
-		Response:  respPBMsg,
-		SendTime:  sendTime,
-	}
-	outResponse, _ := proto.Marshal(&PBMsg)
+	heartBeatRsp := response2.NewHeartBeatResponse(sendTime)
+	outResponse := heartBeatRsp.ToGMessageBytes()
 	GAME_ROOM_MANAGER.Unicast(req.GetRoomId(), req.SessionId, outResponse)
 }
 
