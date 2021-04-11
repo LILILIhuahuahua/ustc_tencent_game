@@ -22,7 +22,7 @@ func NewHeroInfo(hero *model.Hero) *HeroInfo{
 		ID: hero.ID,
 		Speed: hero.Speed,
 		Size: hero.Size,
-		Status: int32(pb.HERO_STATUS_LIVE),
+		Status: hero.Status,
 		HeroPosition: NewCoordinateInfo(hero.HeroPosition.X, hero.HeroPosition.Y),
 		HeroDirection: NewCoordinateInfo(hero.HeroDirection.X,hero.HeroDirection.Y),
 	}
