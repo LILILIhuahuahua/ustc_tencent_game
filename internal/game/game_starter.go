@@ -39,16 +39,22 @@ func (this *GameStarter) init() {
 	entityInfochangeResp.SetCode(int32(pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_RESPONSE))
 	enterGameRequest := request.EnterGameRequest{}
 	enterGameRequest.SetCode(int32(pb.GAME_MSG_CODE_ENTER_GAME_REQUEST))
+	heartBeatRequest := request.HeartBeatRequest{}
+	heartBeatRequest.SetCode(int32(pb.GAME_MSG_CODE_HEART_BEAT_REQUEST))
+	heroQuitRequest := request.HeroQuitRequest{}
+	heroQuitRequest.SetCode(int32(pb.GAME_MSG_CODE_HERO_QUIT_REQUEST))
 
 	event.Manager.Register(int32(pb.GAME_MSG_CODE_ENTER_GAME_NOTIFY), &enterGameNotify, GAME_EVENT_HANDLER)
 	event.Manager.Register(int32(pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_REQUEST), &entityInfochangeReq, GAME_EVENT_HANDLER)
 	event.Manager.Register(int32(pb.GAME_MSG_CODE_ENTER_GAME_REQUEST), &enterGameRequest, GAME_EVENT_HANDLER)
 	event.Manager.Register(int32(pb.GAME_MSG_CODE_GAME_GLOBAL_INFO_NOTIFY), &gameGlobalInfoNotify, GAME_EVENT_HANDLER)
+	event.Manager.Register(int32(pb.GAME_MSG_CODE_HEART_BEAT_REQUEST), &heartBeatRequest, GAME_EVENT_HANDLER)
+	event.Manager.Register(int32(pb.GAME_MSG_CODE_HERO_QUIT_REQUEST), &heroQuitRequest, GAME_EVENT_HANDLER)
 
 	//todo:启动定时任务
 	//定时检测客户端kcp是否可连通 每5秒检测一次
-	scheduler.NewTimer(time.Second*time.Duration(5), GAME_ROOM_MANAGER.DeleteUnavailableSession)
-	scheduler.NewTimer(time.Second*time.Duration(5), GAME_ROOM_MANAGER.DeleteDeprecatedHero)
+	//scheduler.NewTimer(time.Second*time.Duration(5), GAME_ROOM_MANAGER.DeleteUnavailableSession)
+	//scheduler.NewTimer(time.Second*time.Duration(5), GAME_ROOM_MANAGER.DeleteDeprecatedHero)
 	//定期更新小球位置，每50ms检测一次
 	scheduler.NewTimer(time.Millisecond*time.Duration(50), GAME_ROOM_MANAGER.UpdateHeroPosition)
 	go scheduler.Sched(configs.GlobalScheduleConfig)

@@ -17,3 +17,7 @@ This branch deals with game service.
 
 
 1. Check meaning of project layout from [here](https://github.com/golang-standards/project-layout) ,try to follow the standard as possible as you can.
+
+## 仓库地址汇总
+- 登录服务：https://github.com/imilano/auth
+- 数据库服务: https://github.com/TianqiS/database_for_happyball

@@ -59,4 +59,9 @@ var (
 	PropRadius float32 = 20 	// Initial prop radius
 	PropStatusLive int32 = 0
 	PropStatusDead int32 = 1
+
+	// mongodb
+	MongoUri string = "mongodb://localhost:27017"
+	MongoPoolSize uint64 = 100
+	MongoDatabase string = "happyball"
 )

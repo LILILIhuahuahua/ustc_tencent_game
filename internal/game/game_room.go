@@ -236,8 +236,8 @@ func (g *GameRoom) Handle(session *framework.BaseSession) {
 }
 
 func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
-	enterGameNotify := e.Data.(*request.EnterGameRequest)
-	s.Id = enterGameNotify.PlayerID
+	enterGameReq := e.Data.(*request.EnterGameRequest)
+	s.Id = enterGameReq.PlayerID
 	// todo:先不检测会话存在，放开测试，后期加上
 	//if nil==g.FetchConnector(s.Id) {
 	//注册会话绑定到玩家id
@@ -265,6 +265,7 @@ func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
 	msg := pb.GMessage{
 		MsgType:  pb.MSG_TYPE_RESPONSE,
 		MsgCode:  pb.GAME_MSG_CODE_ENTER_GAME_RESPONSE,
+		SeqId: enterGameReq.SeqId,
 		Response: &resp,
 		SendTime: tools.TIME_UTIL.NowMillis(),
 	}

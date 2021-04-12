@@ -9,6 +9,8 @@ message Response {
   RESULT_TYPE result = 2; //返回结果
   EntityInfoChangeResponse entityChangeResponse = 3;
   EnterGameResponse enterGameResponse = 4;
+  HeartBeatResponse heartBeatResponse = 5;
+  HeroQuitResponse heroQuitResponse = 6;
 }
 
 message EnterGameResponse {
@@ -21,5 +23,10 @@ message EntityInfoChangeResponse {
 }
 
 message HeroQuitResponse { //玩家退出通知
-  bool quitResponse = 1;
+  bool quitResult = 1;
 }
+
+message HeartBeatResponse { // 心跳回包
+  int64 sendTime = 1; //消息发送时间，用于测试网络时延
+}
+

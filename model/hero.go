@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"sync"
 	"time"
@@ -53,27 +52,27 @@ func (h *Hero) Init(sess *framework.BaseSession) {
 	h.Session = sess
 }
 
-func (h *Hero) ToEvent() info.HeroInfo {
-	return info.HeroInfo{
-		ID:            h.ID,
-		Status:        h.Status,
-		Speed:         h.Speed,
-		Size:          h.Size,
-		HeroDirection: h.HeroDirection.ToEvent(),
-		HeroPosition:  h.HeroPosition.ToEvent(),
-	}
-}
-
-func (h *Hero) FromEvent(info info.HeroInfo) {
-	h.ID = info.ID
-	h.Status = info.Status
-	h.Speed = info.Speed
-	h.Size = info.Size
-	h.HeroDirection = Coordinate{}
-	h.HeroDirection.FromEvent(info.HeroDirection)
-	h.HeroPosition = Coordinate{}
-	h.HeroPosition.FromEvent(info.HeroPosition)
-}
+//func (h *Hero) ToEvent() info.HeroInfo {
+//	return info.HeroInfo{
+//		ID:            h.ID,
+//		Status:        h.Status,
+//		Speed:         h.Speed,
+//		Size:          h.Size,
+//		HeroDirection: h.HeroDirection.ToEvent(),
+//		HeroPosition:  h.HeroPosition.ToEvent(),
+//	}
+//}
+//
+//func (h *Hero) FromEvent(info info.HeroInfo) {
+//	h.ID = info.ID
+//	h.Status = info.Status
+//	h.Speed = info.Speed
+//	h.Size = info.Size
+//	h.HeroDirection = Coordinate{}
+//	h.HeroDirection.FromEvent(info.HeroDirection)
+//	h.HeroPosition = Coordinate{}
+//	h.HeroPosition.FromEvent(info.HeroPosition)
+//}
 
 func (h *Hero) ChangeHeroStatus(status int32) {
 	h.Status = status

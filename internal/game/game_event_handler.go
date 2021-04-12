@@ -6,6 +6,7 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
 	event2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
 	notify2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/notify"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
 	response2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/response"
@@ -28,11 +29,17 @@ func (g GameEventHandler) OnEvent(e event.Event) {
 	data := msg.Data
 	switch data.GetCode() {
 
-	case int32(pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_REQUEST):
-		g.onEntityInfoChange(data.(*request.EntityInfoChangeRequest))
+		case int32(pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_REQUEST):
+			g.onEntityInfoChange(data.(*request.EntityInfoChangeRequest))
 
-	default:
-		return
+		case int32(pb.GAME_MSG_CODE_HEART_BEAT_REQUEST):
+			g.onHeartBeat(data.(*request.HeartBeatRequest))
+
+		case int32(pb.GAME_MSG_CODE_HERO_QUIT_REQUEST):
+			g.onHeroQuit(data.(*request.HeroQuitRequest))
+
+		default:
+			return
 	}
 }
 
@@ -40,9 +47,40 @@ func (g GameEventHandler) OnEventToSession(e event.Event, s event.Session) {
 
 }
 
+func (g GameEventHandler)onHeartBeat(req *request.HeartBeatRequest)  {
+	sendTime := req.SendTime
+	heartBeatRsp := response2.NewHeartBeatResponse(sendTime)
+	outResponse := heartBeatRsp.ToGMessageBytes(req.SeqId)
+	GAME_ROOM_MANAGER.Unicast(req.GetRoomId(), req.SessionId, outResponse)
+}
+
+func (g GameEventHandler)onHeroQuit(req *request.HeroQuitRequest)  {
+	heroID := req.HeroId
+	sessionId := req.SessionId
+	//1.更改玩家状态为dead
+	roomID := req.GetRoomId()
+	room := GAME_ROOM_MANAGER.FetchGameRoom(roomID)
+	h, _ := room.Heros.Load(heroID)
+	if nil == h {
+		fmt.Println("[HeroQuitErr]无法找到对应英雄！")
+	}
+	hero := h.(*model.Hero)
+	room.Heros.Delete(heroID)
+	hero.Status = int32(pb.HERO_STATUS_DEAD)
+	room.Heros.Store(heroID, hero)
+	//2.广播给其他玩家
+	heroInfo := info.NewHeroInfo(hero)
+	notify := notify2.NewEntityInfoChangeNotify(int32(pb.ENTITY_TYPE_HERO_TYPE), hero.ID, heroInfo, nil)
+	out := notify.ToGMessageBytes()
+	GAME_ROOM_MANAGER.Braodcast(room.ID, out)
+	//3.单播返回离开结果
+	resp := response2.NewHeroQuitResponse(true)
+	out = resp.ToGMessageBytes(req.SeqId)
+	GAME_ROOM_MANAGER.Unicast(roomID, sessionId, out)
+}
+
+
 func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeRequest) {
-	//heroId := req.HeroId
-	//room := GAME_ROOM_MANAGER.FetchGameRoom(req.RoomId)
 	r := GAME_ROOM_MANAGER.FetchGameRoom(req.RoomId)
 	var pbNotifyMsg, pbResponseMsg *pb.GMessage
 
@@ -90,7 +128,8 @@ func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReques
 		notify := &notify2.EntityInfoChangeNotify{
 			EntityType: configs.HeroType,
 			EntityId:   hero.ID,
-			HeroMsg:    hero.ToEvent(),
+			//HeroMsg:    hero.ToEvent(),
+			HeroMsg:    info.NewHeroInfo(hero),
 			//ItemMsg: nil,
 		}
 
@@ -109,6 +148,7 @@ func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReques
 			MsgType:     configs.MsgTypeResponse,
 			GameMsgCode: configs.EntityInfoChangeResponse,
 			SessionId:   req.SessionId,
+			SeqId: req.SeqId,
 			Data:        response,
 		}
 		pbNotifyMsg = notifyMsg.ToMessage().(*pb.GMessage)
@@ -120,21 +160,6 @@ func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReques
 		}
 		//GAME_ROOM_MANAGER.Braodcast(req.GetRoomId(), outNotify)
 		GAME_ROOM_MANAGER.MutiplecastToNearBy(r.ID, outNotify, hero) // 只通知视野范围内的玩家,而非广播给所有的玩家
-		GAME_ROOM_MANAGER.Unicast(req.GetRoomId(), req.SessionId, outResponse)
-	} else if req.EventType == int32(pb.EVENT_TYPE_HERO_COLLISION) {
-		collisionRes := true
-		//todo:碰撞检测
-		response := &response2.EntityInfoChangeResponse{
-			ChangeResult: collisionRes,
-		}
-		responseMsg := event2.GMessage{
-			MsgType:     configs.MsgTypeResponse,
-			GameMsgCode: configs.EntityInfoChangeResponse,
-			SessionId:   req.SessionId,
-			Data:        response,
-		}
-		pbResponseMsg = responseMsg.ToMessage().(*pb.GMessage)
-		outResponse, _ := proto.Marshal(pbResponseMsg)
 		GAME_ROOM_MANAGER.Unicast(req.GetRoomId(), req.SessionId, outResponse)
 	}
 }

@@ -29,41 +29,48 @@ func (this *GMessage) ToMessage() interface{} {
 	switch this.MsgType {
 	case configs.MsgTypeNotify:
 		switch this.Data.(type) { //这里的处理函数可以进行封装
-		case *notify.EntityInfoChangeNotify:
-			pbMsgNotify = &pb.Notify{
-				EntityInfoChangeNotify: this.Data.ToMessage().(*pb.EntityInfoChangeNotify),
-			}
-		case *notify.GameGlobalInfoNotify:
-			pbMsgNotify = &pb.Notify{
-				GameGlobalInfoNotify: this.Data.ToMessage().(*pb.GameGlobalInfoNotify),
-			}
-		case *notify.EnterGameNotify:
-			pbMsgNotify = &pb.Notify{
-				EnterGameNotify: this.Data.ToMessage().(*pb.EnterGameNotify),
-			}
-		case *notify.HeroViewNotify:
-			pbMsgNotify = &pb.Notify{
-				HeroViewNotify: this.Data.ToMessage().(*pb.HeroViewNotify),
-			}
-
-		default:
-			panic("no match type")
+			case *notify.EntityInfoChangeNotify:
+				pbMsgNotify = &pb.Notify{
+					EntityInfoChangeNotify: this.Data.ToMessage().(*pb.EntityInfoChangeNotify),
+				}
+			case *notify.GameGlobalInfoNotify:
+				pbMsgNotify = &pb.Notify{
+					GameGlobalInfoNotify: this.Data.ToMessage().(*pb.GameGlobalInfoNotify),
+				}
+			case *notify.EnterGameNotify:
+				pbMsgNotify = &pb.Notify{
+					EnterGameNotify: this.Data.ToMessage().(*pb.EnterGameNotify),
+				}
+			case *notify.HeroViewNotify:
+				pbMsgNotify = &pb.Notify{
+					HeroViewNotify: this.Data.ToMessage().(*pb.HeroViewNotify),
+				}
+			default:
+				panic("no match type")
 		}
 		break
 	case configs.MsgTypeRequest:
 		switch this.Data.(type) {
-		case *request.EntityInfoChangeRequest:
-			pbMsgRequest = &pb.Request{
-				EntityChangeRequest: this.Data.ToMessage().(*pb.EntityInfoChangeRequest),
-			}
+			case *request.EntityInfoChangeRequest:
+				pbMsgRequest = &pb.Request{
+					EntityChangeRequest: this.Data.ToMessage().(*pb.EntityInfoChangeRequest),
+				}
+			case *request.HeartBeatRequest:
+				pbMsgRequest = &pb.Request{
+					HeartBeatRequest: this.Data.ToMessage().(*pb.HeartBeatRequest),
+				}
 		}
 		break
 	case configs.MsgTypeResponse:
 		switch this.Data.(type) {
-		case *response2.EntityInfoChangeResponse:
-			pbMsgResponse = &pb.Response{
-				EntityChangeResponse: this.Data.ToMessage().(*pb.EntityInfoChangeResponse),
-			}
+			case *response2.EntityInfoChangeResponse:
+				pbMsgResponse = &pb.Response{
+					EntityChangeResponse: this.Data.ToMessage().(*pb.EntityInfoChangeResponse),
+				}
+			case *response2.HeartBeatResponse:
+				pbMsgResponse = &pb.Response{
+					HeartBeatResponse: this.Data.ToMessage().(*pb.HeartBeatResponse),
+				}
 		}
 		break
 	default:
@@ -91,6 +98,7 @@ func (this *GMessage) CopyFromMessage(obj interface{}) e.Event {
 	}
 	msg.SetCode(int32(pbMsg.MsgCode))
 	msg.SetSessionId(pbMsg.SessionId)
+	msg.SetSeqId(pbMsg.SeqId)
 	msg.SendTime = pbMsg.SendTime
 	event := e.Manager.FetchEvent(msg.GetCode())
 	if pb.MSG_TYPE_NOTIFY == pbMsg.MsgType {
@@ -104,6 +112,7 @@ func (this *GMessage) CopyFromMessage(obj interface{}) e.Event {
 	}
 	//传递会话id至二层协议中
 	msg.Data.SetSessionId(pbMsg.SessionId)
+	msg.Data.SetSeqId(pbMsg.SeqId)
 	msg.Data.SetRoomId(this.RoomId)
 	return msg
 }
