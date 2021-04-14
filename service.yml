@@ -6,7 +6,7 @@ spec:
   type: NodePort
   ports:
     - port: 8888
-      nodePort: 32000
+      nodePort: 31000
       targetPort: 8888
       protocol: UDP
   #  externalIPs:
