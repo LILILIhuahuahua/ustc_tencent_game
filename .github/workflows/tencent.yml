@@ -18,7 +18,7 @@ name: Tencent Kubernetes Engine
 on:
   push:
     branches:
-      - cni
+      - ci
 
 # Environment variables available to all jobs and steps in this workflow
 env:
@@ -45,7 +45,7 @@ jobs:
       # Build
       - name: Build Docker image
         run: |
-          docker build -t ${TKE_IMAGE_URL}:${NAMESPACE}:${GITHUB_SHA} .
+          docker build -t ${TKE_IMAGE_URL}-${NAMESPACE}:${GITHUB_SHA} .
 
       - name: Login TKE Registry
         run: |
