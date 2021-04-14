@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: snake-deployment-dev
+  name: snake-deployment-test
   labels:
     app: greedy-snake
 spec:
@@ -30,3 +30,5 @@ spec:
       imagePullSecrets:
         - name: regcred
       restartPolicy: Always
+      nodeSelector:
+        stage: test
