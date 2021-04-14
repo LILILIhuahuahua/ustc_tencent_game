@@ -45,7 +45,7 @@ jobs:
       # Build
       - name: Build Docker image
         run: |
-          docker build -t ${TKE_IMAGE_URL}-${NAMESPACE}:${GITHUB_SHA} .
+          docker build -t ${TKE_IMAGE_URL}:${NAMESPACE}-${GITHUB_SHA} .
 
       - name: Login TKE Registry
         run: |
@@ -53,7 +53,7 @@ jobs:
       # Push the Docker image to TKE Registry
       - name: Publish image to TKE Registry
         run: |
-          docker push ${TKE_IMAGE_URL}-${NAMESPACE}:${GITHUB_SHA}
+          docker push ${TKE_IMAGE_URL}:${NAMESPACE}-${GITHUB_SHA}
       - name: Set up Kustomize
         run: |
           curl -o kustomize --location https://github.com/kubernetes-sigs/kustomize/releases/download/v3.1.0/kustomize_3.1.0_linux_amd64
