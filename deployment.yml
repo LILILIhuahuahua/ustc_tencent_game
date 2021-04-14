@@ -19,6 +19,8 @@ spec:
     metadata:
       labels:
         app: greedy-snake-test
+      annotations:
+        tke.cloud.tencent.com/networks: tke-route-eni
     spec:
       containers:
         - name: greedy-snake-test
