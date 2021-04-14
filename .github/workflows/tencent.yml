@@ -67,7 +67,7 @@ jobs:
           cluster_id: ${{ env.TKE_CLUSTER_ID }}
       - name: Creating test namespace
         run: |
-          kubectl create -f ~/namespace.yml
+          kubectl create -f ./namespace.yml
       - name: Switch to TKE context
         run: |
           kubectl config use-context ${TKE_CLUSTER_ID}-context-default --namespace=${NAMESPACE}
