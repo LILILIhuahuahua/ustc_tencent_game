@@ -5,7 +5,7 @@ metadata:
   labels:
     app: greedy-snake-test
 spec:
-  replicas: 1
+  replicas: 2
   minReadySeconds: 5
   strategy:
     type: RollingUpdate
@@ -20,7 +20,7 @@ spec:
       labels:
         app: greedy-snake-test
       annotations:
-        tke.cloud.tencent.com/networks: tke-route-eni
+        tke.cloud.tencent.com/networks: "tke-route-eni"
     spec:
       containers:
         - name: greedy-snake-test
