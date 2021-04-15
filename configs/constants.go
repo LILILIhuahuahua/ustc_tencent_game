@@ -41,7 +41,7 @@ var (
 
 
 	// RemoteAddr is the address of kubernetes cluster, you could use this addr for testing
-	RemoteAddr ="1.15.135.248:31000"
+	//RemoteAddr ="1.15.135.248:31000"
 	// RemoteCLB is LoadBalancer address used for dgs
 	RemoteCLB = "150.158.219.116:8888"
 
