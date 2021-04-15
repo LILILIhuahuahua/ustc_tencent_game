@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: snake-service-test
+  name: dgs-dev
   annotations:
     service.cloud.tencent.com/direct-access: "true"
-  labels:
-    stage: test
+#  labels:
+#    stage: test
 spec:
   type: LoadBalancer
   externalTrafficPolicy: Cluster
@@ -18,7 +18,7 @@ spec:
   #  externalIPs:
   #    - 42.192.43.222
   selector:
-    app: greedy-snake-test
+    app: dgs
 #  sessionAffinity: ClientIP
 #  sessionAffinityConfig:
 #    clientIP:

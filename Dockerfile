@@ -6,10 +6,10 @@ RUN apk update && apk upgrade && \
 #RUN apk add --no-cache --virtual .build-deps gcc musl-dev
 #RUN git config --global url."".insteadOf ""
 #RUN export GOPRIVATE=git.enjoymusic.ltd && go build -o bifrost-api main.go plugin.go
-RUN go build -o greedy-snake main.go
+RUN go build -o dgs main.go
 
 FROM alpine:latest
 WORKDIR  /root/go/src/github.com/LILILIhuahuahua/ustc_tencent_game
-COPY --from=builder  /root/go/src/github.com/LILILIhuahuahua/ustc_tencent_game/greedy-snake .
+COPY --from=builder  /root/go/src/github.com/LILILIhuahuahua/ustc_tencent_game/dgs .
 EXPOSE 8888/udp
-ENTRYPOINT ["./greedy-snake"]
+ENTRYPOINT ["./dgs"]
