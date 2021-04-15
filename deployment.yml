@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: snake-deployment-dev
-  labels:
-    app: greedy-snake
+  name: dgs-dev
+  labels:  # this label is used for deployment itself, we can use this label to delete deployment
+    app: dgs
 spec:
   replicas: 2
   minReadySeconds: 5
@@ -12,16 +12,18 @@ spec:
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 1
-  selector:
+  selector:   # spec.selector 指定这个 rc 管理哪些 pod. 带有 label 的对象创建好之后，就可以通过 label selector 来引用这些对象
     matchLabels:
-      app: greedy-snake
+      app: dgs
   template:
     metadata:
-      labels:
-        app: greedy-snake
+      labels:  # spec.template.metadata.labels 为 pod 打上 label
+        app: dgs
+      annotations:
+        tke.cloud.tencent.com/networks: "tke-route-eni"
     spec:
       containers:
-        - name: greedy-snake
+        - name: dgs
           image: hkccr.ccs.tencentyun.com/tke_cluster/tke_cluster
           imagePullPolicy: Always
           ports:
@@ -30,3 +32,5 @@ spec:
       imagePullSecrets:
         - name: regcred
       restartPolicy: Always
+      nodeSelector:
+        environment: dev
