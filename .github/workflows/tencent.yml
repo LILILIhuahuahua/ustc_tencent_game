@@ -28,6 +28,8 @@ env:
   DEPLOYMENT_NAME: snake-deployment-test
   NAMESPACE: test
 
+  HELM_REGISTRY_URL: snake.tencentcloudcr.com
+
 jobs:
   setup-build-publish-deploy:
     name: Build, push and deploy to TKE
@@ -36,11 +38,6 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v2
-
-#      - name: Extract branch name
-#        shell: bash
-#        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-#        id: extract_branch
 
       # Build
       - name: Build Docker image

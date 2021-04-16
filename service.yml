@@ -15,11 +15,10 @@ spec:
 #      nodePort: 32000
       targetPort: 8888
       protocol: UDP
-  #  externalIPs:
-  #    - 42.192.43.222
   selector:
     app: greedy-snake-test
-#  sessionAffinity: ClientIP
 #  sessionAffinityConfig:
 #    clientIP:
 #      timeoutSeconds: 3600
+  #  externalIPs:
+  #    - 42.192.43.222
