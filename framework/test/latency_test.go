@@ -3,6 +3,7 @@ package test
 import (
 	"fmt"
 	pb "github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/golang/protobuf/proto"
 	"github.com/xtaci/kcp-go"
 	"log"
@@ -13,14 +14,14 @@ import (
 var (
 	seqID int32
 	localAddr = "127.0.0.1:8888"
-	podIP = "1.116.109.211:8888"
+
 )
 
 
 func PingServer(reqCount int32,sessionID int32, portNumber int32) (map[int32]int64,map[int32]int64,int){
 	buf := make([]byte, 4096)
 	sent,recv := make(map[int32]int64),make(map[int32]int64)
-	sess, err := kcp.DialWithOptions(podIP, nil, 0, 0)
+	sess, err := kcp.DialWithOptions(configs.RemoteCLB, nil, 0, 0)
 	startTime := time.Now().Second()
 
 	// send enterGameReq to server continuously
