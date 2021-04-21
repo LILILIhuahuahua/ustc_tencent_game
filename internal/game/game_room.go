@@ -94,12 +94,11 @@ func (g *GameRoom) DeleteConnector(c *framework.BaseSession) error {
 	return nil
 }
 
-// @title    Serv
+// Serv
 // @description   游戏服务主方法（负责处理：1.接受连接创建会话 2.监听已接收但还未注册的会话，接收到进入世界请求时注册会话 3.监听已注册会话，投递网络消息包至消息队列中）
 func (g *GameRoom) Serv() error {
-	//go g.registerSession() //开启注册线程处理会话注册流程（等待玩家进入世界）
-	go g.HandleSessions()
-	go g.HandleEventFromQueue()
+	go g.HandleSessions() //开启会话监听线程，监听session集合中的读事件，将读到的GMessage放入环形队列中
+	go g.HandleEventFromQueue() //开启消费线程，从环形队列中读取GMessage消息并处理
 	for {
 		conn, err := g.server.Listen.AcceptKCP()
 		if err != nil {
@@ -110,8 +109,8 @@ func (g *GameRoom) Serv() error {
 		if err != nil {
 			return err
 		}
-		g.acceptedSessions.Store(session.Id, session)
-		g.registerSessions()
+		g.acceptedSessions.Store(session.Id, session) //将新会话放入未注册会话集合中
+		g.registerSessions() //处理会话注册流程（等待玩家进入世界enterWorld）
 	}
 }
 
@@ -119,38 +118,36 @@ func (g *GameRoom) Serv() error {
 // @description 监听已接收但还未注册的会话，接收到进入世界请求时注册会话
 func (g *GameRoom) registerSessions() {
 	buf := make([]byte, 4096)
-	for  {
-		g.acceptedSessions.Range(func(_, v interface{}) bool {
-			session := v.(*framework.BaseSession)
-			err := session.Sess.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(2)))
-			if err != nil {
-				panic("setDeadLine出错")
-			}
-			num, _ := session.Sess.Read(buf)
-			if num == 0 {
-				return true
-			}
-			session.UpdateTime()
-			pbMsg := &pb.GMessage{}
-			proto.Unmarshal(buf, pbMsg)
-			//log.Printf("Receive data: %+v", pbMsg)
-			msg := event2.GMessage{}
-			msg.SetRoomId(g.ID)
-			m := msg.CopyFromMessage(pbMsg)
-			m.SetRoomId(g.ID)
-			if m.GetCode() == int32(pb.GAME_MSG_CODE_ENTER_GAME_REQUEST) {
-				// 将该session移出未注册会话集合
-				g.acceptedSessions.Delete(session.Id)
-				// 进入世界处理，将session放入已注册会话集合
-				g.onEnterGame(m.(*event2.GMessage), session)
-			}
-			//buf清零
-			for i := range buf {
-				buf[i] = 0
-			}
+	g.acceptedSessions.Range(func(_, v interface{}) bool {
+		session := v.(*framework.BaseSession)
+		err := session.Sess.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(2)))
+		if err != nil {
+			panic("setDeadLine出错")
+		}
+		num, _ := session.Sess.Read(buf)
+		if num == 0 {
 			return true
-		})
-	}
+		}
+		session.UpdateTime()
+		pbMsg := &pb.GMessage{}
+		proto.Unmarshal(buf, pbMsg)
+		//log.Printf("Receive data: %+v", pbMsg)
+		msg := event2.GMessage{}
+		msg.SetRoomId(g.ID)
+		m := msg.CopyFromMessage(pbMsg)
+		m.SetRoomId(g.ID)
+		if m.GetCode() == int32(pb.GAME_MSG_CODE_ENTER_GAME_REQUEST) {
+			// 将该session移出未注册会话集合
+			g.acceptedSessions.Delete(session.Id)
+			// 进入世界处理，将session放入已注册会话集合
+			g.onEnterGame(m.(*event2.GMessage), session)
+		}
+		//buf清零
+		for i := range buf {
+			buf[i] = 0
+		}
+		return true
+	})
 }
 // @title    registerSessions
 // @description 监听已接收但还未注册的会话，接收到进入世界请求时注册会话
@@ -165,7 +162,6 @@ func (g *GameRoom) HandleSessions() {
 		})
 	}
 }
-
 
 func (g *GameRoom) Handle(session *framework.BaseSession, buf []byte) {
 	//buf := make([]byte, 4096)
