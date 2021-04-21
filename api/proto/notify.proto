@@ -11,6 +11,7 @@ message Notify {
   MapInfo mapInfo = 4; //地图信息
   EnterGameNotify enterGameNotify  = 5; //进入游戏包
   HeroViewNotify heroViewNotify = 6; //小球视野管理
+  GameFinishNotify gameFinishNotify = 7;
 }
 
 message EntityInfoChangeNotify {
@@ -46,5 +47,10 @@ message HeroViewNotify {
   int32 heroId = 1;
   VIEW_TYPE viewType = 2;
   HeroMsg heroMsg = 3;
+}
+
+message GameFinishNotify {
+  repeated HeroRankMsg heroRankMsg = 1;
+  int64 finishTime = 2;
 }
 
