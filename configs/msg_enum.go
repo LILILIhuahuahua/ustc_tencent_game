@@ -1,49 +1,51 @@
 package configs
 
+import "github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
+
 const (
 	// msg消息类型
-	MsgTypeNotify   int32 = 0
-	MsgTypeRequest  int32 = 1
-	MsgTypeResponse int32 = 2
+	MsgTypeNotify  = int32(proto.MSG_TYPE_NOTIFY)
+	MsgTypeRequest = int32(proto.MSG_TYPE_REQUEST)
+	MsgTypeResponse = int32(proto.MSG_TYPE_RESPONSE)
 
 	// game msg code
-	EntityInfoChangeRequest  int32 = 0
-	EntityInfoChangeResponse int32 = 1
-	EntityInfoNotify         int32 = 2
-	HeroQuitRequest          int32 = 3
-	GameGlobalInfoNotify     int32 = 4
-	TimeNotify               int32 = 5
-	EnterGameNotify          int32 = 6
-	EnterGameRequest         int32 = 7
-	EnterGameResponse        int32 = 8
-	HeroViewNotify			 int32 = 9
+	EntityInfoChangeRequest  = int32(proto.GAME_MSG_CODE_ENTITY_INFO_CHANGE_REQUEST)
+	EntityInfoChangeResponse = int32(proto.GAME_MSG_CODE_ENTITY_INFO_CHANGE_RESPONSE)
+	EntityInfoNotify         = int32(proto.GAME_MSG_CODE_ENTITY_INFO_NOTIFY)
+	HeroQuitRequest          = int32(proto.GAME_MSG_CODE_HERO_QUIT_REQUEST)
+	GameGlobalInfoNotify     = int32(proto.GAME_MSG_CODE_GAME_GLOBAL_INFO_NOTIFY)
+	TimeNotify               = int32(proto.GAME_MSG_CODE_TIME_NOTIFY)
+	EnterGameNotify          = int32(proto.GAME_MSG_CODE_ENTER_GAME_NOTIFY)
+	EnterGameRequest         = int32(proto.GAME_MSG_CODE_ENTER_GAME_REQUEST)
+	EnterGameResponse        = int32(proto.GAME_MSG_CODE_ENTER_GAME_RESPONSE)
+	HeroViewNotify			 = int32(proto.GAME_MSG_CODE_HERO_VIEW_NOTIFY)
 
 	// 英雄状态
-	Live       int32 = 0
-	Dead       int32 = 1
-	Invincible int32 = 2
+	Live        = int32(proto.HERO_STATUS_LIVE)
+	Dead        = int32(proto.HERO_STATUS_DEAD)
+	Invincible  = int32(proto.HERO_STATUS_INVINCIBLE)
 
 	// Item status
-	ItemLive int32 = 0
-	ItemDead int32 = 1
+	ItemLive  = int32(proto.ITEM_STATUS_ITEM_LIVE)
+	ItemDead  = int32(proto.ITEM_STATUS_ITEM_DEAD)
 
 	// eventType的枚举
-	HeroCollision int32 = 0
-	ItemCollision int32 = 1
-	HeroMove      int32 = 2
-	HeroGrow      int32 = 3
+	HeroCollision  = int32(proto.EVENT_TYPE_HERO_COLLISION)
+	ItemCollision  = int32(proto.EVENT_TYPE_ITEM_COLLISION)
+	HeroMove       = int32(proto.EVENT_TYPE_HERO_MOVE)
+	HeroGrow       = int32(proto.EVENT_TYPE_HERO_GROW)
 
 	// entityType的枚举
-	HeroType int32 = 0
-	PropTypeInvincible int32 = 1
-	PropTypeJump int32 = 2
-	PropTypeFood int32 = 3
+	HeroType  = int32(proto.ENTITY_TYPE_HERO_TYPE)
+	PropTypeInvincible  = int32(proto.ENTITY_TYPE_PROP_TYPE_INVINCIBLE)
+	PropTypeJump  = int32(proto.ENTITY_TYPE_PROP_TYPE_JUMP)
+	PropTypeFood  = int32(proto.ENTITY_TYPE_PROP_TYPE_FOOD)
 
 	// response的枚举
-	Success int32 = 0
-	Fail    int32 = 1
+	Success  = int32(proto.RESULT_TYPE_SUCCESS)
+	Fail     = int32(proto.RESULT_TYPE_FAIL)
 
 	// heroViewNotify的枚举
-	Enter int32 = 0
-	Leave int32 = 1
+	Enter  = int32(proto.VIEW_TYPE_ENTER)
+	Leave  = int32(proto.VIEW_TYPE_LEAVE)
 )

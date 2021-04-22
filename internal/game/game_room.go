@@ -464,7 +464,7 @@ func (room *GameRoom) onCollision() {
 			continue
 		}
 		// 初始化道具加入到四叉树中进行碰撞检测
-		room.quadTree.InsertObj(collision.NewRectangleByObj(prop.Id, int32(pb.ENTITY_TYPE_PROP_TYPE), 0, prop.Pos.X, prop.Pos.Y))
+		room.quadTree.InsertObj(collision.NewRectangleByObj(prop.Id, prop.PropType, 0, prop.Pos.X, prop.Pos.Y))
 	}
 	//room.quadTree.Show()
 	// 遍历玩家集合，检测碰撞
@@ -552,7 +552,9 @@ func (room *GameRoom) onCollision() {
 				}
 
 				// 一方为食物，开启吃道具流程
-				if candidate.Type == int32(pb.ENTITY_TYPE_PROP_TYPE) {
+				if candidate.Type == int32(pb.ENTITY_TYPE_PROP_TYPE_FOOD) ||
+					candidate.Type == int32(pb.ENTITY_TYPE_PROP_TYPE_INVINCIBLE) ||
+					candidate.Type == int32(pb.ENTITY_TYPE_PROP_TYPE_JUMP){
 					var prop (*model.Prop)
 					var eater (*model.Hero)
 					prop, _ = room.props.GetProp(candidate.ID)
@@ -568,7 +570,7 @@ func (room *GameRoom) onCollision() {
 					prop.Status = int32(pb.ITEM_STATUS_ITEM_DEAD)
 					room.props.AddProp(prop)
 					roomTowers[prop.TowerId].PropLeave(prop)
-					room.quadTree.DeleteObj(collision.NewRectangleByObj(prop.Id, int32(pb.ENTITY_TYPE_PROP_TYPE), 0, prop.Pos.X, prop.Pos.Y))
+					room.quadTree.DeleteObj(collision.NewRectangleByObj(prop.Id, prop.PropType, 0, prop.Pos.X, prop.Pos.Y))
 					// 玩家增大、变慢、加分
 					room.Heros.Delete(eater.ID)
 					eater.Size += configs.HeroSizeGrowthStep
@@ -605,7 +607,7 @@ func (room *GameRoom) onCollision() {
 					//	ItemStatus: pb.ITEM_STATUS_ITEM_DEAD,
 					//}
 					itemInfo := info.NewItemInfo(prop)
-					notify := notify2.NewEntityInfoChangeNotify(int32(pb.ENTITY_TYPE_FOOD_TYPE), prop.Id, nil, itemInfo)
+					notify := notify2.NewEntityInfoChangeNotify(prop.PropType, prop.Id, nil, itemInfo)
 					//data := &pb.EntityInfoChangeNotify{
 					//	EntityType: pb.ENTITY_TYPE_FOOD_TYPE,
 					//	EntityId:   prop.ID(),

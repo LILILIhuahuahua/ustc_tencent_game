@@ -2,7 +2,7 @@ syntax = "proto3";
 package proto;
 
 import "msgenum.proto";
-option go_package ="./";
+option go_package = ".;proto";
 message HeroMsg {
   int32 heroId = 1; //玩家的ID
   CoordinateXY heroPosition = 2; //玩家的坐标

@@ -34,3 +34,7 @@
 
 2021-1-28更新日志
 1.在Gmessage中添加sessionId字段
+
+编译命令：
+在api目录下：
+`protoc -I=. --go_out=./proto ./struct.proto`
