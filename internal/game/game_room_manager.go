@@ -56,7 +56,7 @@ func GlobalInfoNotify() {
 						ID:     v.ID(),
 						Type:   int32(pb.ENTITY_TYPE_FOOD_TYPE),
 						Status: v.Status(),
-						ItemPosition: info.CoordinateXYInfo{
+						ItemPosition: &info.CoordinateXYInfo{
 							CoordinateX: v.GetX(),
 							CoordinateY: v.GetY(),
 						},

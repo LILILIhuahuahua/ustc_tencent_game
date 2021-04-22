@@ -36,8 +36,9 @@ var (
 	GlobalInfoNotifyInterval time.Duration = 5000 * time.Millisecond
 	GlobalScheduleConfig time.Duration = 20 * time.Millisecond
 
-	// Server addr
+	// Server info
 	ServerAddr = "0.0.0.0:8888"
+	MaxEventQueueSize int32 = 500
 
 
 	// RemoteAddr is the address of kubernetes cluster, you could use this addr for testing

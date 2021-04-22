@@ -11,8 +11,9 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/aoi"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/collision"
 	event2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
+	notify2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/notify"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/prop"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"github.com/golang/protobuf/proto"
@@ -25,11 +26,12 @@ type GameRoom struct {
 	ID             int64
 	addr           string
 	server         *kcpnet.KcpServer
+	acceptedSessions sync.Map
 	sessions       sync.Map //map[interface{}]*framework.BaseSession
 	dispatcher     event.EventDispatcher
 	Heros          sync.Map
 	SessionHeroMap sync.Map //map[sessionId] *model.Hero
-	props          *prop.PropsManger
+	props          *model.PropsManger
 	towers		   []*aoi.Tower
 	quadTree	   *collision.QuadTree	//对局内四叉树，用于进行碰撞检测
 }
@@ -44,10 +46,10 @@ func NewGameRoom(address string) *GameRoom {
 		ID:         tools.UUID_UTIL.GenerateInt64UUID(),
 		addr:       address,
 		server:     s,
-		dispatcher: framework.BaseEventDispatcher{},
-		props:      prop.New(),
-		towers:		aoi.InitTowers(),
-		quadTree:	collision.NewQuadTree("0", 0, collision.NewRectangleByBounds(configs.MapMinX, configs.MapMinY, configs.MapMaxX, configs.MapMaxY)),
+		dispatcher: framework.NewBaseEventDispatcher(configs.MaxEventQueueSize),
+		props:      model.New(),
+		towers:     aoi.InitTowers(),
+		quadTree:   collision.NewQuadTree("0", 0, collision.NewRectangleByBounds(configs.MapMinX, configs.MapMinY, configs.MapMaxX, configs.MapMaxY)),
 		//Heros: make(map[int32]*model.Hero),
 	}
 	gameroom.AdjustPropsIntoTower()
@@ -91,6 +93,122 @@ func (g *GameRoom) FetchConnector(sessionId int32) *framework.BaseSession {
 //删除连接者
 func (g *GameRoom) DeleteConnector(c *framework.BaseSession) error {
 	return nil
+}
+
+// Serv
+// @description   游戏服务主方法（负责处理：1.接受连接创建会话 2.监听已接收但还未注册的会话，接收到进入世界请求时注册会话 3.监听已注册会话，投递网络消息包至消息队列中）
+func (g *GameRoom) Serv() error {
+	go g.HandleSessions() //开启会话监听线程，监听session集合中的读事件，将读到的GMessage放入环形队列中
+	go g.HandleEventFromQueue() //开启消费线程，从环形队列中读取GMessage消息并处理
+	for {
+		conn, err := g.server.Listen.AcceptKCP()
+		if err != nil {
+			return err
+		}
+		conn.SetWindowSize(4800, 4800)
+		session := framework.NewBaseSession(conn)
+		if err != nil {
+			return err
+		}
+		g.acceptedSessions.Store(session.Id, session) //将新会话放入未注册会话集合中
+		g.registerSessions() //处理会话注册流程（等待玩家进入世界enterWorld）
+	}
+}
+
+// @title    registerSessions
+// @description 监听已接收但还未注册的会话，接收到进入世界请求时注册会话
+func (g *GameRoom) registerSessions() {
+	buf := make([]byte, 4096)
+	g.acceptedSessions.Range(func(_, v interface{}) bool {
+		session := v.(*framework.BaseSession)
+		err := session.Sess.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(2)))
+		if err != nil {
+			panic("setDeadLine出错")
+		}
+		num, _ := session.Sess.Read(buf)
+		if num == 0 {
+			return true
+		}
+		session.UpdateTime()
+		pbMsg := &pb.GMessage{}
+		proto.Unmarshal(buf, pbMsg)
+		//log.Printf("Receive data: %+v", pbMsg)
+		msg := event2.GMessage{}
+		msg.SetRoomId(g.ID)
+		m := msg.CopyFromMessage(pbMsg)
+		m.SetRoomId(g.ID)
+		if m.GetCode() == int32(pb.GAME_MSG_CODE_ENTER_GAME_REQUEST) {
+			// 将该session移出未注册会话集合
+			g.acceptedSessions.Delete(session.Id)
+			// 进入世界处理，将session放入已注册会话集合
+			g.onEnterGame(m.(*event2.GMessage), session)
+		}
+		//buf清零
+		for i := range buf {
+			buf[i] = 0
+		}
+		return true
+	})
+}
+// @title    registerSessions
+// @description 监听已接收但还未注册的会话，接收到进入世界请求时注册会话
+func (g *GameRoom) HandleSessions() {
+	buf := make([]byte, 4096)
+	for  {
+		g.sessions.Range(func(_, v interface{}) bool {
+			session := v.(*framework.BaseSession)
+			//处理单个会话的消息读取
+			g.Handle(session, buf)
+			return true
+		})
+	}
+}
+
+func (g *GameRoom) Handle(session *framework.BaseSession, buf []byte) {
+	//buf := make([]byte, 4096)
+	defer func() {
+		err := recover()
+		if err != nil {
+			fmt.Println("在handle的时候发生了错误, 错误为：", err)
+		}
+	}()
+	session.StatusMutex.Lock()
+	if session.Status == configs.SessionStatusDead {
+		println("会话状态为死亡，无法从中读取数据")
+	}
+	//给session加一个读超时函数
+	err := session.Sess.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(2)))
+	if err != nil {
+		panic("setDeadLine出错")
+	}
+	num, _ := session.Sess.Read(buf)
+	session.StatusMutex.Unlock()
+	if num == 0 {
+		return
+	}
+	session.UpdateTime()
+
+	pbMsg := &pb.GMessage{}
+	proto.Unmarshal(buf, pbMsg)
+	//log.Printf("Receive data: %+v", pbMsg)
+	msg := event2.GMessage{}
+	msg.SetRoomId(g.ID)
+	m := msg.CopyFromMessage(pbMsg)
+	m.SetRoomId(g.ID)
+	//buf清零
+	for i := range buf {
+		buf[i] = 0
+	}
+	//放入消息队列中
+	g.dispatcher.FireEvent(m)
+}
+
+func (g *GameRoom) HandleEventFromQueue() {
+	for  {
+		e := g.dispatcher.GetEventQueue().Pop()
+		msg := e.(*event2.GMessage)
+		framework.EVENT_HANDLER.OnEvent(msg)
+	}
 }
 
 //广播-全体会话
@@ -158,10 +276,10 @@ func (g *GameRoom) AdjustPropsIntoTower() {
 }
 
 // 获取某玩家附近的玩家和道具
-func (g *GameRoom) GetItemsNearby(hero *model.Hero) ([]*model.Hero, []*prop.Prop) {
+func (g *GameRoom) GetItemsNearby(hero *model.Hero) ([]*model.Hero, []*model.Prop) {
 	towers := g.GetTowers()
 	var heros []*model.Hero
-	var props []*prop.Prop
+	var props []*model.Prop
 	var towersOfPlayer []*aoi.Tower
 	hero.OtherTowers.Range(func(k, v interface{}) bool {
 		towersOfPlayer = append(towersOfPlayer, v.(*aoi.Tower))
@@ -173,66 +291,6 @@ func (g *GameRoom) GetItemsNearby(hero *model.Hero) ([]*model.Hero, []*prop.Prop
 		props = append(props, tower.GetProps()...)
 	}
 	return heros, props
-}
-
-func (g *GameRoom) Serv() error {
-	for {
-		conn, err := g.server.Listen.AcceptKCP()
-		if err != nil {
-			return err
-		}
-		conn.SetWindowSize(4800, 4800)
-		session := framework.NewBaseSession(conn)
-		if err != nil {
-			return err
-		}
-		go g.Handle(session)
-	}
-}
-
-func (g *GameRoom) Handle(session *framework.BaseSession) {
-	buf := make([]byte, 4096)
-	defer func() {
-		err := recover()
-		if err != nil {
-			fmt.Println("在handle的时候发生了错误, 错误为：", err)
-		}
-	}()
-
-	for {
-		session.StatusMutex.Lock()
-		if session.Status == configs.SessionStatusDead {
-			println("baibai")
-			break
-		}
-		//给session加一个读超时函数
-		err := session.Sess.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(2)))
-		if err != nil {
-			panic("setDeadLine出错")
-		}
-		num, _ := session.Sess.Read(buf)
-		session.StatusMutex.Unlock()
-		if num == 0 {
-			continue
-		}
-		session.UpdateTime()
-
-		pbMsg := &pb.GMessage{}
-		proto.Unmarshal(buf, pbMsg)
-		//log.Printf("Receive data: %+v", pbMsg)
-		msg := event2.GMessage{}
-		msg.SetRoomId(g.ID)
-		m := msg.CopyFromMessage(pbMsg)
-		m.SetRoomId(g.ID)
-		//log.Printf("Build event: %+v", m)
-		//若为进入世界业务，则不走消息分发，直接创建会话绑定到玩家ID
-		if m.GetCode() == int32(pb.GAME_MSG_CODE_ENTER_GAME_NOTIFY) ||
-			m.GetCode() == int32(pb.GAME_MSG_CODE_ENTER_GAME_REQUEST) {
-			g.onEnterGame(m.(*event2.GMessage), session)
-			continue
-		}
-		g.dispatcher.FireEvent(m)
-	}
 }
 
 func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
@@ -455,72 +513,17 @@ func (room *GameRoom) onCollision() {
 					room.Heros.Store(winner.ID, winner)
 					room.quadTree.UpdateObj(collision.NewRectangleByObj(winner.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), winner.Size, winner.HeroPosition.X, winner.HeroPosition.Y))
 					// 发包
-					heroInfo := &pb.HeroMsg{
-						HeroId: loser.ID,
-						HeroSpeed: loser.Speed,
-						HeroSize: loser.Size,
-						HeroStatus: pb.HERO_STATUS_DEAD,
-						HeroPosition: &pb.CoordinateXY{
-							CoordinateX: loser.HeroPosition.X,
-							CoordinateY: loser.HeroPosition.Y,
-						},
-						HeroDirection: &pb.CoordinateXY{
-							CoordinateX: loser.HeroDirection.X,
-							CoordinateY: loser.HeroDirection.Y,
-						},
-					}
-					data := &pb.EntityInfoChangeNotify{
-						EntityType: pb.ENTITY_TYPE_HERO_TYPE,
-						EntityId:   loser.ID,
-						HeroMsg: heroInfo,
-					}
-					notify := &pb.Notify{
-						EntityInfoChangeNotify: data,
-					}
-					msg := pb.GMessage{
-						MsgType:  pb.MSG_TYPE_NOTIFY,
-						MsgCode:  pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_NOTIFY,
-						Notify: notify,
-						SendTime: tools.TIME_UTIL.NowMillis(),
-					}
-					out, _ := proto.Marshal(&msg)
-					GAME_ROOM_MANAGER.Braodcast(room.ID, out)
-
-					heroInfo = &pb.HeroMsg{
-						HeroId: winner.ID,
-						HeroSpeed: winner.Speed,
-						HeroSize: winner.Size,
-						HeroStatus: pb.HERO_STATUS_LIVE,
-						HeroPosition: &pb.CoordinateXY{
-							CoordinateX: winner.HeroPosition.X,
-							CoordinateY: winner.HeroPosition.Y,
-						},
-						HeroDirection: &pb.CoordinateXY{
-							CoordinateX: winner.HeroDirection.X,
-							CoordinateY: winner.HeroDirection.Y,
-						},
-					}
-					data = &pb.EntityInfoChangeNotify{
-						EntityType: pb.ENTITY_TYPE_HERO_TYPE,
-						EntityId:   winner.ID,
-						HeroMsg: heroInfo,
-					}
-					notify = &pb.Notify{
-						EntityInfoChangeNotify: data,
-					}
-					msg = pb.GMessage{
-						MsgType:  pb.MSG_TYPE_NOTIFY,
-						MsgCode:  pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_NOTIFY,
-						Notify: notify,
-						SendTime: tools.TIME_UTIL.NowMillis(),
-					}
-					out, _ = proto.Marshal(&msg)
-					GAME_ROOM_MANAGER.Braodcast(room.ID, out)
+					heroInfo := info.NewHeroInfo(loser)
+					notify := notify2.NewEntityInfoChangeNotify(int32(pb.ENTITY_TYPE_HERO_TYPE), loser.ID, heroInfo, nil)
+					GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
+					heroInfo = info.NewHeroInfo(winner)
+					notify = notify2.NewEntityInfoChangeNotify(int32(pb.ENTITY_TYPE_HERO_TYPE), winner.ID, heroInfo, nil)
+					GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
 				}
 
 				// 一方为食物，开启吃道具流程
 				if candidate.Type == int32(pb.ENTITY_TYPE_PROP_TYPE) {
-					var prop(*prop.Prop)
+					var prop(*model.Prop)
 					var eater (*model.Hero)
 					prop, _ = room.props.GetProp(candidate.ID)
 					e, _ := room.Heros.Load(hero.ID)
@@ -549,62 +552,37 @@ func (room *GameRoom) onCollision() {
 					room.Heros.Store(eater.ID, eater)
 					room.quadTree.UpdateObj(collision.NewRectangleByObj(eater.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), eater.Size, eater.HeroPosition.X, eater.HeroPosition.Y))
 					// 发包
-					itemInfo := &pb.ItemMsg{
-						ItemId: prop.ID(),
-						ItemType: pb.ENTITY_TYPE_FOOD_TYPE,
-						ItemPosition: &pb.CoordinateXY{
-							CoordinateX: prop.GetX(),
-							CoordinateY: prop.GetY(),
-						},
-						ItemStatus: pb.ITEM_STATUS_ITEM_DEAD,
-					}
-					data := &pb.EntityInfoChangeNotify{
-						EntityType: pb.ENTITY_TYPE_FOOD_TYPE,
-						EntityId:   prop.ID(),
-						ItemMsg: itemInfo,
-					}
-					notify := &pb.Notify{
-						EntityInfoChangeNotify: data,
-					}
-					msg := pb.GMessage{
-						MsgType:  pb.MSG_TYPE_NOTIFY,
-						MsgCode:  pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_NOTIFY,
-						Notify: notify,
-						SendTime: tools.TIME_UTIL.NowMillis(),
-					}
-					out, _ := proto.Marshal(&msg)
-					GAME_ROOM_MANAGER.Braodcast(room.ID, out)
+					//itemInfo := &pb.ItemMsg{
+					//	ItemId: prop.ID(),
+					//	ItemType: pb.ENTITY_TYPE_FOOD_TYPE,
+					//	ItemPosition: &pb.CoordinateXY{
+					//		CoordinateX: prop.GetX(),
+					//		CoordinateY: prop.GetY(),
+					//	},
+					//	ItemStatus: pb.ITEM_STATUS_ITEM_DEAD,
+					//}
+					itemInfo := info.NewItemInfo(prop)
+					notify := notify2.NewEntityInfoChangeNotify(int32(pb.ENTITY_TYPE_FOOD_TYPE), prop.ID(), nil, itemInfo)
+					//data := &pb.EntityInfoChangeNotify{
+					//	EntityType: pb.ENTITY_TYPE_FOOD_TYPE,
+					//	EntityId:   prop.ID(),
+					//	ItemMsg: itemInfo,
+					//}
+					//notify := &pb.Notify{
+					//	EntityInfoChangeNotify: data,
+					//}
+					//msg := pb.GMessage{
+					//	MsgType:  pb.MSG_TYPE_NOTIFY,
+					//	MsgCode:  pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_NOTIFY,
+					//	Notify: notify,
+					//	SendTime: tools.TIME_UTIL.NowMillis(),
+					//}
+					//out, _ := proto.Marshal(&msg)
+					GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
 
-					heroInfo := &pb.HeroMsg{
-						HeroId: eater.ID,
-						HeroSpeed: eater.Speed,
-						HeroSize: eater.Size,
-						HeroStatus: pb.HERO_STATUS_LIVE,
-						HeroPosition: &pb.CoordinateXY{
-							CoordinateX: eater.HeroPosition.X,
-							CoordinateY: eater.HeroPosition.Y,
-						},
-						HeroDirection: &pb.CoordinateXY{
-							CoordinateX: eater.HeroDirection.X,
-							CoordinateY: eater.HeroDirection.Y,
-						},
-					}
-					data = &pb.EntityInfoChangeNotify{
-						EntityType: pb.ENTITY_TYPE_HERO_TYPE,
-						EntityId:   eater.ID,
-						HeroMsg: heroInfo,
-					}
-					notify = &pb.Notify{
-						EntityInfoChangeNotify: data,
-					}
-					msg = pb.GMessage{
-						MsgType:  pb.MSG_TYPE_NOTIFY,
-						MsgCode:  pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_NOTIFY,
-						Notify: notify,
-						SendTime: tools.TIME_UTIL.NowMillis(),
-					}
-					out, _ = proto.Marshal(&msg)
-					GAME_ROOM_MANAGER.Braodcast(room.ID, out)
+					heroInfo := info.NewHeroInfo(eater)
+					notify = notify2.NewEntityInfoChangeNotify(int32(pb.ENTITY_TYPE_HERO_TYPE), eater.ID, heroInfo, nil)
+					GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
 				}
 
 			}

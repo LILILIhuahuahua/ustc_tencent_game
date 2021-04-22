@@ -1,4 +1,4 @@
-package prop
+package model
 
 import (
 	"fmt"

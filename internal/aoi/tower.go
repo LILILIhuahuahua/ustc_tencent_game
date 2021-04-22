@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/prop"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"sync"
@@ -32,7 +31,7 @@ func (this *Tower) HeroEnter(hero *model.Hero, callback func([]int32, *framework
 	//fmt.Printf("hero加入了新的灯塔\n")
 }
 
-func (this *Tower) PropEnter(prop *prop.Prop) {
+func (this *Tower) PropEnter(prop *model.Prop) {
 	//fmt.Printf("存入的prop ID: %d \n", prop.ID())
 	this.props.Store(prop.ID(), prop)
 }
@@ -41,7 +40,7 @@ func (this *Tower) HeroLeave(hero *model.Hero) { // 后期做优化
 	this.heros.Delete(hero.ID)
 }
 
-func (this *Tower) PropLeave(prop *prop.Prop) {
+func (this *Tower) PropLeave(prop *model.Prop) {
 	this.props.Delete(prop.ID())
 }
 
@@ -54,10 +53,10 @@ func (this *Tower) GetHeros() []*model.Hero {
 	return heros
 }
 
-func (this *Tower) GetProps() []*prop.Prop {
-	var props []*prop.Prop
+func (this *Tower) GetProps() []*model.Prop {
+	var props []*model.Prop
 	this.props.Range(func(k, v interface{}) bool {
-		prop := v.(*prop.Prop)
+		prop := v.(*model.Prop)
 		//if prop.Status() == configs.PropStatusLive {
 			props = append(props, prop)
 		//}
