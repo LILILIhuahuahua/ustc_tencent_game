@@ -29,7 +29,8 @@ message ItemMsg {
 message MapMsg {
   float XMin = 1;
   float XMax = 2;
-  float YMin = 3;
+  float YMin = 3;ls
+
   float YMax = 4; //四个边界
 }
 
