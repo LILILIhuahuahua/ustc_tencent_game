@@ -14,6 +14,7 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
 	notify2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/notify"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/prop"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"github.com/golang/protobuf/proto"
@@ -31,7 +32,7 @@ type GameRoom struct {
 	dispatcher       event.EventDispatcher
 	Heros            sync.Map
 	SessionHeroMap   sync.Map //map[sessionId] *model.Hero
-	props            *model.PropsManger
+	props            *prop.PropsManger
 	towers           []*aoi.Tower
 	quadTree         *collision.QuadTree //对局内四叉树，用于进行碰撞检测
 	heroRankHeap  	 *GameRankHeap
@@ -48,7 +49,7 @@ func NewGameRoom(address string) *GameRoom {
 		addr:       address,
 		server:     s,
 		dispatcher: framework.NewBaseEventDispatcher(configs.MaxEventQueueSize),
-		props:      model.New(),
+		props:      prop.New(),
 		towers:     aoi.InitTowers(),
 		quadTree:   collision.NewQuadTree("0", 0, collision.NewRectangleByBounds(configs.MapMinX, configs.MapMinY, configs.MapMaxX, configs.MapMaxY)),
 		heroRankHeap: NewGameRankHeap(configs.HeroRankListLength),

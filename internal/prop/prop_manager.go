@@ -2,7 +2,7 @@ package prop
 
 import (
 	"errors"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
+	proto "github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	guuid "github.com/google/uuid"
