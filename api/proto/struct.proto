@@ -10,6 +10,7 @@ message HeroMsg {
   float heroSize = 4; //玩家的大小
   CoordinateXY heroDirection = 5; //玩家的行进方向
   HERO_STATUS heroStatus = 6; //玩家的状态
+  heroScore int32 = 7; //玩家分数
 }
 
 message HeroRankMsg {
