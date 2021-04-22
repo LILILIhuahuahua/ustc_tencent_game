@@ -53,12 +53,12 @@ func GlobalInfoNotify() {
 				var items []info.ItemInfo
 				for _, v := range props {
 					itemInfo := info.ItemInfo{
-						ID:     v.ID(),
+						ID:     v.Id,
 						Type:   int32(pb.ENTITY_TYPE_FOOD_TYPE),
-						Status: v.Status(),
+						Status: v.Status,
 						ItemPosition: &info.CoordinateXYInfo{
-							CoordinateX: v.GetX(),
-							CoordinateY: v.GetY(),
+							CoordinateX: v.Pos.X,
+							CoordinateY: v.Pos.Y,
 						},
 					}
 					items = append(items, itemInfo)

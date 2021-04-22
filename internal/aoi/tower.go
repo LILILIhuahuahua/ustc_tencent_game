@@ -33,7 +33,7 @@ func (this *Tower) HeroEnter(hero *model.Hero, callback func([]int32, *framework
 
 func (this *Tower) PropEnter(prop *model.Prop) {
 	//fmt.Printf("存入的prop ID: %d \n", prop.ID())
-	this.props.Store(prop.ID(), prop)
+	this.props.Store(prop.Id, prop)
 }
 
 func (this *Tower) HeroLeave(hero *model.Hero) { // 后期做优化
@@ -41,7 +41,7 @@ func (this *Tower) HeroLeave(hero *model.Hero) { // 后期做优化
 }
 
 func (this *Tower) PropLeave(prop *model.Prop) {
-	this.props.Delete(prop.ID())
+	this.props.Delete(prop.Id)
 }
 
 func (this *Tower) GetHeros() []*model.Hero {

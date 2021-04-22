@@ -18,10 +18,10 @@ var (
 )
 
 type Prop struct {
-	id     int32
-	status int32
-	pos    Coordinate
-	towerId int32
+	Id     int32
+	Status int32
+	Pos    Coordinate
+	TowerId int32
 	//radius float32
 }
 
@@ -30,37 +30,6 @@ type PropsManger struct {
 	props map[int32]*Prop
 }
 
-// ID returns the id of Prop
-func (p *Prop) ID() int32 {
-	return p.id
-}
-
-// Status returns the status (alive or dead) of Prop
-func (p *Prop) Status() int32 {
-	return p.status
-}
-
-func (p *Prop) SetStatus(status int32) {
-	p.status = status
-}
-
-// GetX returns the x coordinate of Prop
-func (p *Prop) GetX() float32 {
-	return p.pos.X
-}
-
-// GetY returns the y coordinate of Prop
-func (p *Prop) GetY() float32 {
-	return p.pos.Y
-}
-
-func (p *Prop) SetTowerId(towerId int32) {
-	p.towerId = towerId
-}
-
-func (p *Prop) GetTowerId() int32 {
-	return p.towerId
-}
 
 // New return an instance of propsManger, which contains many props
 func New() *PropsManger {
@@ -98,13 +67,13 @@ func (p *PropsManger) AddProp(pr *Prop) error {
 	if pr == nil {
 		return ErrNilProp
 	}
-	if _, ok := p.props[pr.id]; ok {
+	if _, ok := p.props[pr.Id]; ok {
 		return ErrPropDuplicate
 	}
 
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	p.props[pr.id] = pr
+	p.props[pr.Id] = pr
 
 	return nil
 }
@@ -134,9 +103,9 @@ func newProps(minX float32, maxX float32, minY float32, maxY float32, count int)
 		pid := int32(guuid.New().ID())
 
 		m[pid] = &Prop{
-			id:     pid,
-			status: int32(proto.ITEM_STATUS_ITEM_LIVE),
-			pos: Coordinate{
+			Id:     pid,
+			Status: int32(proto.ITEM_STATUS_ITEM_LIVE),
+			Pos: Coordinate{
 				X: x,
 				Y: y,
 			},
