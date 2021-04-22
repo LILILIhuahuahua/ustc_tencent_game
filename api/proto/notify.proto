@@ -1,6 +1,6 @@
 syntax = "proto3";
 package proto;
-
+option go_package ="./";
 import "msgenum.proto";
 import "struct.proto";
 
@@ -12,6 +12,7 @@ message Notify {
   EnterGameNotify enterGameNotify  = 5; //进入游戏包
   HeroViewNotify heroViewNotify = 6; //小球视野管理
   GameFinishNotify gameFinishNotify = 7;
+  GameRankListNotify gameRankListNotify = 8;
 }
 
 message EntityInfoChangeNotify {
@@ -52,5 +53,9 @@ message HeroViewNotify {
 message GameFinishNotify {
   repeated HeroRankMsg heroRankMsg = 1;
   int64 finishTime = 2;
+}
+
+message GameRankListNotify {
+  repeated HeroRankMsg heroRankMsg = 1;
 }
 

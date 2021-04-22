@@ -34,6 +34,7 @@ type GameRoom struct {
 	props            *model.PropsManger
 	towers           []*aoi.Tower
 	quadTree         *collision.QuadTree //对局内四叉树，用于进行碰撞检测
+	heroRankHeap  	 *GameRankHeap
 }
 
 //数据持有；连接者指针列表
@@ -50,6 +51,7 @@ func NewGameRoom(address string) *GameRoom {
 		props:      model.New(),
 		towers:     aoi.InitTowers(),
 		quadTree:   collision.NewQuadTree("0", 0, collision.NewRectangleByBounds(configs.MapMinX, configs.MapMinY, configs.MapMaxX, configs.MapMaxY)),
+		heroRankHeap: NewGameRankHeap(configs.HeroRankListLength),
 		//Heros: make(map[int32]*model.Hero),
 	}
 	gameroom.AdjustPropsIntoTower()
@@ -207,6 +209,9 @@ func (g *GameRoom) Handle(session *framework.BaseSession, buf []byte) {
 func (g *GameRoom) HandleEventFromQueue() {
 	for {
 		e := g.dispatcher.GetEventQueue().Pop()
+		if nil == e { //todo
+			continue
+		}
 		msg := e.(*event2.GMessage)
 		framework.EVENT_HANDLER.OnEvent(msg)
 	}
@@ -338,6 +343,9 @@ func (g *GameRoom) RegisterHero(h *model.Hero) {
 	hero, _ := g.Heros.Load(h.ID)
 	if nil == hero {
 		g.Heros.Store(h.ID, h)
+		//更新排行榜
+		heroRankInfo := info.NewHeroRankInfo(h)
+		g.heroRankHeap.ChallengeRank(heroRankInfo)
 	}
 }
 
@@ -493,6 +501,9 @@ func (room *GameRoom) onCollision() {
 							continue
 						}
 					}
+					if nil == loser || nil == winner {
+						continue
+					}
 					fmt.Printf("检测到玩家发生碰撞！胜者信息：%+v，败者信息：%+v\n", winner, loser)
 					// 败者退场
 					room.Heros.Delete(loser.ID)
@@ -500,7 +511,7 @@ func (room *GameRoom) onCollision() {
 					loser.Status = int32(pb.HERO_STATUS_DEAD)
 					room.Heros.Store(loser.ID, loser)
 					room.quadTree.DeleteObj(collision.NewRectangleByObj(loser.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), loser.Size, loser.HeroPosition.X, loser.HeroPosition.Y))
-					// 胜者增大变慢
+					// 胜者增大、变慢、加分
 					room.Heros.Delete(winner.ID)
 					winner.Size += candidate.Size
 					//eater.Size += configs.HeroSizeGrowthStep
@@ -510,6 +521,13 @@ func (room *GameRoom) onCollision() {
 					winner.Speed -= configs.HeroSpeedSlowStep
 					if winner.Speed < configs.HeroSpeedDownLimit {
 						winner.Speed = configs.HeroSpeedDownLimit
+					}
+					winner.Score += configs.HeroEatEnemyBonus
+					//更新排行榜
+					heroRankInfo := info.NewHeroRankInfo(winner)
+					isChanged := room.heroRankHeap.ChallengeRank(heroRankInfo)
+					if isChanged {
+						//发出排行榜变动推送
 					}
 					room.Heros.Store(winner.ID, winner)
 					room.quadTree.UpdateObj(collision.NewRectangleByObj(winner.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), winner.Size, winner.HeroPosition.X, winner.HeroPosition.Y))
@@ -540,7 +558,7 @@ func (room *GameRoom) onCollision() {
 					room.props.AddProp(prop)
 					roomTowers[prop.GetTowerId()].PropLeave(prop)
 					room.quadTree.DeleteObj(collision.NewRectangleByObj(prop.ID(), int32(pb.ENTITY_TYPE_PROP_TYPE), 0, prop.GetX(), prop.GetY()))
-					// 玩家增大变慢
+					// 玩家增大、变慢、加分
 					room.Heros.Delete(eater.ID)
 					eater.Size += configs.HeroSizeGrowthStep
 					if eater.Size > configs.HeroSizeUpLimit {
@@ -549,6 +567,13 @@ func (room *GameRoom) onCollision() {
 					eater.Speed -= configs.HeroSpeedSlowStep
 					if eater.Speed < configs.HeroSpeedDownLimit {
 						eater.Speed = configs.HeroSpeedDownLimit
+					}
+					eater.Score += configs.HeroEatItemBonus
+					//更新排行榜
+					heroRankInfo := info.NewHeroRankInfo(eater)
+					isChanged := room.heroRankHeap.ChallengeRank(heroRankInfo)
+					if isChanged {
+						//发出排行榜变动推送
 					}
 					room.Heros.Store(eater.ID, eater)
 					room.quadTree.UpdateObj(collision.NewRectangleByObj(eater.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), eater.Size, eater.HeroPosition.X, eater.HeroPosition.Y))

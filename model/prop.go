@@ -2,7 +2,7 @@ package model
 
 import (
 	"errors"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
+	pb "github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	guuid "github.com/google/uuid"
 	"math/rand"
@@ -135,7 +135,7 @@ func newProps(minX float32, maxX float32, minY float32, maxY float32, count int)
 
 		m[pid] = &Prop{
 			id:     pid,
-			status: int32(proto.ITEM_STATUS_ITEM_LIVE),
+			status: int32(pb.ITEM_STATUS_ITEM_LIVE),
 			pos: Coordinate{
 				X: x,
 				Y: y,

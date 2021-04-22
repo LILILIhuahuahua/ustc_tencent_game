@@ -29,6 +29,9 @@ var (
 	HeroSpeedSlowStep float32 = 0.5	 // 英雄吃道具以后速度减缓步长
 	HeroSizeUpLimit float32 = 200.0	 // 英雄size上限
 	HeroSpeedDownLimit float32 = 10.0// 英雄速度下限
+	HeroEatItemBonus int32 = 10
+	HeroEatEnemyBonus int32 = 50
+	HeroRankListLength int32 = 10
 	// Prop max count in map
 	MaxPropCountInMap int = 50
 
