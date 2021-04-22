@@ -308,7 +308,7 @@ func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
 	g.RegisterConnector(s)
 	//}
 	//初始化hero加入到对局中
-	hero := model.NewHero("", s)
+	hero := model.NewHero(enterGameReq.PlayerName, s)
 	g.SessionHeroMap.Store(s.Id, hero)
 	// 视野处理
 	towers := g.GetTowers()
@@ -335,7 +335,12 @@ func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
 	}
 	out, _ := proto.Marshal(&msg)
 	GAME_ROOM_MANAGER.Unicast(g.ID, s.Id, out)
-	g.RegisterHero(hero)                                            //调整hero的注册位置
+	g.RegisterHero(hero)
+	//发出排行榜推送
+	rankInfos := g.heroRankHeap.GetSortedHeroRankInfos()
+	notify := notify2.NewGameRankListNotify(rankInfos)
+	GAME_ROOM_MANAGER.Unicast(g.ID, s.Id, notify.ToGMessageBytes())
+	//调整hero的注册位置
 	towers[towerId].HeroEnter(hero, g.SendHeroPropGlobalInfoNotify) //将hero存入tower中
 }
 
@@ -523,11 +528,17 @@ func (room *GameRoom) onCollision() {
 						winner.Speed = configs.HeroSpeedDownLimit
 					}
 					winner.Score += configs.HeroEatEnemyBonus
+					if winner.Score >= configs.GameWinLiminationScore {
+						room.onGameOver()
+					}
 					//更新排行榜
 					heroRankInfo := info.NewHeroRankInfo(winner)
 					isChanged := room.heroRankHeap.ChallengeRank(heroRankInfo)
 					if isChanged {
 						//发出排行榜变动推送
+						rankInfos := room.heroRankHeap.GetSortedHeroRankInfos()
+						notify := notify2.NewGameRankListNotify(rankInfos)
+						GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
 					}
 					room.Heros.Store(winner.ID, winner)
 					room.quadTree.UpdateObj(collision.NewRectangleByObj(winner.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), winner.Size, winner.HeroPosition.X, winner.HeroPosition.Y))
@@ -569,11 +580,18 @@ func (room *GameRoom) onCollision() {
 						eater.Speed = configs.HeroSpeedDownLimit
 					}
 					eater.Score += configs.HeroEatItemBonus
+					if eater.Score >= configs.GameWinLiminationScore {
+						room.onGameOver()
+					}
+
 					//更新排行榜
 					heroRankInfo := info.NewHeroRankInfo(eater)
 					isChanged := room.heroRankHeap.ChallengeRank(heroRankInfo)
 					if isChanged {
 						//发出排行榜变动推送
+						rankInfos := room.heroRankHeap.GetSortedHeroRankInfos()
+						notify := notify2.NewGameRankListNotify(rankInfos)
+						GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
 					}
 					room.Heros.Store(eater.ID, eater)
 					room.quadTree.UpdateObj(collision.NewRectangleByObj(eater.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), eater.Size, eater.HeroPosition.X, eater.HeroPosition.Y))
@@ -614,4 +632,13 @@ func (room *GameRoom) onCollision() {
 			}
 		}
 	}
+}
+
+func (room *GameRoom) onGameOver() {
+	//广播游戏结算推送
+	heroRankInfos := room.heroRankHeap.GetSortedHeroRankInfos()
+	notify := notify2.NewGameFinishNotify(heroRankInfos, time.Now().Unix())
+	GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
+	//回收游戏对局资源
+	//todo
 }

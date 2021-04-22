@@ -32,6 +32,10 @@ var (
 	HeroEatItemBonus int32 = 10
 	HeroEatEnemyBonus int32 = 50
 	HeroRankListLength int32 = 10
+
+	// Game info
+	GameWinLiminationScore int32 = 300 //对局优胜分数值
+
 	// Prop max count in map
 	MaxPropCountInMap int = 50
 
