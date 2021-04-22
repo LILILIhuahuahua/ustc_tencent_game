@@ -35,7 +35,7 @@ type GameRoom struct {
 	props            *prop.PropsManger
 	towers           []*aoi.Tower
 	quadTree         *collision.QuadTree //对局内四叉树，用于进行碰撞检测
-	heroRankHeap  	 *GameRankHeap
+	heroRankHeap     *GameRankHeap
 }
 
 //数据持有；连接者指针列表
@@ -45,13 +45,13 @@ func NewGameRoom(address string) *GameRoom {
 		return nil
 	}
 	gameroom := &GameRoom{
-		ID:         tools.UUID_UTIL.GenerateInt64UUID(),
-		addr:       address,
-		server:     s,
-		dispatcher: framework.NewBaseEventDispatcher(configs.MaxEventQueueSize),
-		props:      prop.New(),
-		towers:     aoi.InitTowers(),
-		quadTree:   collision.NewQuadTree("0", 0, collision.NewRectangleByBounds(configs.MapMinX, configs.MapMinY, configs.MapMaxX, configs.MapMaxY)),
+		ID:           tools.UUID_UTIL.GenerateInt64UUID(),
+		addr:         address,
+		server:       s,
+		dispatcher:   framework.NewBaseEventDispatcher(configs.MaxEventQueueSize),
+		props:        prop.New(),
+		towers:       aoi.InitTowers(),
+		quadTree:     collision.NewQuadTree("0", 0, collision.NewRectangleByBounds(configs.MapMinX, configs.MapMinY, configs.MapMaxX, configs.MapMaxY)),
 		heroRankHeap: NewGameRankHeap(configs.HeroRankListLength),
 		//Heros: make(map[int32]*model.Hero),
 	}
@@ -534,13 +534,12 @@ func (room *GameRoom) onCollision() {
 					}
 					//更新排行榜
 					heroRankInfo := info.NewHeroRankInfo(winner)
-					isChanged := room.heroRankHeap.ChallengeRank(heroRankInfo)
-					if isChanged {
-						//发出排行榜变动推送
-						rankInfos := room.heroRankHeap.GetSortedHeroRankInfos()
-						notify := notify2.NewGameRankListNotify(rankInfos)
-						GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
-					}
+					room.heroRankHeap.ChallengeRank(heroRankInfo)
+					//发出排行榜变动推送
+					rankInfos := room.heroRankHeap.GetSortedHeroRankInfos()
+					rankNotify := notify2.NewGameRankListNotify(rankInfos)
+					GAME_ROOM_MANAGER.Braodcast(room.ID, rankNotify.ToGMessageBytes())
+
 					room.Heros.Store(winner.ID, winner)
 					room.quadTree.UpdateObj(collision.NewRectangleByObj(winner.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), winner.Size, winner.HeroPosition.X, winner.HeroPosition.Y))
 					// 发包
@@ -587,13 +586,12 @@ func (room *GameRoom) onCollision() {
 
 					//更新排行榜
 					heroRankInfo := info.NewHeroRankInfo(eater)
-					isChanged := room.heroRankHeap.ChallengeRank(heroRankInfo)
-					if isChanged {
-						//发出排行榜变动推送
-						rankInfos := room.heroRankHeap.GetSortedHeroRankInfos()
-						notify := notify2.NewGameRankListNotify(rankInfos)
-						GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
-					}
+					room.heroRankHeap.ChallengeRank(heroRankInfo)
+					//发出排行榜变动推送
+					rankInfos := room.heroRankHeap.GetSortedHeroRankInfos()
+					rankNotify := notify2.NewGameRankListNotify(rankInfos)
+					GAME_ROOM_MANAGER.Braodcast(room.ID, rankNotify.ToGMessageBytes())
+
 					room.Heros.Store(eater.ID, eater)
 					room.quadTree.UpdateObj(collision.NewRectangleByObj(eater.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), eater.Size, eater.HeroPosition.X, eater.HeroPosition.Y))
 					// 发包
