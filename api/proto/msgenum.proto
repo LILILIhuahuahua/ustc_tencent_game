@@ -1,5 +1,6 @@
 syntax = "proto3";
 package proto;
+option go_package ="./";
 enum MSG_TYPE {
   NOTIFY = 0; //通知类型
   REQUEST = 1; //请求类型
@@ -22,6 +23,7 @@ enum GAME_MSG_CODE {
     HEART_BEAT_RESPONSE=12;
     HERO_QUIT_RESPONSE=13;
     GAME_FINISH_NOTIFY=14;  //游戏结算推送
+    GAME_RANK_LIST_NOTIFY=15;
 }
 
 enum HERO_STATUS {
