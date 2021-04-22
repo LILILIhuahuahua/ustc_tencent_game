@@ -177,7 +177,7 @@ func (g *GameRoom) Handle(session *framework.BaseSession, buf []byte) {
 	if session.Status == configs.SessionStatusDead {
 		println("会话状态为死亡，无法从中读取数据")
 	}
-	//给session加一个读超时函数
+	//给session加一个读超时函数，及时释放锁
 	err := session.Sess.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(2)))
 	if err != nil {
 		panic("setDeadLine出错")

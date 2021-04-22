@@ -43,7 +43,7 @@ message MapInfo {
   MapMsg mapMsg = 1; //地图信息
 }
 
-message HeroViewNotify {
+message HeroViewNotify { // 视野通知，在玩家离开\进入灯塔的时候通知其他玩家
   int32 heroId = 1;
   VIEW_TYPE viewType = 2;
   HeroMsg heroMsg = 3;
