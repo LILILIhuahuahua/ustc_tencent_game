@@ -11,9 +11,12 @@ import (
 
 type Hero struct {
 	ID            int32
-	Status        int32
+	Name          string
+ 	Status        int32
 	Size          float32
 	Speed         float32
+	Score		  int32
+	Rank		  int32
 	HeroDirection Coordinate
 	HeroPosition  Coordinate
 	CreateTime    int64
@@ -23,15 +26,15 @@ type Hero struct {
 	Session       *framework.BaseSession //该hero对应的session
 }
 
-func NewHero(sess *framework.BaseSession) *Hero {
+func NewHero(name string, sess *framework.BaseSession) *Hero {
 	h := &Hero{}
 	//初始化英雄数据
-	h.Init(sess)
+	h.Init(name, sess)
 	fmt.Printf("新生成的heroId为%d \n", h.ID)
 	return h
 }
 
-func (h *Hero) Init(sess *framework.BaseSession) {
+func (h *Hero) Init(name string, sess *framework.BaseSession) {
 	dcit := Coordinate{
 		X: configs.HeroInitDirectionX,
 		Y: configs.HeroInitDirectionY,
@@ -42,6 +45,9 @@ func (h *Hero) Init(sess *framework.BaseSession) {
 	}
 	nowTime := time.Now().UnixNano()
 	h.ID = tools.UUID_UTIL.GenerateInt32UUID()
+	h.Name = name
+	h.Rank = 0
+	h.Score = 0
 	h.Status = configs.Live
 	h.Size = configs.HeroInitSize
 	h.Speed = configs.HeroMoveSpeed

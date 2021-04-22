@@ -23,17 +23,17 @@ import (
 
 //游戏房间类，对应一局游戏
 type GameRoom struct {
-	ID             int64
-	addr           string
-	server         *kcpnet.KcpServer
+	ID               int64
+	addr             string
+	server           *kcpnet.KcpServer
 	acceptedSessions sync.Map
-	sessions       sync.Map //map[interface{}]*framework.BaseSession
-	dispatcher     event.EventDispatcher
-	Heros          sync.Map
-	SessionHeroMap sync.Map //map[sessionId] *model.Hero
-	props          *model.PropsManger
-	towers		   []*aoi.Tower
-	quadTree	   *collision.QuadTree	//对局内四叉树，用于进行碰撞检测
+	sessions         sync.Map //map[interface{}]*framework.BaseSession
+	dispatcher       event.EventDispatcher
+	Heros            sync.Map
+	SessionHeroMap   sync.Map //map[sessionId] *model.Hero
+	props            *model.PropsManger
+	towers           []*aoi.Tower
+	quadTree         *collision.QuadTree //对局内四叉树，用于进行碰撞检测
 }
 
 //数据持有；连接者指针列表
@@ -42,7 +42,7 @@ func NewGameRoom(address string) *GameRoom {
 	if err != nil {
 		return nil
 	}
-	gameroom :=  &GameRoom{
+	gameroom := &GameRoom{
 		ID:         tools.UUID_UTIL.GenerateInt64UUID(),
 		addr:       address,
 		server:     s,
@@ -98,7 +98,7 @@ func (g *GameRoom) DeleteConnector(c *framework.BaseSession) error {
 // Serv
 // @description   游戏服务主方法（负责处理：1.接受连接创建会话 2.监听已接收但还未注册的会话，接收到进入世界请求时注册会话 3.监听已注册会话，投递网络消息包至消息队列中）
 func (g *GameRoom) Serv() error {
-	go g.HandleSessions() //开启会话监听线程，监听session集合中的读事件，将读到的GMessage放入环形队列中
+	go g.HandleSessions()       //开启会话监听线程，监听session集合中的读事件，将读到的GMessage放入环形队列中
 	go g.HandleEventFromQueue() //开启消费线程，从环形队列中读取GMessage消息并处理
 	for {
 		conn, err := g.server.Listen.AcceptKCP()
@@ -111,7 +111,7 @@ func (g *GameRoom) Serv() error {
 			return err
 		}
 		g.acceptedSessions.Store(session.Id, session) //将新会话放入未注册会话集合中
-		g.registerSessions() //处理会话注册流程（等待玩家进入世界enterWorld）
+		g.registerSessions()                          //处理会话注册流程（等待玩家进入世界enterWorld）
 	}
 }
 
@@ -150,11 +150,12 @@ func (g *GameRoom) registerSessions() {
 		return true
 	})
 }
+
 // @title    registerSessions
 // @description 监听已接收但还未注册的会话，接收到进入世界请求时注册会话
 func (g *GameRoom) HandleSessions() {
 	buf := make([]byte, 4096)
-	for  {
+	for {
 		g.sessions.Range(func(_, v interface{}) bool {
 			session := v.(*framework.BaseSession)
 			//处理单个会话的消息读取
@@ -204,7 +205,7 @@ func (g *GameRoom) Handle(session *framework.BaseSession, buf []byte) {
 }
 
 func (g *GameRoom) HandleEventFromQueue() {
-	for  {
+	for {
 		e := g.dispatcher.GetEventQueue().Pop()
 		msg := e.(*event2.GMessage)
 		framework.EVENT_HANDLER.OnEvent(msg)
@@ -302,14 +303,14 @@ func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
 	g.RegisterConnector(s)
 	//}
 	//初始化hero加入到对局中
-	hero := model.NewHero(s)
+	hero := model.NewHero("", s)
 	g.SessionHeroMap.Store(s.Id, hero)
 	// 视野处理
 	towers := g.GetTowers()
 	towerId := tools.CalTowerId(hero.HeroDirection.X, hero.HeroDirection.Y)
 	otherTowers := tools.GetOtherTowers(towerId)
 	hero.TowerId = towerId
-	for _, id := range otherTowers {  //存储周围的towerId到hero
+	for _, id := range otherTowers { //存储周围的towerId到hero
 		hero.OtherTowers.Store(id, towers[id])
 	}
 	//回包
@@ -323,13 +324,13 @@ func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
 	msg := pb.GMessage{
 		MsgType:  pb.MSG_TYPE_RESPONSE,
 		MsgCode:  pb.GAME_MSG_CODE_ENTER_GAME_RESPONSE,
-		SeqId: enterGameReq.SeqId,
+		SeqId:    enterGameReq.SeqId,
 		Response: &resp,
 		SendTime: tools.TIME_UTIL.NowMillis(),
 	}
 	out, _ := proto.Marshal(&msg)
 	GAME_ROOM_MANAGER.Unicast(g.ID, s.Id, out)
-	g.RegisterHero(hero) //调整hero的注册位置
+	g.RegisterHero(hero)                                            //调整hero的注册位置
 	towers[towerId].HeroEnter(hero, g.SendHeroPropGlobalInfoNotify) //将hero存入tower中
 }
 
@@ -354,7 +355,7 @@ func (g *GameRoom) ModifyHero(modifyHero *model.Hero) {
 	}
 	if towerId != hero.TowerId {
 		towers[towerId].HeroEnter(hero, g.SendHeroPropGlobalInfoNotify) // 将hero加入灯塔中
-		towers[hero.TowerId].HeroLeave(hero) // 将hero从原来灯塔中删除
+		towers[hero.TowerId].HeroLeave(hero)                            // 将hero从原来灯塔中删除
 		hero.TowerId = towerId
 		otherIds := tools.GetOtherTowers(towerId)
 		if otherIds == nil {
@@ -367,7 +368,7 @@ func (g *GameRoom) ModifyHero(modifyHero *model.Hero) {
 		var needToDelete []*aoi.Tower
 		hero.OtherTowers.Delete(towerId) // 要把当前最新的TowerId在原来的OhterTowers里面删除，不然会报错
 		hero.OtherTowers.Range(func(k, v interface{}) bool {
-			if _, ok := midMap[k.(int32)]; !ok {  // 如果新的otherTowerId中没有该key，证明该key所对应的tower不在九宫格范围内
+			if _, ok := midMap[k.(int32)]; !ok { // 如果新的otherTowerId中没有该key，证明该key所对应的tower不在九宫格范围内
 				needToDelete = append(needToDelete, v.(*aoi.Tower))
 			} else {
 				midMap[k.(int32)] = true
@@ -454,7 +455,7 @@ func (room *GameRoom) onCollision() {
 	//room.quadTree.Show()
 	// 遍历玩家集合，检测碰撞
 	heros := room.FetchHeros()
-	for heroIndex := 0; heroIndex < len(heros); heroIndex++{
+	for heroIndex := 0; heroIndex < len(heros); heroIndex++ {
 		hero := heros[heroIndex]
 		// 如果玩家状态为阵亡，则跳过该玩家检测流程
 		if hero.Status == int32(pb.HERO_STATUS_DEAD) {
@@ -462,7 +463,7 @@ func (room *GameRoom) onCollision() {
 		}
 		heroObj := collision.NewRectangleByObj(hero.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), hero.Size, hero.HeroPosition.X, hero.HeroPosition.Y)
 		collisionCandidates := room.quadTree.GetObjsInSameDistrict(heroObj)
-		for candidateIndex := 0; candidateIndex < len(collisionCandidates); candidateIndex++{
+		for candidateIndex := 0; candidateIndex < len(collisionCandidates); candidateIndex++ {
 			// 如果玩家状态为阵亡，则跳过该玩家检测流程
 			if hero.Status == int32(pb.HERO_STATUS_DEAD) {
 				break
@@ -476,7 +477,7 @@ func (room *GameRoom) onCollision() {
 					// 仲裁胜负
 					if hero.Size > candidate.Size {
 						l, _ := room.Heros.Load(candidate.ID)
-						loser =  l.(*model.Hero)
+						loser = l.(*model.Hero)
 						w, _ := room.Heros.Load(hero.ID)
 						winner = w.(*model.Hero)
 						if int32(pb.HERO_STATUS_DEAD) == loser.Status || int32(pb.HERO_STATUS_DEAD) == winner.Status {
@@ -485,7 +486,7 @@ func (room *GameRoom) onCollision() {
 
 					} else if hero.Size < candidate.Size {
 						l, _ := room.Heros.Load(hero.ID)
-						loser =  l.(*model.Hero)
+						loser = l.(*model.Hero)
 						w, _ := room.Heros.Load(candidate.ID)
 						winner = w.(*model.Hero)
 						if int32(pb.HERO_STATUS_DEAD) == loser.Status || int32(pb.HERO_STATUS_DEAD) == winner.Status {
@@ -523,12 +524,12 @@ func (room *GameRoom) onCollision() {
 
 				// 一方为食物，开启吃道具流程
 				if candidate.Type == int32(pb.ENTITY_TYPE_PROP_TYPE) {
-					var prop(*model.Prop)
+					var prop (*model.Prop)
 					var eater (*model.Hero)
 					prop, _ = room.props.GetProp(candidate.ID)
 					e, _ := room.Heros.Load(hero.ID)
 					eater = e.(*model.Hero)
-					if int32(pb.ITEM_STATUS_ITEM_DEAD) == prop.Status()|| int32(pb.HERO_STATUS_DEAD) == eater.Status {
+					if int32(pb.ITEM_STATUS_ITEM_DEAD) == prop.Status() || int32(pb.HERO_STATUS_DEAD) == eater.Status {
 						continue
 					}
 					fmt.Printf("[碰撞检测]检测到玩家吃道具！玩家信息：%+v，道具信息：%+v\n", eater, prop)
@@ -589,5 +590,3 @@ func (room *GameRoom) onCollision() {
 		}
 	}
 }
-
-
