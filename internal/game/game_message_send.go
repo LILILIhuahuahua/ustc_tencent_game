@@ -61,7 +61,7 @@ func (r *GameRoom) SendHeroPropGlobalInfoNotify(towers []int32, session *framewo
 		}
 		item := info.ItemInfo{
 			ID:           prop.Id,
-			Type:         int32(pb.ENTITY_TYPE_FOOD_TYPE),
+			Type:         prop.PropType,
 			Status:       prop.Status,
 			ItemPosition: &info.CoordinateXYInfo{
 				CoordinateX: prop.Pos.X,

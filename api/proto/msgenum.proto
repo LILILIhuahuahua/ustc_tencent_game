@@ -47,8 +47,9 @@ enum EVENT_TYPE {
 /* entityType的枚举 */
 enum ENTITY_TYPE {
   HERO_TYPE = 0; //Hero类型
-  PROP_TYPE = 1; //Prop类型--道具
-  FOOD_TYPE = 2; //Food类型--食物
+  PROP_TYPE_INVINCIBLE = 1; //Prop类型--无敌道具
+  PROP_TYPE_JUMP = 2; //Prop类型--跃迁道具
+  PROP_TYPE_FOOD = 3; //Food类型--食物
 }
 
 /* response的result枚举 */

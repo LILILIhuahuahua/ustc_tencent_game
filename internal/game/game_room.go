@@ -14,6 +14,7 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
 	notify2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/notify"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/prop"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"github.com/golang/protobuf/proto"
@@ -31,7 +32,7 @@ type GameRoom struct {
 	dispatcher       event.EventDispatcher
 	Heros            sync.Map
 	SessionHeroMap   sync.Map //map[sessionId] *model.Hero
-	props            *model.PropsManger
+	props            *prop.PropsManger
 	towers           []*aoi.Tower
 	quadTree         *collision.QuadTree //对局内四叉树，用于进行碰撞检测
 }
@@ -47,7 +48,7 @@ func NewGameRoom(address string) *GameRoom {
 		addr:       address,
 		server:     s,
 		dispatcher: framework.NewBaseEventDispatcher(configs.MaxEventQueueSize),
-		props:      model.New(),
+		props:      prop.New(),
 		towers:     aoi.InitTowers(),
 		quadTree:   collision.NewQuadTree("0", 0, collision.NewRectangleByBounds(configs.MapMinX, configs.MapMinY, configs.MapMaxX, configs.MapMaxY)),
 		//Heros: make(map[int32]*model.Hero),
@@ -257,6 +258,7 @@ func (g *GameRoom) Multiplecast(buff []byte, sessions []*framework.BaseSession) 
 	return nil
 }
 
+// AdjustPropsIntoTower TODO 调整函数参数，方便后面定期添加新道具
 func (g *GameRoom) AdjustPropsIntoTower() {
 	towers := g.GetTowers()
 	propManager := g.props
@@ -450,7 +452,7 @@ func (room *GameRoom) onCollision() {
 			continue
 		}
 		// 初始化道具加入到四叉树中进行碰撞检测
-		room.quadTree.InsertObj(collision.NewRectangleByObj(prop.Id, int32(pb.ENTITY_TYPE_PROP_TYPE), 0, prop.Pos.X, prop.Pos.Y))
+		room.quadTree.InsertObj(collision.NewRectangleByObj(prop.Id, prop.PropType, 0, prop.Pos.X, prop.Pos.Y))
 	}
 	//room.quadTree.Show()
 	// 遍历玩家集合，检测碰撞
@@ -523,7 +525,9 @@ func (room *GameRoom) onCollision() {
 				}
 
 				// 一方为食物，开启吃道具流程
-				if candidate.Type == int32(pb.ENTITY_TYPE_PROP_TYPE) {
+				if candidate.Type == configs.PropTypeFood ||
+					candidate.Type == configs.PropTypeJump ||
+					candidate.Type == configs.PropTypeInvincible {
 					var prop (*model.Prop)
 					var eater (*model.Hero)
 					prop, _ = room.props.GetProp(candidate.ID)
@@ -539,18 +543,28 @@ func (room *GameRoom) onCollision() {
 					prop.Status = int32(pb.ITEM_STATUS_ITEM_DEAD)
 					room.props.AddProp(prop)
 					roomTowers[prop.TowerId].PropLeave(prop)
-					room.quadTree.DeleteObj(collision.NewRectangleByObj(prop.Id, int32(pb.ENTITY_TYPE_PROP_TYPE), 0, prop.Pos.X, prop.Pos.Y))
-					// 玩家增大变慢
-					room.Heros.Delete(eater.ID)
-					eater.Size += configs.HeroSizeGrowthStep
-					if eater.Size > configs.HeroSizeUpLimit {
-						eater.Size = configs.HeroSizeUpLimit
+					room.quadTree.DeleteObj(collision.NewRectangleByObj(prop.Id, prop.PropType, 0, prop.Pos.X, prop.Pos.Y))
+					if prop.PropType == configs.PropTypeFood {
+						// 玩家增大变慢
+						room.Heros.Delete(eater.ID)
+						eater.Size += configs.HeroSizeGrowthStep
+						if eater.Size > configs.HeroSizeUpLimit {
+							eater.Size = configs.HeroSizeUpLimit
+						}
+						eater.Speed -= configs.HeroSpeedSlowStep
+						if eater.Speed < configs.HeroSpeedDownLimit {
+							eater.Speed = configs.HeroSpeedDownLimit
+						}
+						room.Heros.Store(eater.ID, eater)
 					}
-					eater.Speed -= configs.HeroSpeedSlowStep
-					if eater.Speed < configs.HeroSpeedDownLimit {
-						eater.Speed = configs.HeroSpeedDownLimit
+					if prop.PropType == configs.PropTypeInvincible {
+						eater.Status = configs.Invincible
 					}
-					room.Heros.Store(eater.ID, eater)
+
+					if prop.PropType == configs.PropTypeJump {
+						// TODO hero的位置跃迁
+					}
+
 					room.quadTree.UpdateObj(collision.NewRectangleByObj(eater.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), eater.Size, eater.HeroPosition.X, eater.HeroPosition.Y))
 					// 发包
 					//itemInfo := &pb.ItemMsg{
@@ -563,7 +577,7 @@ func (room *GameRoom) onCollision() {
 					//	ItemStatus: pb.ITEM_STATUS_ITEM_DEAD,
 					//}
 					itemInfo := info.NewItemInfo(prop)
-					notify := notify2.NewEntityInfoChangeNotify(int32(pb.ENTITY_TYPE_FOOD_TYPE), prop.Id, nil, itemInfo)
+					notify := notify2.NewEntityInfoChangeNotify(prop.PropType, prop.Id, nil, itemInfo)
 					//data := &pb.EntityInfoChangeNotify{
 					//	EntityType: pb.ENTITY_TYPE_FOOD_TYPE,
 					//	EntityId:   prop.ID(),

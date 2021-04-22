@@ -54,7 +54,7 @@ func GlobalInfoNotify() {
 				for _, v := range props {
 					itemInfo := info.ItemInfo{
 						ID:     v.Id,
-						Type:   int32(pb.ENTITY_TYPE_FOOD_TYPE),
+						Type:   v.PropType,
 						Status: v.Status,
 						ItemPosition: &info.CoordinateXYInfo{
 							CoordinateX: v.Pos.X,

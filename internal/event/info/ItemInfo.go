@@ -19,7 +19,7 @@ type ItemInfo struct {
 func NewItemInfo(item *model.Prop) *ItemInfo{
 	return &ItemInfo{
 		ID: item.Id,
-		Type: int32(pb.ENTITY_TYPE_FOOD_TYPE),
+		Type: item.PropType,
 		Status: item.Status,
 		ItemPosition: NewCoordinateInfo(item.Pos.X, item.Pos.Y),
 		ItemRadius: 0,

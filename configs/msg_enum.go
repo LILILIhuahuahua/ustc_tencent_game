@@ -35,8 +35,9 @@ const (
 
 	// entityType的枚举
 	HeroType int32 = 0
-	PropType int32 = 1
-	FoodType int32 = 2
+	PropTypeInvincible int32 = 1
+	PropTypeJump int32 = 2
+	PropTypeFood int32 = 3
 
 	// response的枚举
 	Success int32 = 0
