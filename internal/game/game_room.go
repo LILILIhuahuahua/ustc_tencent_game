@@ -179,7 +179,7 @@ func (g *GameRoom) Handle(session *framework.BaseSession, buf []byte) {
 	if session.Status == configs.SessionStatusDead {
 		println("会话状态为死亡，无法从中读取数据")
 	}
-	//给session加一个读超时函数
+	//给session加一个读超时函数，及时释放锁
 	err := session.Sess.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(2)))
 	if err != nil {
 		panic("setDeadLine出错")
@@ -271,11 +271,11 @@ func (g *GameRoom) AdjustPropsIntoTower() {
 	}
 	//fmt.Printf("灯塔的个数为%d", len(towers))
 	for _, prop := range props {
-		if prop.Status() == configs.PropStatusDead {
+		if prop.Status == configs.PropStatusDead {
 			continue
 		}
-		towerId := tools.CalTowerId(prop.GetX(), prop.GetY())
-		prop.SetTowerId(towerId)
+		towerId := tools.CalTowerId(prop.Pos.X, prop.Pos.Y)
+		prop.TowerId = towerId
 		towers[towerId].PropEnter(prop)
 		//fmt.Printf("把编号为%d的道具放入%d号灯塔中\n, 该灯塔的坐标为X:%f, Y:%f \n", prop.ID(), towerId, prop.GetX(), prop.GetY())
 	}
@@ -454,11 +454,11 @@ func (room *GameRoom) onCollision() {
 	props, _ := room.props.GetProps()
 	for _, prop := range props {
 		// 如果道具状态为阵亡，则跳过该玩家检测流程
-		if prop.Status() == int32(pb.ITEM_STATUS_ITEM_DEAD) {
+		if prop.Status == int32(pb.ITEM_STATUS_ITEM_DEAD) {
 			continue
 		}
 		// 初始化道具加入到四叉树中进行碰撞检测
-		room.quadTree.InsertObj(collision.NewRectangleByObj(prop.ID(), int32(pb.ENTITY_TYPE_PROP_TYPE), 0, prop.GetX(), prop.GetY()))
+		room.quadTree.InsertObj(collision.NewRectangleByObj(prop.Id, int32(pb.ENTITY_TYPE_PROP_TYPE), 0, prop.Pos.X, prop.Pos.Y))
 	}
 	//room.quadTree.Show()
 	// 遍历玩家集合，检测碰撞
@@ -547,17 +547,17 @@ func (room *GameRoom) onCollision() {
 					prop, _ = room.props.GetProp(candidate.ID)
 					e, _ := room.Heros.Load(hero.ID)
 					eater = e.(*model.Hero)
-					if int32(pb.ITEM_STATUS_ITEM_DEAD) == prop.Status() || int32(pb.HERO_STATUS_DEAD) == eater.Status {
+					if int32(pb.ITEM_STATUS_ITEM_DEAD) == prop.Status || int32(pb.HERO_STATUS_DEAD) == eater.Status {
 						continue
 					}
 					fmt.Printf("[碰撞检测]检测到玩家吃道具！玩家信息：%+v，道具信息：%+v\n", eater, prop)
 					// 道具退场
-					room.props.RemoveProp(prop.ID())
+					room.props.RemoveProp(prop.Id)
 					// 这里加上道具视野管理
-					prop.SetStatus(int32(pb.ITEM_STATUS_ITEM_DEAD))
+					prop.Status = int32(pb.ITEM_STATUS_ITEM_DEAD)
 					room.props.AddProp(prop)
-					roomTowers[prop.GetTowerId()].PropLeave(prop)
-					room.quadTree.DeleteObj(collision.NewRectangleByObj(prop.ID(), int32(pb.ENTITY_TYPE_PROP_TYPE), 0, prop.GetX(), prop.GetY()))
+					roomTowers[prop.TowerId].PropLeave(prop)
+					room.quadTree.DeleteObj(collision.NewRectangleByObj(prop.Id, int32(pb.ENTITY_TYPE_PROP_TYPE), 0, prop.Pos.X, prop.Pos.Y))
 					// 玩家增大、变慢、加分
 					room.Heros.Delete(eater.ID)
 					eater.Size += configs.HeroSizeGrowthStep
@@ -588,7 +588,7 @@ func (room *GameRoom) onCollision() {
 					//	ItemStatus: pb.ITEM_STATUS_ITEM_DEAD,
 					//}
 					itemInfo := info.NewItemInfo(prop)
-					notify := notify2.NewEntityInfoChangeNotify(int32(pb.ENTITY_TYPE_FOOD_TYPE), prop.ID(), nil, itemInfo)
+					notify := notify2.NewEntityInfoChangeNotify(int32(pb.ENTITY_TYPE_FOOD_TYPE), prop.Id, nil, itemInfo)
 					//data := &pb.EntityInfoChangeNotify{
 					//	EntityType: pb.ENTITY_TYPE_FOOD_TYPE,
 					//	EntityId:   prop.ID(),

@@ -56,16 +56,16 @@ func (r *GameRoom) SendHeroPropGlobalInfoNotify(towers []int32, session *framewo
 	}
 	var items []info.ItemInfo
 	for _, prop := range propMsg {
-		if prop.Status() != configs.PropStatusLive {
+		if prop.Status != configs.PropStatusLive {
 			continue
 		}
 		item := info.ItemInfo{
-			ID:           prop.ID(),
+			ID:           prop.Id,
 			Type:         int32(pb.ENTITY_TYPE_FOOD_TYPE),
-			Status:       prop.Status(),
+			Status:       prop.Status,
 			ItemPosition: &info.CoordinateXYInfo{
-				CoordinateX: prop.GetX(),
-				CoordinateY: prop.GetY(),
+				CoordinateX: prop.Pos.X,
+				CoordinateY: prop.Pos.Y,
 			},
 		}
 		items = append(items, item)
