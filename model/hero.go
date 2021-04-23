@@ -17,6 +17,7 @@ type Hero struct {
 	Speed         float32
 	Score		  int32
 	Rank		  int32
+	InvincibleStartTime int64
 	HeroDirection Coordinate
 	HeroPosition  Coordinate
 	CreateTime    int64
@@ -48,7 +49,7 @@ func (h *Hero) Init(name string, sess *framework.BaseSession) {
 	h.Name = name
 	h.Rank = 0
 	h.Score = 0
-	h.Status = configs.Live
+	h.Status = configs.HeroStatusLive
 	h.Size = configs.HeroInitSize
 	h.Speed = configs.HeroMoveSpeed
 	h.HeroDirection = dcit

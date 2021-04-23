@@ -14,6 +14,7 @@ type HeroInfo struct {
 	Speed         float32
 	Size          float32
 	Score         int32
+	InvincibleStartTime int64
 	HeroPosition  *CoordinateXYInfo
 	HeroDirection *CoordinateXYInfo
 }
@@ -25,6 +26,7 @@ func NewHeroInfo(hero *model.Hero) *HeroInfo {
 		Size:          hero.Size,
 		Status:        hero.Status,
 		Score:         hero.Score,
+		InvincibleStartTime: hero.InvincibleStartTime,
 		HeroPosition:  NewCoordinateInfo(hero.HeroPosition.X, hero.HeroPosition.Y),
 		HeroDirection: NewCoordinateInfo(hero.HeroDirection.X, hero.HeroDirection.Y),
 	}
@@ -37,6 +39,7 @@ func (h *HeroInfo) FromMessage(obj interface{}) {
 	h.Speed = pbMsg.GetHeroSpeed()
 	h.Size = pbMsg.HeroSize
 	h.Score = pbMsg.HeroScore
+	h.InvincibleStartTime = pbMsg.InvincibleStartTime
 	pos := CoordinateXYInfo{}
 	pos.FromMessage(pbMsg.GetHeroPosition())
 	h.HeroPosition = &pos
@@ -57,6 +60,7 @@ func (h *HeroInfo) CopyFromMessage(obj interface{}) event.Event {
 		Speed:         pbMsg.GetHeroSpeed(),
 		Size:          pbMsg.GetHeroSize(),
 		Score:         pbMsg.HeroScore,
+		InvincibleStartTime: pbMsg.InvincibleStartTime,
 		HeroPosition:  &pos,
 		HeroDirection: &dict,
 	}
@@ -69,6 +73,7 @@ func (h *HeroInfo) ToMessage() interface{} {
 		HeroSpeed:     h.Speed,
 		HeroSize:      h.Size,
 		HeroScore:     h.Score,
+		InvincibleStartTime: h.InvincibleStartTime,
 		HeroPosition:  h.HeroPosition.ToMessage().(*pb.CoordinateXY),
 		HeroDirection: h.HeroDirection.ToMessage().(*pb.CoordinateXY),
 	}

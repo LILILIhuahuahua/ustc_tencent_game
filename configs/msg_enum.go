@@ -21,9 +21,9 @@ const (
 	HeroViewNotify			 = int32(proto.GAME_MSG_CODE_HERO_VIEW_NOTIFY)
 
 	// 英雄状态
-	Live        = int32(proto.HERO_STATUS_LIVE)
-	Dead        = int32(proto.HERO_STATUS_DEAD)
-	Invincible  = int32(proto.HERO_STATUS_INVINCIBLE)
+	HeroStatusLive        = int32(proto.HERO_STATUS_LIVE)
+	HeroStatusDead        = int32(proto.HERO_STATUS_DEAD)
+	HeroStatusInvincible  = int32(proto.HERO_STATUS_INVINCIBLE)
 
 	// Item status
 	ItemLive  = int32(proto.ITEM_STATUS_ITEM_LIVE)

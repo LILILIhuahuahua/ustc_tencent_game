@@ -418,17 +418,20 @@ func (g *GameRoom) FetchHeros() []*model.Hero {
 }
 
 //更新英雄位置
-func (g *GameRoom) UpdateHeroPos() {
+func (g *GameRoom) UpdateHeroPosAndStatus() {
 	var needToUpdate []*model.Hero
 	g.Heros.Range(func(k, v interface{}) bool {
 		needToUpdate = append(needToUpdate, v.(*model.Hero))
 		return true
 	})
 	for _, hero := range needToUpdate {
-		if hero.Status == configs.Dead {
+		if hero.Status == configs.HeroStatusDead {
 			continue
 		}
 		nowTime := time.Now().UnixNano()
+		if nowTime - hero.InvincibleStartTime > configs.InvincibleTimeMax {
+			hero.Status = configs.HeroStatusLive
+		}
 		timeElapse := nowTime - hero.UpdateTime
 		hero.UpdateTime = nowTime
 		distance := float64(timeElapse) * float64(hero.Speed) / 1e9
@@ -566,63 +569,49 @@ func (room *GameRoom) onCollision() {
 					fmt.Printf("[碰撞检测]检测到玩家吃道具！玩家信息：%+v，道具信息：%+v\n", eater, prop)
 					// 道具退场
 					room.props.RemoveProp(prop.Id)
-					// 这里加上道具视野管理
 					prop.Status = int32(pb.ITEM_STATUS_ITEM_DEAD)
 					room.props.AddProp(prop)
-					roomTowers[prop.TowerId].PropLeave(prop)
+					roomTowers[prop.TowerId].PropLeave(prop) // 视野管理
 					room.quadTree.DeleteObj(collision.NewRectangleByObj(prop.Id, prop.PropType, 0, prop.Pos.X, prop.Pos.Y))
-					// 玩家增大、变慢、加分
-					room.Heros.Delete(eater.ID)
-					eater.Size += configs.HeroSizeGrowthStep
-					if eater.Size > configs.HeroSizeUpLimit {
-						eater.Size = configs.HeroSizeUpLimit
-					}
-					eater.Speed -= configs.HeroSpeedSlowStep
-					if eater.Speed < configs.HeroSpeedDownLimit {
-						eater.Speed = configs.HeroSpeedDownLimit
-					}
-					eater.Score += configs.HeroEatItemBonus
-					if eater.Score >= configs.GameWinLiminationScore {
-						room.onGameOver()
+					// 判断吃的道具类型
+					switch prop.PropType {
+					case int32(pb.ENTITY_TYPE_PROP_TYPE_FOOD):
+						// 玩家增大、变慢、加分
+						eater.Size += configs.HeroSizeGrowthStep
+						if eater.Size > configs.HeroSizeUpLimit {
+							eater.Size = configs.HeroSizeUpLimit
+						}
+						eater.Speed -= configs.HeroSpeedSlowStep
+						if eater.Speed < configs.HeroSpeedDownLimit {
+							eater.Speed = configs.HeroSpeedDownLimit
+						}
+						eater.Score += configs.HeroEatItemBonus
+						if eater.Score >= configs.GameWinLiminationScore {
+							room.onGameOver()
+						}
+
+						//更新排行榜
+						heroRankInfo := info.NewHeroRankInfo(eater)
+						room.heroRankHeap.ChallengeRank(heroRankInfo)
+						//发出排行榜变动推送
+						rankInfos := room.heroRankHeap.GetSortedHeroRankInfos()
+						rankNotify := notify2.NewGameRankListNotify(rankInfos)
+						GAME_ROOM_MANAGER.Braodcast(room.ID, rankNotify.ToGMessageBytes())
+
+						room.Heros.Store(eater.ID, eater)
+						room.quadTree.UpdateObj(collision.NewRectangleByObj(eater.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), eater.Size, eater.HeroPosition.X, eater.HeroPosition.Y))
+						break
+					case int32(pb.ENTITY_TYPE_PROP_TYPE_INVINCIBLE):
+						eater.InvincibleStartTime = time.Now().UnixNano()
+						eater.Status = int32(pb.HERO_STATUS_INVINCIBLE)
+						break
+					case int32(pb.ENTITY_TYPE_PROP_TYPE_JUMP):
+						break
 					}
 
-					//更新排行榜
-					heroRankInfo := info.NewHeroRankInfo(eater)
-					room.heroRankHeap.ChallengeRank(heroRankInfo)
-					//发出排行榜变动推送
-					rankInfos := room.heroRankHeap.GetSortedHeroRankInfos()
-					rankNotify := notify2.NewGameRankListNotify(rankInfos)
-					GAME_ROOM_MANAGER.Braodcast(room.ID, rankNotify.ToGMessageBytes())
-
-					room.Heros.Store(eater.ID, eater)
-					room.quadTree.UpdateObj(collision.NewRectangleByObj(eater.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), eater.Size, eater.HeroPosition.X, eater.HeroPosition.Y))
-					// 发包
-					//itemInfo := &pb.ItemMsg{
-					//	ItemId: prop.ID(),
-					//	ItemType: pb.ENTITY_TYPE_FOOD_TYPE,
-					//	ItemPosition: &pb.CoordinateXY{
-					//		CoordinateX: prop.GetX(),
-					//		CoordinateY: prop.GetY(),
-					//	},
-					//	ItemStatus: pb.ITEM_STATUS_ITEM_DEAD,
-					//}
 					itemInfo := info.NewItemInfo(prop)
 					notify := notify2.NewEntityInfoChangeNotify(prop.PropType, prop.Id, nil, itemInfo)
-					//data := &pb.EntityInfoChangeNotify{
-					//	EntityType: pb.ENTITY_TYPE_FOOD_TYPE,
-					//	EntityId:   prop.ID(),
-					//	ItemMsg: itemInfo,
-					//}
-					//notify := &pb.Notify{
-					//	EntityInfoChangeNotify: data,
-					//}
-					//msg := pb.GMessage{
-					//	MsgType:  pb.MSG_TYPE_NOTIFY,
-					//	MsgCode:  pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_NOTIFY,
-					//	Notify: notify,
-					//	SendTime: tools.TIME_UTIL.NowMillis(),
-					//}
-					//out, _ := proto.Marshal(&msg)
+					// TODO 这里的广播改为多播
 					GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
 
 					heroInfo := info.NewHeroInfo(eater)
