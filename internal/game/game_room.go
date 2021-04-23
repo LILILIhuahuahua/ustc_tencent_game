@@ -429,9 +429,13 @@ func (g *GameRoom) UpdateHeroPosAndStatus() {
 			continue
 		}
 		nowTime := time.Now().UnixNano()
-		if nowTime - hero.InvincibleStartTime > configs.InvincibleTimeMax {
-			hero.Status = configs.HeroStatusLive
+		// 处理玩家的无敌时间
+		if hero.Status == configs.HeroStatusInvincible {
+			if nowTime - hero.InvincibleStartTime > configs.PropInvincibleTimeMax {
+				hero.Status = configs.HeroStatusLive
+			}
 		}
+		// 更新玩家位置
 		timeElapse := nowTime - hero.UpdateTime
 		hero.UpdateTime = nowTime
 		distance := float64(timeElapse) * float64(hero.Speed) / 1e9

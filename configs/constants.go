@@ -72,7 +72,8 @@ var (
 	PropStatusDead int32 = 1
 
 	// 道具效果
-	InvincibleTimeMax = int64(time.Second * 10) // 最长无敌时间
+	PropInvincibleTimeMax = int64(time.Second * 10) // 最长无敌时间
+	PropJumpDistance = float32(300)
 
 	// mongodb
 	MongoUri string = "mongodb://localhost:27017"
