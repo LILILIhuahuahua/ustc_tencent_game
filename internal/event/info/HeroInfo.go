@@ -13,18 +13,22 @@ type HeroInfo struct {
 	Status        int32
 	Speed         float32
 	Size          float32
+	Score         int32
+	InvincibleStartTime int64
 	HeroPosition  *CoordinateXYInfo
 	HeroDirection *CoordinateXYInfo
 }
 
-func NewHeroInfo(hero *model.Hero) *HeroInfo{
+func NewHeroInfo(hero *model.Hero) *HeroInfo {
 	return &HeroInfo{
-		ID: hero.ID,
-		Speed: hero.Speed,
-		Size: hero.Size,
-		Status: hero.Status,
-		HeroPosition: NewCoordinateInfo(hero.HeroPosition.X, hero.HeroPosition.Y),
-		HeroDirection: NewCoordinateInfo(hero.HeroDirection.X,hero.HeroDirection.Y),
+		ID:            hero.ID,
+		Speed:         hero.Speed,
+		Size:          hero.Size,
+		Status:        hero.Status,
+		Score:         hero.Score,
+		InvincibleStartTime: hero.InvincibleStartTime,
+		HeroPosition:  NewCoordinateInfo(hero.HeroPosition.X, hero.HeroPosition.Y),
+		HeroDirection: NewCoordinateInfo(hero.HeroDirection.X, hero.HeroDirection.Y),
 	}
 }
 
@@ -34,6 +38,8 @@ func (h *HeroInfo) FromMessage(obj interface{}) {
 	h.Status = int32(pbMsg.GetHeroStatus())
 	h.Speed = pbMsg.GetHeroSpeed()
 	h.Size = pbMsg.HeroSize
+	h.Score = pbMsg.HeroScore
+	h.InvincibleStartTime = pbMsg.InvincibleStartTime
 	pos := CoordinateXYInfo{}
 	pos.FromMessage(pbMsg.GetHeroPosition())
 	h.HeroPosition = &pos
@@ -53,6 +59,8 @@ func (h *HeroInfo) CopyFromMessage(obj interface{}) event.Event {
 		Status:        int32(pbMsg.GetHeroStatus()),
 		Speed:         pbMsg.GetHeroSpeed(),
 		Size:          pbMsg.GetHeroSize(),
+		Score:         pbMsg.HeroScore,
+		InvincibleStartTime: pbMsg.InvincibleStartTime,
 		HeroPosition:  &pos,
 		HeroDirection: &dict,
 	}
@@ -60,25 +68,27 @@ func (h *HeroInfo) CopyFromMessage(obj interface{}) event.Event {
 
 func (h *HeroInfo) ToMessage() interface{} {
 	pbMsg := &pb.HeroMsg{
-		HeroId: 	   h.ID,
+		HeroId: h.ID,
 		//HeroStatus:    h.Status,
 		HeroSpeed:     h.Speed,
 		HeroSize:      h.Size,
+		HeroScore:     h.Score,
+		InvincibleStartTime: h.InvincibleStartTime,
 		HeroPosition:  h.HeroPosition.ToMessage().(*pb.CoordinateXY),
 		HeroDirection: h.HeroDirection.ToMessage().(*pb.CoordinateXY),
 	}
 	switch h.Status {
-		case int32(pb.HERO_STATUS_LIVE):
-			pbMsg.HeroStatus = pb.HERO_STATUS_LIVE
-			break
+	case int32(pb.HERO_STATUS_LIVE):
+		pbMsg.HeroStatus = pb.HERO_STATUS_LIVE
+		break
 
-		case int32(pb.HERO_STATUS_DEAD):
-			pbMsg.HeroStatus = pb.HERO_STATUS_DEAD
-			break
+	case int32(pb.HERO_STATUS_DEAD):
+		pbMsg.HeroStatus = pb.HERO_STATUS_DEAD
+		break
 
-		case int32(pb.HERO_STATUS_INVINCIBLE):
-			pbMsg.HeroStatus = pb.HERO_STATUS_INVINCIBLE
-			break
+	case int32(pb.HERO_STATUS_INVINCIBLE):
+		pbMsg.HeroStatus = pb.HERO_STATUS_INVINCIBLE
+		break
 	}
 	return pbMsg
 }

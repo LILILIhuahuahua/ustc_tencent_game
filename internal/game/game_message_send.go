@@ -8,7 +8,6 @@ import (
 	event2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/notify"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/prop"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	"github.com/golang/protobuf/proto"
 	"log"
@@ -41,7 +40,7 @@ func (r *GameRoom) SendHeroViewNotify(changeHero *model.Hero, notifyHero *model.
 func (r *GameRoom) SendHeroPropGlobalInfoNotify(towers []int32, session *framework.BaseSession) {
 	ts := r.GetTowers()
 	var heroMsg []*model.Hero
-	var propMsg []*prop.Prop
+	var propMsg []*model.Prop
 	var heroEvent []info.HeroInfo
 	//后面加上道具
 	for _, id := range towers {
@@ -57,16 +56,16 @@ func (r *GameRoom) SendHeroPropGlobalInfoNotify(towers []int32, session *framewo
 	}
 	var items []info.ItemInfo
 	for _, prop := range propMsg {
-		if prop.Status() != configs.PropStatusLive {
+		if prop.Status != configs.PropStatusLive {
 			continue
 		}
 		item := info.ItemInfo{
-			ID:           prop.ID(),
-			Type:         int32(pb.ENTITY_TYPE_FOOD_TYPE),
-			Status:       prop.Status(),
-			ItemPosition: info.CoordinateXYInfo{
-				CoordinateX: prop.GetX(),
-				CoordinateY: prop.GetY(),
+			ID:           prop.Id,
+			Type:         prop.PropType,
+			Status:       prop.Status,
+			ItemPosition: &info.CoordinateXYInfo{
+				CoordinateX: prop.Pos.X,
+				CoordinateY: prop.Pos.Y,
 			},
 		}
 		items = append(items, item)

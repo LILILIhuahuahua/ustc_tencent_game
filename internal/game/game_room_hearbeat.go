@@ -46,7 +46,7 @@ func (g *GameRoom) DeleteOfflinePlayer() error {
 			//return errors.New("玩家不存在")
 		}
 		hero := deletedObj.(*model.Hero)
-		hero.ChangeHeroStatus(configs.Dead)
+		hero.ChangeHeroStatus(configs.HeroStatusDead)
 		towers[hero.TowerId].HeroLeave(hero)
 		session.ChangOfflineStatus(true)
 		fmt.Println("我调用了玩家删除函数")
