@@ -10,7 +10,7 @@ var EVENT_HANDLER = &BaseEventHandler{}
 type BaseEventHandler struct {
 }
 
-func (b BaseEventHandler) onEvent(e event.Event) {
+func (b BaseEventHandler) OnEvent(e event.Event) {
 	if nil == e {
 		return
 	}

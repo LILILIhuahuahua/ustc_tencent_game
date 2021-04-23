@@ -13,7 +13,7 @@
 #
 # 3. Change the values for the TKE_IMAGE_URL, TKE_REGION, TKE_CLUSTER_ID and DEPLOYMENT_NAME environment variables (below).
 
-name: CI/CD for TKE
+name: CI/CD for dgs
 
 on:
   push:
@@ -25,8 +25,9 @@ env:
   TKE_IMAGE_URL: hkccr.ccs.tencentyun.com/tke_cluster/tke_cluster
   TKE_REGION: ap-shanghai
   TKE_CLUSTER_ID: cls-iw9xj6c7
-  DEPLOYMENT_NAME: dgs-dev
+  DEPLOYMENT_NAME: dgs-srv
   NAMESPACE: dev
+  NAME: dgs
 
 jobs:
   setup-build-publish-deploy:
@@ -45,7 +46,7 @@ jobs:
       # Build
       - name: Build Docker image
         run: |
-          docker build -t ${TKE_IMAGE_URL}:${NAMESPACE}-${GITHUB_SHA} .
+          docker build -t ${TKE_IMAGE_URL}:${NAME}-${NAMESPACE}-${GITHUB_SHA} .
 
       - name: Login TKE Registry
         run: |
@@ -53,7 +54,7 @@ jobs:
       # Push the Docker image to TKE Registry
       - name: Publish image to TKE Registry
         run: |
-          docker push ${TKE_IMAGE_URL}:${NAMESPACE}-${GITHUB_SHA}
+          docker push ${TKE_IMAGE_URL}:${NAME}-${NAMESPACE}-${GITHUB_SHA}
       - name: Set up Kustomize
         run: |
           curl -o kustomize --location https://github.com/kubernetes-sigs/kustomize/releases/download/v3.1.0/kustomize_3.1.0_linux_amd64
@@ -75,7 +76,7 @@ jobs:
       # Deploy the Docker image to the TKE cluster
       - name: Deploy To TKE
         run: |
-          ./kustomize edit set image ${TKE_IMAGE_URL}:${NAMESPACE}-${GITHUB_SHA}
+          ./kustomize edit set image ${TKE_IMAGE_URL}:${NAME}-${NAMESPACE}-${GITHUB_SHA}
           ./kustomize build . | kubectl apply  -f -
           kubectl rollout status deployment/${DEPLOYMENT_NAME}
           kubectl get services -o wide

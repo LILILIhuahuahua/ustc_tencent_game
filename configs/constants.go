@@ -29,6 +29,13 @@ var (
 	HeroSpeedSlowStep float32 = 0.5	 // 英雄吃道具以后速度减缓步长
 	HeroSizeUpLimit float32 = 200.0	 // 英雄size上限
 	HeroSpeedDownLimit float32 = 10.0// 英雄速度下限
+	HeroEatItemBonus int32 = 10
+	HeroEatEnemyBonus int32 = 50
+	HeroRankListLength int32 = 10
+
+	// Game info
+	GameWinLiminationScore int32 = 300 //对局优胜分数值
+
 	// Prop max count in map
 	MaxPropCountInMap int = 50
 
@@ -36,14 +43,16 @@ var (
 	GlobalInfoNotifyInterval time.Duration = 5000 * time.Millisecond
 	GlobalScheduleConfig time.Duration = 20 * time.Millisecond
 
-	// Server addr
+	// Server info
 	ServerAddr = "0.0.0.0:8888"
+	MaxEventQueueSize int32 = 500
 
 
 	// RemoteAddr is the address of kubernetes cluster, you could use this addr for testing
-	RemoteAddr ="1.15.135.248:31000"
+	//RemoteAddr ="1.15.135.248:31000"
 	// RemoteCLB is LoadBalancer address used for dgs
-	RemoteCLB = "150.158.219.116:8888"
+	RemoteCLB = "175.24.252.111:8888"
+	PodIP = "1.116.109.211:8888"
 
 	// debug mode
 	Debug bool = false
@@ -61,6 +70,10 @@ var (
 	PropRadius float32 = 20 	// Initial prop radius
 	PropStatusLive int32 = 0
 	PropStatusDead int32 = 1
+
+	// 道具效果
+	PropInvincibleTimeMax = int64(time.Second * 10) // 最长无敌时间
+	PropJumpDistance = float32(300)
 
 	// mongodb
 	MongoUri string = "mongodb://localhost:27017"

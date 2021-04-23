@@ -2,7 +2,6 @@ package notify
 
 import (
 	//pb "github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
-
 	pb "github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework"
 	e "github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"

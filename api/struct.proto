@@ -2,7 +2,7 @@ syntax = "proto3";
 package proto;
 
 import "msgenum.proto";
-
+option go_package = ".;proto";
 message HeroMsg {
   int32 heroId = 1; //玩家的ID
   CoordinateXY heroPosition = 2; //玩家的坐标
@@ -10,6 +10,15 @@ message HeroMsg {
   float heroSize = 4; //玩家的大小
   CoordinateXY heroDirection = 5; //玩家的行进方向
   HERO_STATUS heroStatus = 6; //玩家的状态
+  int32 heroScore = 7; //玩家分数
+  int64 invincibleStartTime = 8; // 玩家的无敌开始时间
+}
+
+message HeroRankMsg {
+  int32 heroId = 1; //玩家id
+  string heroName = 2; //玩家名
+  int32 heroRank = 3; //玩家排名
+  int32 heroScore = 4;  //玩家分数
 }
 
 message ItemMsg {

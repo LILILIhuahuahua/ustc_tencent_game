@@ -53,12 +53,12 @@ func GlobalInfoNotify() {
 				var items []info.ItemInfo
 				for _, v := range props {
 					itemInfo := info.ItemInfo{
-						ID:     v.ID(),
-						Type:   int32(pb.ENTITY_TYPE_FOOD_TYPE),
-						Status: v.Status(),
-						ItemPosition: info.CoordinateXYInfo{
-							CoordinateX: v.GetX(),
-							CoordinateY: v.GetY(),
+						ID:     v.Id,
+						Type:   v.PropType,
+						Status: v.Status,
+						ItemPosition: &info.CoordinateXYInfo{
+							CoordinateX: v.Pos.X,
+							CoordinateY: v.Pos.Y,
 						},
 					}
 					items = append(items, itemInfo)
@@ -163,8 +163,8 @@ func (m *GameRoomManager) DeleteDeprecatedHero() {
 	}
 }
 
-func (m *GameRoomManager) UpdateHeroPosition() {
+func (m *GameRoomManager) UpdateHeroPositionAndStatus() {
 	for _, room := range m.roomMap {
-		room.UpdateHeroPos()
+		room.UpdateHeroPosAndStatus()
 	}
 }

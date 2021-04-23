@@ -1,5 +1,6 @@
 syntax = "proto3";
 package proto;
+option go_package = ".;proto";
 enum MSG_TYPE {
   NOTIFY = 0; //通知类型
   REQUEST = 1; //请求类型
@@ -21,6 +22,8 @@ enum GAME_MSG_CODE {
     HEART_BEAT_REQUEST=11;
     HEART_BEAT_RESPONSE=12;
     HERO_QUIT_RESPONSE=13;
+    GAME_FINISH_NOTIFY=14;  //游戏结算推送
+    GAME_RANK_LIST_NOTIFY=15;
 }
 
 enum HERO_STATUS {
@@ -46,8 +49,9 @@ enum EVENT_TYPE {
 /* entityType的枚举 */
 enum ENTITY_TYPE {
   HERO_TYPE = 0; //Hero类型
-  PROP_TYPE = 1; //Prop类型--道具
-  FOOD_TYPE = 2; //Food类型--食物
+  PROP_TYPE_INVINCIBLE = 1; //Prop类型--无敌道具
+  PROP_TYPE_JUMP = 2; //Prop类型--跃迁道具
+  PROP_TYPE_FOOD = 3; //Food类型--食物
 }
 
 /* response的result枚举 */

@@ -9,8 +9,9 @@ import (
 
 type EnterGameRequest struct {
 	framework.BaseEvent
-	PlayerID int32
-	Connect  info.ConnectInfo
+	PlayerID   int32
+	Connect    info.ConnectInfo
+	PlayerName string
 }
 
 func (e *EnterGameRequest) FromMessage(obj interface{}) {
@@ -21,6 +22,7 @@ func (e *EnterGameRequest) FromMessage(obj interface{}) {
 	info := info.ConnectInfo{}
 	info.FromMessage(infoMsg)
 	e.Connect = info
+	e.PlayerName = pbMsg.GetPlayerName()
 }
 
 func (e *EnterGameRequest) CopyFromMessage(obj interface{}) event.Event {
@@ -29,8 +31,9 @@ func (e *EnterGameRequest) CopyFromMessage(obj interface{}) event.Event {
 	info := info.ConnectInfo{}
 	info.FromMessage(infoMsg)
 	req := &EnterGameRequest{
-		PlayerID: pbMsg.GetPlayerId(),
-		Connect:  info,
+		PlayerID:   pbMsg.GetPlayerId(),
+		Connect:    info,
+		PlayerName: pbMsg.GetPlayerName(),
 	}
 	req.SetCode(int32(pb.GAME_MSG_CODE_ENTER_GAME_REQUEST))
 	return req
@@ -44,5 +47,6 @@ func (e *EnterGameRequest) ToMessage() interface{} {
 	return pb.EnterGameRequest{
 		PlayerId:         e.PlayerID,
 		ClientConnectMsg: infoMsg,
+		PlayerName:       e.PlayerName,
 	}
 }
