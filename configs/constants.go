@@ -51,8 +51,8 @@ var (
 	// RemoteAddr is the address of kubernetes cluster, you could use this addr for testing
 	//RemoteAddr ="1.15.135.248:31000"
 	// RemoteCLB is LoadBalancer address used for dgs
-	RemoteCLB = "175.24.252.111:8888"
-	PodIP = "1.116.109.211:8888"
+	RemoteCLB = "150.158.216.120:32001"
+	//PodIP = "1.116.109.211:8888"
 
 	// debug mode
 	Debug bool = false
