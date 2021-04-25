@@ -342,7 +342,8 @@ func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
 	notify := notify2.NewGameRankListNotify(rankInfos)
 	GAME_ROOM_MANAGER.Unicast(g.ID, s.Id, notify.ToGMessageBytes())
 	//调整hero的注册位置
-	towers[towerId].HeroEnter(hero, g.SendHeroPropGlobalInfoNotify) //将hero存入tower中
+	towers[towerId].HeroEnter(hero) //将hero存入tower中
+	g.NotifyHeroPropMsg(hero) // 向该hero发送附近的道具信息
 }
 
 func (g *GameRoom) RegisterHero(h *model.Hero) {
@@ -368,7 +369,8 @@ func (g *GameRoom) ModifyHero(modifyHero *model.Hero) {
 		panic("计算towerId时出错")
 	}
 	if towerId != hero.TowerId {
-		towers[towerId].HeroEnter(hero, g.SendHeroPropGlobalInfoNotify) // 将hero加入灯塔中
+		towers[towerId].HeroEnter(hero) // 将hero加入灯塔中
+		g.NotifyHeroPropMsg(hero)  // 向该hero发送附近的道具信息
 		towers[hero.TowerId].HeroLeave(hero)                            // 将hero从原来灯塔中删除
 		hero.TowerId = towerId
 		otherIds := tools.GetOtherTowers(towerId)
@@ -390,13 +392,13 @@ func (g *GameRoom) ModifyHero(modifyHero *model.Hero) {
 			return true
 		})
 		for _, tower := range needToDelete {
-			tower.NotifyHeroMsg(hero, configs.Leave, g.SendHeroViewNotify)
+			g.NotifyHeroView(hero, configs.Leave, tower)
 			hero.OtherTowers.Delete(tower.GetId())
 		}
 		// 接下来处理新加入的otherTowerId
 		for k, v := range midMap {
 			if !v {
-				towers[k].NotifyHeroMsg(hero, configs.Enter, g.SendHeroViewNotify)
+				g.NotifyHeroView(hero, configs.Enter, towers[k])
 				hero.OtherTowers.Store(k, towers[k])
 				midMap[k] = true
 			}
