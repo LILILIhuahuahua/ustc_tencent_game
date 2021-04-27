@@ -51,8 +51,8 @@ var (
 	// RemoteAddr is the address of kubernetes cluster, you could use this addr for testing
 	//RemoteAddr ="1.15.135.248:31000"
 	// RemoteCLB is LoadBalancer address used for dgs
-	RemoteCLB = "175.24.252.111:8888"
-	PodIP = "1.116.109.211:8888"
+	RemoteCLB = "150.158.216.120:32001"
+	//PodIP = "1.116.109.211:8888"
 
 	// debug mode
 	Debug bool = false
@@ -70,6 +70,10 @@ var (
 	PropRadius float32 = 20 	// Initial prop radius
 	PropStatusLive int32 = 0
 	PropStatusDead int32 = 1
+
+	// 道具效果
+	PropInvincibleTimeMax = int64(time.Second * 5) // 最长无敌时间
+	PropJumpDistance = float32(300)
 
 	// mongodb
 	MongoUri string = "mongodb://localhost:27017"

@@ -1,8 +1,6 @@
 package aoi
 
 import (
-	"fmt"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
@@ -10,43 +8,39 @@ import (
 )
 
 type Tower struct {
-	id    int32
-	heros sync.Map
-	props sync.Map
+	Id    int32
+	Heros sync.Map
+	Props sync.Map
 }
 
 func InitTower(id int32) *Tower {
-	return &Tower{id: id}
+	return &Tower{Id: id}
 }
 
 func (this *Tower) GetId() int32 {
-	return this.id
+	return this.Id
 }
 
-func (this *Tower) HeroEnter(hero *model.Hero, callback func([]int32, *framework.BaseSession)) {
-	this.heros.Store(hero.ID, hero)
-	towerIds := tools.GetOtherTowers(this.id)
-	towerIds = append(towerIds, this.id)
-	callback(towerIds, hero.Session)
-	//fmt.Printf("hero加入了新的灯塔\n")
+func (this *Tower) HeroEnter(hero *model.Hero) {
+	this.Heros.Store(hero.ID, hero)
 }
 
 func (this *Tower) PropEnter(prop *model.Prop) {
 	//fmt.Printf("存入的prop ID: %d \n", prop.ID())
-	this.props.Store(prop.Id, prop)
+	this.Props.Store(prop.Id, prop)
 }
 
 func (this *Tower) HeroLeave(hero *model.Hero) { // 后期做优化
-	this.heros.Delete(hero.ID)
+	this.Heros.Delete(hero.ID)
 }
 
 func (this *Tower) PropLeave(prop *model.Prop) {
-	this.props.Delete(prop.Id)
+	this.Props.Delete(prop.Id)
 }
 
 func (this *Tower) GetHeros() []*model.Hero {
 	var heros []*model.Hero
-	this.heros.Range(func(k, v interface{}) bool {
+	this.Heros.Range(func(k, v interface{}) bool {
 		heros = append(heros, v.(*model.Hero))
 		return true
 	})
@@ -55,7 +49,7 @@ func (this *Tower) GetHeros() []*model.Hero {
 
 func (this *Tower) GetProps() []*model.Prop {
 	var props []*model.Prop
-	this.props.Range(func(k, v interface{}) bool {
+	this.Props.Range(func(k, v interface{}) bool {
 		prop := v.(*model.Prop)
 		//if prop.Status() == configs.PropStatusLive {
 			props = append(props, prop)
@@ -65,35 +59,14 @@ func (this *Tower) GetProps() []*model.Prop {
 	return props
 }
 
-func (this *Tower) NotifyHeroMsg(
-	changeHero *model.Hero,
-	notifyType int32,
-	callback func(changeHero *model.Hero, hero *model.Hero, notifyType int32)) {
-
-	var needToNotify []*model.Hero
-	this.heros.Range(func(k, v interface{}) bool {
-		needToNotify = append(needToNotify, v.(*model.Hero))
-		return true
-	})
-	for _, hero := range needToNotify {
-		if notifyType == configs.Enter {
-			fmt.Printf("%d向%d发送了进入视野的信息  ---enter", changeHero.Session.Id, hero.Session.Id)
-		}
-		if notifyType == configs.Leave {
-			fmt.Printf("%d向%d发送了liking视野的信息 ---leave", changeHero.Session.Id, hero.Session.Id)
-		}
-		callback(changeHero, hero, notifyType)
-	}
-}
-
 func (this *Tower) NotifyHeroPropMsg(callback func([]int32, *framework.BaseSession)) { // 通知灯塔内所有玩家附近的道具和玩家信息
 	var needToNotify []*model.Hero
-	this.heros.Range(func(k, v interface{}) bool {
+	this.Heros.Range(func(k, v interface{}) bool {
 		needToNotify = append(needToNotify, v.(*model.Hero))
 		return true
 	})
-	towerIds := tools.GetOtherTowers(this.id)
-	towerIds = append(towerIds, this.id)
+	towerIds := tools.GetOtherTowers(this.Id)
+	towerIds = append(towerIds, this.Id)
 	for _, hero := range needToNotify {
 		callback(towerIds, hero.Session)
 	}

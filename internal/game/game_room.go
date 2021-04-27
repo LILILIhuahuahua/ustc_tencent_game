@@ -350,7 +350,8 @@ func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
 	notify := notify2.NewGameRankListNotify(rankInfos)
 	GAME_ROOM_MANAGER.Unicast(g.ID, s.Id, notify.ToGMessageBytes())
 	//调整hero的注册位置
-	towers[towerId].HeroEnter(hero, g.SendHeroPropGlobalInfoNotify) //将hero存入tower中
+	towers[towerId].HeroEnter(hero) //将hero存入tower中
+	g.NotifyHeroPropMsg(hero)       // 向该hero发送附近的道具信息
 }
 
 func (g *GameRoom) RegisterHero(h *model.Hero) {
@@ -376,8 +377,9 @@ func (g *GameRoom) ModifyHero(modifyHero *model.Hero) {
 		panic("计算towerId时出错")
 	}
 	if towerId != hero.TowerId {
-		towers[towerId].HeroEnter(hero, g.SendHeroPropGlobalInfoNotify) // 将hero加入灯塔中
-		towers[hero.TowerId].HeroLeave(hero)                            // 将hero从原来灯塔中删除
+		towers[towerId].HeroEnter(hero)      // 将hero加入灯塔中
+		g.NotifyHeroPropMsg(hero)            // 向该hero发送附近的道具信息
+		towers[hero.TowerId].HeroLeave(hero) // 将hero从原来灯塔中删除
 		hero.TowerId = towerId
 		otherIds := tools.GetOtherTowers(towerId)
 		if otherIds == nil {
@@ -398,13 +400,13 @@ func (g *GameRoom) ModifyHero(modifyHero *model.Hero) {
 			return true
 		})
 		for _, tower := range needToDelete {
-			tower.NotifyHeroMsg(hero, configs.Leave, g.SendHeroViewNotify)
+			g.NotifyHeroView(hero, configs.Leave, tower)
 			hero.OtherTowers.Delete(tower.GetId())
 		}
 		// 接下来处理新加入的otherTowerId
 		for k, v := range midMap {
 			if !v {
-				towers[k].NotifyHeroMsg(hero, configs.Enter, g.SendHeroViewNotify)
+				g.NotifyHeroView(hero, configs.Enter, towers[k])
 				hero.OtherTowers.Store(k, towers[k])
 				midMap[k] = true
 			}
@@ -426,17 +428,25 @@ func (g *GameRoom) FetchHeros() []*model.Hero {
 }
 
 //更新英雄位置
-func (g *GameRoom) UpdateHeroPos() {
+func (g *GameRoom) UpdateHeroPosAndStatus() {
 	var needToUpdate []*model.Hero
 	g.Heros.Range(func(k, v interface{}) bool {
 		needToUpdate = append(needToUpdate, v.(*model.Hero))
 		return true
 	})
 	for _, hero := range needToUpdate {
-		if hero.Status == configs.Dead {
+		if hero.Status == configs.HeroStatusDead {
 			continue
 		}
 		nowTime := time.Now().UnixNano()
+		// 处理玩家的无敌时间
+		if hero.Status == configs.HeroStatusInvincible {
+			if nowTime-hero.InvincibleStartTime > configs.PropInvincibleTimeMax {
+				hero.Status = configs.HeroStatusLive
+			}
+			go g.NotifyEntityInfoChange(configs.HeroType, hero.ID, hero, nil)
+		}
+		// 更新玩家位置
 		timeElapse := nowTime - hero.UpdateTime
 		hero.UpdateTime = nowTime
 		distance := float64(timeElapse) * float64(hero.Speed) / 1e9
@@ -495,11 +505,16 @@ func (room *GameRoom) onCollision() {
 				// 检测到发生了碰撞
 				// 双方均是英雄，开启碰撞仲裁流程
 				if candidate.Type == int32(pb.ENTITY_TYPE_HERO_TYPE) {
+					candidateObject, _ := room.Heros.Load(candidate.ID)
+					candidateHero := candidateObject.(*model.Hero)
+					if hero.Status == configs.HeroStatusInvincible ||
+						candidateHero.Status == configs.HeroStatusInvincible {
+						continue
+					}
 					var loser, winner *model.Hero
 					// 仲裁胜负
 					if hero.Size > candidate.Size {
-						l, _ := room.Heros.Load(candidate.ID)
-						loser = l.(*model.Hero)
+						loser = candidateHero
 						w, _ := room.Heros.Load(hero.ID)
 						winner = w.(*model.Hero)
 						if int32(pb.HERO_STATUS_DEAD) == loser.Status || int32(pb.HERO_STATUS_DEAD) == winner.Status {
@@ -509,8 +524,7 @@ func (room *GameRoom) onCollision() {
 					} else if hero.Size < candidate.Size {
 						l, _ := room.Heros.Load(hero.ID)
 						loser = l.(*model.Hero)
-						w, _ := room.Heros.Load(candidate.ID)
-						winner = w.(*model.Hero)
+						winner = candidateHero
 						if int32(pb.HERO_STATUS_DEAD) == loser.Status || int32(pb.HERO_STATUS_DEAD) == winner.Status {
 							continue
 						}
@@ -578,71 +592,61 @@ func (room *GameRoom) onCollision() {
 					fmt.Printf("[碰撞检测]检测到玩家吃道具！玩家信息：%+v，道具信息：%+v\n", eater, prop)
 					// 道具退场
 					room.props.RemoveProp(prop.Id)
-					// 这里加上道具视野管理
 					prop.Status = int32(pb.ITEM_STATUS_ITEM_DEAD)
 					room.props.AddProp(prop)
-					roomTowers[prop.TowerId].PropLeave(prop)
+					roomTowers[prop.TowerId].PropLeave(prop) // 视野管理
 					room.quadTree.DeleteObj(collision.NewRectangleByObj(prop.Id, prop.PropType, 0, prop.Pos.X, prop.Pos.Y))
 					// 玩家增大、变慢、加分
 					room.Heros.Delete(eater.ID)
-					eater.Size += configs.HeroSizeGrowthStep
-					if eater.Size > configs.HeroSizeUpLimit {
-						eater.Size = configs.HeroSizeUpLimit
-					}
-					eater.Speed -= configs.HeroSpeedSlowStep
-					if eater.Speed < configs.HeroSpeedDownLimit {
-						eater.Speed = configs.HeroSpeedDownLimit
-					}
-					eater.Score += configs.HeroEatItemBonus
-					//更新对局中最高玩家分数
-					if eater.Score > room.HighestHeroScore {
-						room.HighestHeroScore = eater.Score
-					}
-					//更新排行榜
-					heroRankInfo := info.NewHeroRankInfo(eater)
-					room.heroRankHeap.ChallengeRank(heroRankInfo)
-					//发出排行榜变动推送
-					rankInfos := room.heroRankHeap.GetSortedHeroRankInfos()
-					rankNotify := notify2.NewGameRankListNotify(rankInfos)
-					GAME_ROOM_MANAGER.Braodcast(room.ID, rankNotify.ToGMessageBytes())
-					//校验是否达到对局胜利条件
-					if eater.Score >= configs.GameWinLiminationScore {
-						room.onGameOver()
-					}
-					room.Heros.Store(eater.ID, eater)
-					room.quadTree.UpdateObj(collision.NewRectangleByObj(eater.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), eater.Size, eater.HeroPosition.X, eater.HeroPosition.Y))
-					// 发包
-					//itemInfo := &pb.ItemMsg{
-					//	ItemId: prop.ID(),
-					//	ItemType: pb.ENTITY_TYPE_FOOD_TYPE,
-					//	ItemPosition: &pb.CoordinateXY{
-					//		CoordinateX: prop.GetX(),
-					//		CoordinateY: prop.GetY(),
-					//	},
-					//	ItemStatus: pb.ITEM_STATUS_ITEM_DEAD,
-					//}
-					itemInfo := info.NewItemInfo(prop)
-					notify := notify2.NewEntityInfoChangeNotify(prop.PropType, prop.Id, nil, itemInfo)
-					//data := &pb.EntityInfoChangeNotify{
-					//	EntityType: pb.ENTITY_TYPE_FOOD_TYPE,
-					//	EntityId:   prop.ID(),
-					//	ItemMsg: itemInfo,
-					//}
-					//notify := &pb.Notify{
-					//	EntityInfoChangeNotify: data,
-					//}
-					//msg := pb.GMessage{
-					//	MsgType:  pb.MSG_TYPE_NOTIFY,
-					//	MsgCode:  pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_NOTIFY,
-					//	Notify: notify,
-					//	SendTime: tools.TIME_UTIL.NowMillis(),
-					//}
-					//out, _ := proto.Marshal(&msg)
-					GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
+					// 判断吃的道具类型
+					switch prop.PropType {
+					case int32(pb.ENTITY_TYPE_PROP_TYPE_FOOD):
+						// 玩家增大、变慢、加分
+						eater.Size += configs.HeroSizeGrowthStep
+						if eater.Size > configs.HeroSizeUpLimit {
+							eater.Size = configs.HeroSizeUpLimit
+						}
+						eater.Speed -= configs.HeroSpeedSlowStep
+						if eater.Speed < configs.HeroSpeedDownLimit {
+							eater.Speed = configs.HeroSpeedDownLimit
+						}
+						eater.Score += configs.HeroEatItemBonus
+						//更新对局中最高玩家分数
+						if eater.Score > room.HighestHeroScore {
+							room.HighestHeroScore = eater.Score
+						}
 
-					heroInfo := info.NewHeroInfo(eater)
-					notify = notify2.NewEntityInfoChangeNotify(int32(pb.ENTITY_TYPE_HERO_TYPE), eater.ID, heroInfo, nil)
-					GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
+						//更新排行榜
+						heroRankInfo := info.NewHeroRankInfo(eater)
+						room.heroRankHeap.ChallengeRank(heroRankInfo)
+						//发出排行榜变动推送
+						rankInfos := room.heroRankHeap.GetSortedHeroRankInfos()
+						rankNotify := notify2.NewGameRankListNotify(rankInfos)
+						GAME_ROOM_MANAGER.Braodcast(room.ID, rankNotify.ToGMessageBytes())
+						//校验是否达到对局胜利条件
+						if eater.Score >= configs.GameWinLiminationScore {
+							room.onGameOver()
+						}
+						room.Heros.Store(eater.ID, eater)
+						room.quadTree.UpdateObj(collision.NewRectangleByObj(eater.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), eater.Size, eater.HeroPosition.X, eater.HeroPosition.Y))
+						break
+					case int32(pb.ENTITY_TYPE_PROP_TYPE_INVINCIBLE):
+						eater.InvincibleStartTime = time.Now().UnixNano()
+						eater.Status = int32(pb.HERO_STATUS_INVINCIBLE)
+						break
+					case int32(pb.ENTITY_TYPE_PROP_TYPE_JUMP):
+						break
+					}
+
+					go room.NotifyEntityInfoChange(prop.PropType, prop.Id, nil, prop)
+					//itemInfo := info.NewItemInfo(prop)
+					//notify := notify2.NewEntityInfoChangeNotify(prop.PropType, prop.Id, nil, itemInfo)
+					//GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
+
+					go room.NotifyEntityInfoChange(configs.HeroType, eater.ID, eater, nil)
+					//heroInfo := info.NewHeroInfo(eater)
+					//notify = notify2.NewEntityInfoChangeNotify(int32(pb.ENTITY_TYPE_HERO_TYPE), eater.ID, heroInfo, nil)
+					//GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
 				}
 
 			}

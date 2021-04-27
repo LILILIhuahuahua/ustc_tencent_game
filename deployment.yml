@@ -1,11 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: dgs-dev
+  name: dgs-srv
   labels:  # this label is used for deployment itself, we can use this label to delete deployment
     app: dgs
 spec:
-  replicas: 2
+  replicas: 3
   minReadySeconds: 5
   strategy:
     type: RollingUpdate

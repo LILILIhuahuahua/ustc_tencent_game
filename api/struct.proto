@@ -11,6 +11,7 @@ message HeroMsg {
   CoordinateXY heroDirection = 5; //玩家的行进方向
   HERO_STATUS heroStatus = 6; //玩家的状态
   int32 heroScore = 7; //玩家分数
+  int64 invincibleStartTime = 8; // 玩家的无敌开始时间
 }
 
 message HeroRankMsg {

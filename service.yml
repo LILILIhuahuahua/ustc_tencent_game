@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: dgs-dev
+  name: dgs-srv
   annotations:
     service.cloud.tencent.com/direct-access: "true"
 #  labels:
@@ -9,10 +9,10 @@ metadata:
 spec:
   type: LoadBalancer
   externalTrafficPolicy: Cluster
-  sessionAffinity: None
+  sessionAffinity: ClientIP
   ports:
-    - port: 8888
-#      nodePort: 32000
+    - port: 32001
+      nodePort: 32001
       targetPort: 8888
       protocol: UDP
   #  externalIPs:
