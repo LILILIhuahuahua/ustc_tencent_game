@@ -90,3 +90,22 @@ func (r *GameRoom) SendHeroPropGlobalInfoNotify(towers []int32, session *framewo
 	}
 	r.Unicast(data, session)
 }
+
+//todo 发送entityInfoChangeNotify 发送给附近玩家
+func (r *GameRoom) SendEntityInfoChangeNotify(sendHero *model.Hero, entityType int32, entityId int32, heroInfo *info.HeroInfo, itemInfo *info.ItemInfo) {
+	entityInfoChangeNotify := notify.NewEntityInfoChangeNotify(entityType, entityId, heroInfo, itemInfo)
+	msg := event2.GMessage{
+		MsgType:     configs.MsgTypeNotify,
+		GameMsgCode: configs.EntityInfoNotify,
+		Data:        entityInfoChangeNotify,
+	}
+	pbMsg := msg.ToMessage().(*pb.GMessage)
+	data, err := proto.Marshal(pbMsg)
+	if err != nil {
+		log.Printf("发送entityInfoChangeNotify的时候出错了")
+	}
+	err = r.Unicast(data, sendHero.Session)
+	if err != nil {
+		log.Printf("在unicast EntityInfoChangeNotify的时候出错了")
+	}
+}

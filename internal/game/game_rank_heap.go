@@ -28,7 +28,6 @@ func CopyFromGameRankHeap(heap *GameRankHeap) *GameRankHeap {
 	return copyHeap
 }
 
-
 func (h *GameRankHeap) isEmpty() bool {
 	return 0 == h.Capacity
 }
@@ -54,7 +53,7 @@ func (h *GameRankHeap) GetRankIndex(target *info.HeroRankInfo) int32 {
 		return int32(idx)
 	}
 	var l int = int(h.Capacity)
-	for i:=1; i <= l; i++ {
+	for i := 1; i <= l; i++ {
 		if target.HeroID == h.rankHeap[i].HeroID {
 			idx = i
 			break
@@ -108,7 +107,7 @@ func (h *GameRankHeap) GetSortedHeroRankInfos() []info.HeroRankInfo {
 		copyHeap.rankHeap[1].HeroRank = 1
 	}
 	res := make([]info.HeroRankInfo, copyHeap.Capacity)
-	for i:= 1; i <= int(copyHeap.Capacity); i++ {
+	for i := 1; i <= int(copyHeap.Capacity); i++ {
 		res[i-1] = *copyHeap.rankHeap[i]
 	}
 	return res

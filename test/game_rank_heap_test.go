@@ -1,14 +1,13 @@
-package game
+package test
 
 import (
-	"fmt"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/game"
 	"testing"
 )
 
 func TestGameRankHeap(t *testing.T) {
-	fmt.Println("fck u")
-	heap := NewGameRankHeap(5)
+	heap := game.NewGameRankHeap(5)
 	heroRank1 := &info.HeroRankInfo{
 		HeroID: 1,
 		HeroScore: 1,

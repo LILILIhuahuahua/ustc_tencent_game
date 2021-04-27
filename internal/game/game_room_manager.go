@@ -5,6 +5,7 @@ import (
 	pb "github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/kcpnet"
 	event2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
 	notify2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/notify"
@@ -15,21 +16,51 @@ import (
 )
 
 type GameRoomManager struct {
+	addr    string
+	server  *kcpnet.KcpServer
 	roomMap map[int64]*GameRoom
 	timer   *scheduler.Timer
+	waitSessionMap map[int32]*framework.BaseSession //会话等待集合，匹配到一定玩家会话才进行派遣
 }
 
 var GAME_ROOM_MANAGER *GameRoomManager
 
 func init() {
-	GAME_ROOM_MANAGER = NewGameRoomManager()
+	GAME_ROOM_MANAGER = NewGameRoomManager(configs.ServerAddr)
 	GAME_ROOM_MANAGER.timer = scheduler.NewTimer(configs.GlobalInfoNotifyInterval, GlobalInfoNotify)
 }
 
-func NewGameRoomManager() *GameRoomManager {
+func NewGameRoomManager(address string) *GameRoomManager {
+	//s, _ := kcpnet.NewKcpServer(address)
 	return &GameRoomManager{
+		addr:    address,
+		server:  nil,
 		roomMap: make(map[int64]*GameRoom),
+		waitSessionMap: make(map[int32]*framework.BaseSession),
 	}
+}
+
+func (manager *GameRoomManager) Serv() error {
+	//for {
+	//	conn, err := manager.server.Listen.AcceptKCP()
+	//	if err != nil {
+	//		return err
+	//	}
+	//	conn.SetWindowSize(4800, 4800)
+	//	session := framework.NewBaseSession(conn)
+	//	manager.dispatchSessionToGameRome(session)
+	//}
+	return nil
+}
+
+func (manager *GameRoomManager) dispatchSessionToGameRome(session *framework.BaseSession) {
+	//1.等待一批足够数量的会话
+	//2.等待时间超过某个值
+	//3.寻找一个可加入的房间
+}
+
+func (manager *GameRoomManager) fetchAccessableGameRome() *GameRoom {
+	return nil
 }
 
 // Cron initialize timer for GameRoomManager. It will broadcast props/food info of each room to its clients.
@@ -72,7 +103,7 @@ func GlobalInfoNotify() {
 				notify := notify2.GameGlobalInfoNotify{
 					HeroNumber: heroNum,
 					//Time:       0,
-					HeroInfos:  heroInfos,
+					HeroInfos: heroInfos,
 					ItemInfos: items,
 					//MapInfo:    info.MapInfo{},
 				}
