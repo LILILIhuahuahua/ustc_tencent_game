@@ -29,6 +29,7 @@ func (this *GameStarter) init() {
 	//初始化系统组件
 	GAME_ROOM_MANAGER.RegisterGameRoom(this.room)
 
+	//todo:具体事件注册下放到具体的消息类实现中
 	enterGameNotify := notify.EnterGameNotify{}
 	enterGameNotify.SetCode(int32(pb.GAME_MSG_CODE_ENTER_GAME_NOTIFY))
 	gameGlobalInfoNotify := notify.GameGlobalInfoNotify{}

@@ -36,6 +36,8 @@ type GameRoom struct {
 	towers           []*aoi.Tower
 	quadTree         *collision.QuadTree //对局内四叉树，用于进行碰撞检测
 	heroRankHeap     *GameRankHeap
+	HighestHeroScore int32 //对局内的玩家最高分
+	HeroNum          int32 //对局内的玩家数量
 }
 
 //数据持有；连接者指针列表
@@ -54,6 +56,8 @@ func NewGameRoom(address string) *GameRoom {
 		quadTree:     collision.NewQuadTree("0", 0, collision.NewRectangleByBounds(configs.MapMinX, configs.MapMinY, configs.MapMaxX, configs.MapMaxY)),
 		heroRankHeap: NewGameRankHeap(configs.HeroRankListLength),
 		//Heros: make(map[int32]*model.Hero),
+		HighestHeroScore: 0,
+		HeroNum:          0,
 	}
 	gameroom.AdjustPropsIntoTower()
 	return gameroom
@@ -209,8 +213,12 @@ func (g *GameRoom) Handle(session *framework.BaseSession, buf []byte) {
 
 func (g *GameRoom) HandleEventFromQueue() {
 	for {
-		e := g.dispatcher.GetEventQueue().Pop()
-		if nil == e { //todo
+		e, err := g.dispatcher.GetEventQueue().Pop()
+		if nil == e {
+			continue
+		}
+		if nil != err {
+			fmt.Println(err)
 			continue
 		}
 		msg := e.(*event2.GMessage)
@@ -529,8 +537,9 @@ func (room *GameRoom) onCollision() {
 						winner.Speed = configs.HeroSpeedDownLimit
 					}
 					winner.Score += configs.HeroEatEnemyBonus
-					if winner.Score >= configs.GameWinLiminationScore {
-						room.onGameOver()
+					//更新对局中最高玩家分数
+					if winner.Score > room.HighestHeroScore {
+						room.HighestHeroScore = winner.Score
 					}
 					//更新排行榜
 					heroRankInfo := info.NewHeroRankInfo(winner)
@@ -539,7 +548,10 @@ func (room *GameRoom) onCollision() {
 					rankInfos := room.heroRankHeap.GetSortedHeroRankInfos()
 					rankNotify := notify2.NewGameRankListNotify(rankInfos)
 					GAME_ROOM_MANAGER.Braodcast(room.ID, rankNotify.ToGMessageBytes())
-
+					//校验是否达到对局胜利条件
+					if winner.Score >= configs.GameWinLiminationScore {
+						room.onGameOver()
+					}
 					room.Heros.Store(winner.ID, winner)
 					room.quadTree.UpdateObj(collision.NewRectangleByObj(winner.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), winner.Size, winner.HeroPosition.X, winner.HeroPosition.Y))
 					// 发包
@@ -554,7 +566,7 @@ func (room *GameRoom) onCollision() {
 				// 一方为食物，开启吃道具流程
 				if candidate.Type == int32(pb.ENTITY_TYPE_PROP_TYPE_FOOD) ||
 					candidate.Type == int32(pb.ENTITY_TYPE_PROP_TYPE_INVINCIBLE) ||
-					candidate.Type == int32(pb.ENTITY_TYPE_PROP_TYPE_JUMP){
+					candidate.Type == int32(pb.ENTITY_TYPE_PROP_TYPE_JUMP) {
 					var prop (*model.Prop)
 					var eater (*model.Hero)
 					prop, _ = room.props.GetProp(candidate.ID)
@@ -582,10 +594,10 @@ func (room *GameRoom) onCollision() {
 						eater.Speed = configs.HeroSpeedDownLimit
 					}
 					eater.Score += configs.HeroEatItemBonus
-					if eater.Score >= configs.GameWinLiminationScore {
-						room.onGameOver()
+					//更新对局中最高玩家分数
+					if eater.Score > room.HighestHeroScore {
+						room.HighestHeroScore = eater.Score
 					}
-
 					//更新排行榜
 					heroRankInfo := info.NewHeroRankInfo(eater)
 					room.heroRankHeap.ChallengeRank(heroRankInfo)
@@ -593,7 +605,10 @@ func (room *GameRoom) onCollision() {
 					rankInfos := room.heroRankHeap.GetSortedHeroRankInfos()
 					rankNotify := notify2.NewGameRankListNotify(rankInfos)
 					GAME_ROOM_MANAGER.Braodcast(room.ID, rankNotify.ToGMessageBytes())
-
+					//校验是否达到对局胜利条件
+					if eater.Score >= configs.GameWinLiminationScore {
+						room.onGameOver()
+					}
 					room.Heros.Store(eater.ID, eater)
 					room.quadTree.UpdateObj(collision.NewRectangleByObj(eater.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), eater.Size, eater.HeroPosition.X, eater.HeroPosition.Y))
 					// 发包
