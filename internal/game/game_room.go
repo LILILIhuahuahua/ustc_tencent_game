@@ -436,6 +436,7 @@ func (g *GameRoom) UpdateHeroPosAndStatus() {
 			if nowTime - hero.InvincibleStartTime > configs.PropInvincibleTimeMax {
 				hero.Status = configs.HeroStatusLive
 			}
+			go g.NotifyEntityInfoChange(configs.HeroType, hero.ID, hero, nil)
 		}
 		// 更新玩家位置
 		timeElapse := nowTime - hero.UpdateTime
@@ -619,12 +620,12 @@ func (room *GameRoom) onCollision() {
 						break
 					}
 
-					room.NotifyEntityInfoChange(prop.PropType, prop.Id, nil, prop)
+					go room.NotifyEntityInfoChange(prop.PropType, prop.Id, nil, prop)
 					//itemInfo := info.NewItemInfo(prop)
 					//notify := notify2.NewEntityInfoChangeNotify(prop.PropType, prop.Id, nil, itemInfo)
 					//GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
 
-					room.NotifyEntityInfoChange(configs.HeroType, eater.ID, eater, nil)
+					go room.NotifyEntityInfoChange(configs.HeroType, eater.ID, eater, nil)
 					//heroInfo := info.NewHeroInfo(eater)
 					//notify = notify2.NewEntityInfoChangeNotify(int32(pb.ENTITY_TYPE_HERO_TYPE), eater.ID, heroInfo, nil)
 					//GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
