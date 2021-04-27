@@ -496,11 +496,16 @@ func (room *GameRoom) onCollision() {
 				// 检测到发生了碰撞
 				// 双方均是英雄，开启碰撞仲裁流程
 				if candidate.Type == int32(pb.ENTITY_TYPE_HERO_TYPE) {
+					candidateObject, _ := room.Heros.Load(candidate.ID)
+					candidateHero := candidateObject.(*model.Hero)
+					if hero.Status == configs.HeroStatusInvincible ||
+						candidateHero.Status == configs.HeroStatusInvincible {
+						continue
+					}
 					var loser, winner *model.Hero
 					// 仲裁胜负
 					if hero.Size > candidate.Size {
-						l, _ := room.Heros.Load(candidate.ID)
-						loser = l.(*model.Hero)
+						loser = candidateHero
 						w, _ := room.Heros.Load(hero.ID)
 						winner = w.(*model.Hero)
 						if int32(pb.HERO_STATUS_DEAD) == loser.Status || int32(pb.HERO_STATUS_DEAD) == winner.Status {
@@ -510,8 +515,7 @@ func (room *GameRoom) onCollision() {
 					} else if hero.Size < candidate.Size {
 						l, _ := room.Heros.Load(hero.ID)
 						loser = l.(*model.Hero)
-						w, _ := room.Heros.Load(candidate.ID)
-						winner = w.(*model.Hero)
+						winner = candidateHero
 						if int32(pb.HERO_STATUS_DEAD) == loser.Status || int32(pb.HERO_STATUS_DEAD) == winner.Status {
 							continue
 						}
