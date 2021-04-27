@@ -615,14 +615,15 @@ func (room *GameRoom) onCollision() {
 						break
 					}
 
-					itemInfo := info.NewItemInfo(prop)
-					notify := notify2.NewEntityInfoChangeNotify(prop.PropType, prop.Id, nil, itemInfo)
-					// TODO 这里的广播改为多播
-					GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
+					room.NotifyEntityInfoChange(prop.PropType, prop.Id, nil, prop)
+					//itemInfo := info.NewItemInfo(prop)
+					//notify := notify2.NewEntityInfoChangeNotify(prop.PropType, prop.Id, nil, itemInfo)
+					//GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
 
-					heroInfo := info.NewHeroInfo(eater)
-					notify = notify2.NewEntityInfoChangeNotify(int32(pb.ENTITY_TYPE_HERO_TYPE), eater.ID, heroInfo, nil)
-					GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
+					room.NotifyEntityInfoChange(configs.HeroType, eater.ID, eater, nil)
+					//heroInfo := info.NewHeroInfo(eater)
+					//notify = notify2.NewEntityInfoChangeNotify(int32(pb.ENTITY_TYPE_HERO_TYPE), eater.ID, heroInfo, nil)
+					//GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
 				}
 
 			}
