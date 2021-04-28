@@ -209,8 +209,12 @@ func (g *GameRoom) Handle(session *framework.BaseSession, buf []byte) {
 
 func (g *GameRoom) HandleEventFromQueue() {
 	for {
-		e := g.dispatcher.GetEventQueue().Pop()
+		e, err := g.dispatcher.GetEventQueue().Pop()
 		if nil == e { //todo
+			continue
+		}
+		if nil != err {
+			fmt.Println(err)
 			continue
 		}
 		msg := e.(*event2.GMessage)
