@@ -35,7 +35,7 @@ var (
 
 	// Game info
 	GameWinLiminationScore int32 = 300 //对局优胜分数值
-	MinMatchingBatchSessionNum int32 = 2 //最小批量匹配会话数量
+	MinMatchingBatchSessionNum int32 = 1 //最小批量匹配会话数量
 	MatchingWaitOverTime int64 = 10 //匹配等待超时时间（单位：s ）
 
 	// Prop max count in map
