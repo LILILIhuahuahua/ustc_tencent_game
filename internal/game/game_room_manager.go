@@ -240,6 +240,11 @@ func (m *GameRoomManager) RegisterGameRoom(room *GameRoom) {
 	m.roomMap.Store(room.ID, room)
 }
 
+func (m *GameRoomManager) DeleteGameRoom(roomId int64) {
+	log.Printf("[GameRoomManager]删除房间对局！roomID：%v \n", roomId)
+	m.roomMap.Delete(roomId)
+}
+
 func (m *GameRoomManager) Unicast(roomId int64, sessionId int32, buff []byte) {
 	defer func() {
 		e := recover()
