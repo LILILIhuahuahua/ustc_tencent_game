@@ -1,0 +1,52 @@
+syntax = "proto3";
+option go_package = ".;databaseGrpc";
+package databaseGrpc;
+
+service PlayerService {
+  rpc PlayerFindByPlayerId(PlayerFindByPlayerIdRequest) returns (PlayerFindByPlayerIdResponse) {}
+  rpc PlayerAdd(PlayerAddRequest) returns (PlayerAddResponse) {}
+  rpc PlayerUpdateHighestScoreByPlayerId(PlayerUpdateHighestScoreByPlayerIdRequest) returns (PlayerUpdateHighestScoreByPlayerIdResponse) {}
+  rpc PlayerGetRankByPlayerId(PlayerGetRankByPlayerIdRequest) returns (PlayerGetRankByPlayerIdResponse) {}
+}
+
+message PlayerFindByPlayerIdRequest {
+  int32 playerId = 1;
+}
+
+message PlayerFindByPlayerIdResponse {
+  Player player = 1;
+}
+
+message PlayerAddRequest {
+  Player player = 1;
+}
+
+message PlayerAddResponse {
+
+}
+
+message PlayerUpdateHighestScoreByPlayerIdRequest {
+  int32 playerId = 1;
+  int32 highestScore = 2;
+}
+
+message PlayerUpdateHighestScoreByPlayerIdResponse {
+
+}
+
+message PlayerGetRankByPlayerIdRequest {
+  int32 PlayerId = 1;
+}
+
+message PlayerGetRankByPlayerIdResponse {
+  int32 rank = 1;
+}
+
+message Player {
+  int32 playerId = 1;
+  string accountId = 2;
+  int32 highestScore = 3;
+  int32 highestRank = 4;
+  int64 createAt = 5;
+  int64 updateAt = 6;
+}

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/db"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/game"
 	"log"
 )
@@ -22,6 +23,10 @@ func initDB() {
 
 func main() {
 	initDB()
+	err := db.InitConnection(configs.DBProxyAddr)
+	if err != nil {
+		log.Fatalln("init dbProxy failed")
+	}
 	if configs.DBProxyAddr == "" {
 		log.Fatalln("DBProxy addr is nil")
 	}
