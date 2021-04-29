@@ -661,4 +661,5 @@ func (room *GameRoom) onGameOver() {
 	GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
 	//回收游戏对局资源
 	//todo
+	GAME_ROOM_MANAGER.DeleteGameRoom(room.ID)
 }
