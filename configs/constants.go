@@ -76,4 +76,7 @@ var (
 	MongoURI      string = ""
 	MongoPoolSize uint64 = 100
 	DBName        string = "happyball"
+
+	// DBProxy configuration
+	DBProxyAddr string = ""
 )

@@ -10,28 +10,22 @@ import (
 
 func initDB() {
 	var (
-		DBUser string
-		DBPassword string
-		DBHost string
-		DBPort string
+		dbProxyPort string
+		dbProxyHost string
 	)
 
-	flag.StringVar(&DBUser, "DBUser","","User name of database" )
-	flag.StringVar(&DBPassword, "DBPassword", "","Password of database user")
-	flag.StringVar(&DBHost,"Host","","IP address of database")
-	flag.StringVar(&DBPort, "Port","","Port to connect to database")
-
+	flag.StringVar(&dbProxyHost, "DBProxyHost", "", "Host addr of dbproxy")
+	flag.StringVar(&dbProxyPort, "DBProxyPort", "", " Port of dbproxy")
 	flag.Parse()
-	configs.MongoURI = "mongodb://"+ DBUser + ":"+DBPassword + "@"+ DBHost + ":" + DBPort + "/" + configs.DBName
+	configs.DBProxyAddr = dbProxyHost + ":" + dbProxyPort
 }
 
 func main() {
-	// Initialize mongodb
 	initDB()
-	if configs.MongoURI == "" {
-		log.Fatalln("MongoURI is nil")
+	if configs.DBProxyAddr == "" {
+		log.Fatalln("DBProxy addr is nil")
 	}
-	log.Println("Initialize MongoURI to ",configs.MongoURI)
+	log.Println("Initialize MongoURI to ", configs.DBProxyAddr)
 
 	fmt.Println("ustc_tencent_game_server started!")
 	s := game.NewGameStarter(configs.ServerAddr)

@@ -46,8 +46,7 @@ jobs:
       # Build
       - name: Build Docker image
         run: |
-          docker build --build-arg DB_USER=${{ secrets.DB_USER }} --build-arg DB_PWD=${{ secrets.DB_PWD}} \
-                      --build-arg DB_HOST=${{ secrets.DB_HOST }} --build-arg DB_PORT=${{ secrets.DB_PORT }} -t ${TKE_IMAGE_URL}:${NAME}-${NAMESPACE}-${GITHUB_SHA} .
+          docker build --build-arg DBProxyHost=${{ secrets.DB_PROXY_HOST }} --build-arg DBProxyPort=${{ secrets.DB_PROXY_PORT }} -t ${TKE_IMAGE_URL}:${NAME}-${NAMESPACE}-${GITHUB_SHA} .
 
       - name: Login TKE Registry
         run: |
