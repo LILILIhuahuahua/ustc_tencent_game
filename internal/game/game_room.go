@@ -665,5 +665,6 @@ func (room *GameRoom) onGameOver() {
 	//回收游戏对局资源
 	//todo
 	atomic.AddInt32(&room.gameOver,1)  // 发通知，告诉 goroutine 游戏结束
+	GAME_ROOM_MANAGER.DeleteGameRoom(room.ID)
 	//runtime.GC()
 }
