@@ -7,7 +7,6 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/kcpnet"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/aoi"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/collision"
 	event2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event"
@@ -18,15 +17,17 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"github.com/golang/protobuf/proto"
+	"log"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
 //GameRoom 游戏房间类，对应一局游戏
 type GameRoom struct {
 	ID               int64
-	addr             string
-	server           *kcpnet.KcpServer
+	//addr             string
+	//server           *kcpnet.KcpServer
 	acceptedSessions sync.Map
 	sessions         sync.Map //map[interface{}]*framework.BaseSession
 	dispatcher       event.EventDispatcher
@@ -36,26 +37,30 @@ type GameRoom struct {
 	towers           []*aoi.Tower
 	quadTree         *collision.QuadTree //对局内四叉树，用于进行碰撞检测
 	heroRankHeap     *GameRankHeap
+	gameOver 		 int32   // 如果 gameOver 为 0，则表示对局仍在继续，当设置为 1 时，表示对局已经结束，此时回收线程
+	AliveHeroNum     int32
 }
 
 //数据持有；连接者指针列表
-func NewGameRoom(address string) *GameRoom {
-	s, err := kcpnet.NewKcpServer(address)
-	if err != nil {
-		return nil
-	}
+func NewGameRoom() *GameRoom {
+	//s, err := kcpnet.NewKcpServer(address)
+	//if err != nil {
+	//	return nil
+	//}
 	gameroom := &GameRoom{
 		ID:           tools.UUID_UTIL.GenerateInt64UUID(),
-		addr:         address,
-		server:       s,
+		//addr:         address,
+		//server:       s,
 		dispatcher:   framework.NewBaseEventDispatcher(configs.MaxEventQueueSize),
 		props:        prop.New(),
 		towers:       aoi.InitTowers(),
 		quadTree:     collision.NewQuadTree("0", 0, collision.NewRectangleByBounds(configs.MapMinX, configs.MapMinY, configs.MapMaxX, configs.MapMaxY)),
 		heroRankHeap: NewGameRankHeap(configs.HeroRankListLength),
 		//Heroes: make(map[int32]*model.Hero),
+		AliveHeroNum: 0,
 	}
 	gameroom.AdjustPropsIntoTower()
+	log.Printf("[GameRoom]初始化新对局！GameRoom：%v \n", gameroom)
 	return gameroom
 }
 
@@ -85,6 +90,12 @@ func (g *GameRoom) RegisterConnector(c *framework.BaseSession) error {
 	return nil
 }
 
+// @title    AcceptConnector
+// @description 接收GameRoomManager下方的新会话
+func (g *GameRoom) AcceptConnector(session *framework.BaseSession) {
+	g.acceptedSessions.Store(session.Id, session)
+}
+
 func (g *GameRoom) FetchConnector(sessionId int32) *framework.BaseSession {
 	sess, ok := g.sessions.Load(sessionId)
 	if !ok {
@@ -103,19 +114,21 @@ func (g *GameRoom) DeleteConnector(c *framework.BaseSession) error {
 func (g *GameRoom) Serv() error {
 	go g.HandleSessions()       //开启会话监听线程，监听session集合中的读事件，将读到的GMessage放入环形队列中
 	go g.HandleEventFromQueue() //开启消费线程，从环形队列中读取GMessage消息并处理
-	for {
-		conn, err := g.server.Listen.AcceptKCP()
-		if err != nil {
-			return err
-		}
-		conn.SetWindowSize(4800, 4800)
-		session := framework.NewBaseSession(conn)
-		if err != nil {
-			return err
-		}
-		g.acceptedSessions.Store(session.Id, session) //将新会话放入未注册会话集合中
+	for g.gameOver == 0 {
+		//conn, err := g.server.Listen.AcceptKCP()
+		//if err != nil {
+		//	return err
+		//}
+		//conn.SetWindowSize(4800, 4800)
+		//session := framework.NewBaseSession(conn)
+		//if err != nil {
+		//	return err
+		//}
+		//g.acceptedSessions.Store(session.Id, session) //将新会话放入未注册会话集合中
 		g.registerSessions()                          //处理会话注册流程（等待玩家进入世界enterWorld）
 	}
+
+	return nil
 }
 
 // @title    registerSessions
@@ -158,7 +171,7 @@ func (g *GameRoom) registerSessions() {
 // @description 监听已接收但还未注册的会话，接收到进入世界请求时注册会话
 func (g *GameRoom) HandleSessions() {
 	buf := make([]byte, 4096)
-	for {
+	for g.gameOver == 0 {
 		g.sessions.Range(func(_, v interface{}) bool {
 			session := v.(*framework.BaseSession)
 			//处理单个会话的消息读取
@@ -208,7 +221,7 @@ func (g *GameRoom) Handle(session *framework.BaseSession, buf []byte) {
 }
 
 func (g *GameRoom) HandleEventFromQueue() {
-	for {
+	for g.gameOver == 0 {
 		e, err := g.dispatcher.GetEventQueue().Pop()
 		if nil == e { //todo
 			continue
@@ -307,6 +320,7 @@ func (g *GameRoom) GetItemsNearby(hero *model.Hero) ([]*model.Hero, []*model.Pro
 func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
 	enterGameReq := e.Data.(*request.EnterGameRequest)
 	s.Id = enterGameReq.PlayerID
+	log.Printf("[GameRoom]玩家进入房间！session：%v, room: %v", s, g)
 	// todo:先不检测会话存在，放开测试，后期加上
 	//if nil==g.FetchConnector(s.Id) {
 	//注册会话绑定到玩家id
@@ -315,6 +329,7 @@ func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
 	//初始化hero加入到对局中
 	hero := model.NewHero(enterGameReq.PlayerName, s)
 	g.SessionHeroMap.Store(s.Id, hero)
+	atomic.AddInt32(&g.AliveHeroNum, 1)
 	// 视野处理
 	towers := g.GetTowers()
 	towerId := tools.CalTowerId(hero.HeroDirection.X, hero.HeroDirection.Y)
@@ -528,7 +543,7 @@ func (room *GameRoom) onCollision() {
 					if nil == loser || nil == winner {
 						continue
 					}
-					fmt.Printf("检测到玩家发生碰撞！胜者信息：%+v，败者信息：%+v\n", winner, loser)
+					log.Printf("[GameRoom]检测到玩家发生碰撞！胜者信息：%+v，败者信息：%+v\n", winner, loser)
 					// 败者退场
 					room.Heroes.Delete(loser.ID)
 					roomTowers[loser.TowerId].HeroLeave(loser)
@@ -548,6 +563,7 @@ func (room *GameRoom) onCollision() {
 					}
 					winner.Score += configs.HeroEatEnemyBonus
 					if winner.Score >= configs.GameWinLiminationScore {
+						log.Printf("[GameRoom]英雄达到胜利条件，开始对局结算！hero:%v, room:%v \n", winner, room)
 						room.onGameOver()
 					}
 					//更新排行榜
@@ -581,7 +597,7 @@ func (room *GameRoom) onCollision() {
 					if int32(pb.ITEM_STATUS_ITEM_DEAD) == prop.Status || int32(pb.HERO_STATUS_DEAD) == eater.Status {
 						continue
 					}
-					fmt.Printf("[碰撞检测]检测到玩家吃道具！玩家信息：%+v，道具信息：%+v\n", eater, prop)
+					log.Printf("[GameRoom]检测到玩家吃道具！玩家信息：%+v，道具信息：%+v\n", eater, prop)
 					// 道具退场
 					room.props.RemoveProp(prop.Id)
 					prop.Status = int32(pb.ITEM_STATUS_ITEM_DEAD)
@@ -642,9 +658,13 @@ func (room *GameRoom) onCollision() {
 
 func (room *GameRoom) onGameOver() {
 	//广播游戏结算推送
+	log.Printf("[GameRoom]游戏对局结束，开始广播至玩家并回收资源！")
 	heroRankInfos := room.heroRankHeap.GetSortedHeroRankInfos()
 	notify := notify2.NewGameFinishNotify(heroRankInfos, time.Now().Unix())
 	GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
 	//回收游戏对局资源
 	//todo
+	atomic.AddInt32(&room.gameOver,1)  // 发通知，告诉 goroutine 游戏结束
+	GAME_ROOM_MANAGER.DeleteGameRoom(room.ID)
+	//runtime.GC()
 }

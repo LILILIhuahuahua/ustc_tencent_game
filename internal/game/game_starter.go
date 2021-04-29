@@ -8,16 +8,21 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/response"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/scheduler"
+	"log"
 	"time"
 )
 
 type GameStarter struct {
-	room *GameRoom
+	//room *GameRoom
+	roomManager *GameRoomManager
 }
+
+var GAME_ROOM_MANAGER *GameRoomManager = NewGameRoomManager()
 
 func NewGameStarter(addr string) *GameStarter {
 	g := &GameStarter{
-		room: NewGameRoom(addr),
+		//room: NewGameRoom(addr),
+		//roomManager: NewGameRoomManager(),
 	}
 	g.init()
 	return g
@@ -27,8 +32,8 @@ func (g *GameStarter) init() {
 	//todo:加载配置
 
 	//初始化系统组件
-	GAME_ROOM_MANAGER.RegisterGameRoom(g.room)
-
+	//GAME_ROOM_MANAGER.RegisterGameRoom(this.room)
+	log.Println("[GameStarter]初始化系统组件！")
 	enterGameNotify := notify.EnterGameNotify{}
 	enterGameNotify.SetCode(int32(pb.GAME_MSG_CODE_ENTER_GAME_NOTIFY))
 	gameGlobalInfoNotify := notify.GameGlobalInfoNotify{}
@@ -60,6 +65,8 @@ func (g *GameStarter) init() {
 	go scheduler.Sched(configs.GlobalScheduleConfig)
 }
 
-func (g *GameStarter) Boot() {
-	g.room.Serv()
+func (this *GameStarter) Boot() {
+	//this.room.Serv()
+
+	GAME_ROOM_MANAGER.Serv()
 }
