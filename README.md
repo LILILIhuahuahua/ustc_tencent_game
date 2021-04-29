@@ -21,3 +21,7 @@ This branch deals with game service.
 ## 仓库地址汇总
 - 登录服务：https://github.com/imilano/auth
 - 数据库服务: https://github.com/TianqiS/database_for_happyball
+
+## 启动方法
+在启动服务的时候需要在参数中指定grpc的服务地址以及端口，否则服务器启动不成功
+格式如下`program -DBProxyHost localhost -DBProxyPort 8890`
