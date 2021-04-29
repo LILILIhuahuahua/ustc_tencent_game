@@ -12,7 +12,9 @@ import (
 	response2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/response"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	"github.com/golang/protobuf/proto"
+	"log"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -68,6 +70,8 @@ func (g GameEventHandler) onHeroQuit(req *request.HeroQuitRequest) {
 	room.Heroes.Delete(heroID)
 	hero.Status = int32(pb.HERO_STATUS_DEAD)
 	room.Heroes.Store(heroID, hero)
+	log.Printf("[GameEventHandler]玩家离开游戏房间！hero：%v, room:%v\n", hero, room)
+	atomic.AddInt32(&room.AliveHeroNum, -1)
 	//2.广播给其他玩家
 	heroInfo := info.NewHeroInfo(hero)
 	notify := notify2.NewEntityInfoChangeNotify(int32(pb.ENTITY_TYPE_HERO_TYPE), hero.ID, heroInfo, nil)
@@ -91,7 +95,7 @@ func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReques
 		if req.HeroMsg.Speed == float32(0) {
 			req.HeroMsg.Speed = float32(100)
 		}
-		fmt.Printf("我收到的X为%f, Y为%f", req.HeroMsg.HeroDirection.CoordinateX, req.HeroMsg.HeroDirection.CoordinateY)
+		//fmt.Printf("我收到的X为%f, Y为%f", req.HeroMsg.HeroDirection.CoordinateX, req.HeroMsg.HeroDirection.CoordinateY)
 		hero := &model.Hero{
 			ID:            req.HeroMsg.ID,
 			Status:        req.HeroMsg.Status,
@@ -150,7 +154,7 @@ func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReques
 			Data:        response,
 		}
 		pbNotifyMsg = notifyMsg.ToMessage().(*pb.GMessage)
-		fmt.Printf("发送的消息为%v \n", pbNotifyMsg)
+		//fmt.Printf("发送的消息为%v \n", pbNotifyMsg)
 		pbResponseMsg = responseMsg.ToMessage().(*pb.GMessage)
 		outNotify, err := proto.Marshal(pbNotifyMsg)
 		outResponse, err := proto.Marshal(pbResponseMsg)

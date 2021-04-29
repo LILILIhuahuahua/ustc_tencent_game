@@ -24,7 +24,6 @@ type GameRoomManager struct {
 	timer            *scheduler.Timer
 	server           *kcpnet.KcpServer
 	waitedSessionNum int32
-	room             *GameRoom
 }
 
 //func init() {
@@ -47,6 +46,7 @@ func NewGameRoomManager() *GameRoomManager {
 }
 
 func (manager *GameRoomManager) Serv() {
+	log.Println("[GameRoomManager]游戏房间管理器开始监听新连接！")
 	go manager.waitForMatching()
 	for {
 		conn, err := manager.server.Listen.AcceptKCP()
@@ -56,6 +56,7 @@ func (manager *GameRoomManager) Serv() {
 		//接收新的kcp连接
 		conn.SetWindowSize(4800, 4800)
 		session := framework.NewBaseSession(conn)
+		log.Printf("[GameRoomManager]监听到新连接！%v \n",session)
 		atomic.AddInt32(&manager.waitedSessionNum, 1)
 		manager.waitedSessionMap.Store(session.Id, session)
 	}
@@ -63,6 +64,7 @@ func (manager *GameRoomManager) Serv() {
 
 //TODO: 在 map 中一边遍历一边删除，会不会出现问题？
 func (manager *GameRoomManager) waitForMatching() {
+	log.Println("[GameRoomManager]游戏房间管理器开始轮询对等待匹配会话进行匹配!")
 	for {
 		manager.waitedSessionMap.Range(func(_, value interface{}) bool {
 			session := value.(*framework.BaseSession)
@@ -91,13 +93,25 @@ func (manager *GameRoomManager) isWaitedSessionOvertime(session *framework.BaseS
 func (manager *GameRoomManager) matchingSessionToRoom(session *framework.BaseSession) (*GameRoom, error) {
 	//1.满足房间人数限制要求
 	//2.满足房间中的最高分限制要求（最高分不超过游戏胜利分数的30%）
+	var targetRoom *GameRoom
+	manager.roomMap.Range(func(_, value interface{}) bool {
+		room := value.(*GameRoom)
+		if room.AliveHeroNum < configs.GameAliveHeroLimit {
+			targetRoom = room
+			return true
+		}
+		return true
+	})
 	//3.若没有找到上述的房间，则新创建一个房间
-	if manager.room == nil {
-		manager.room = NewGameRoom()
-		manager.roomMap.Store(manager.room.ID, manager.room)
-		go manager.room.Serv()
+	if nil == targetRoom {
+		log.Printf("[GameRoomManager]匹配会话时未找到合适的对局，新建一个新的对局！")
+		targetRoom = NewGameRoom()
+		go targetRoom.Serv()
+		manager.roomMap.Store(targetRoom.ID, targetRoom)
 	}
-	return manager.room, nil
+	log.Printf("[GameRoomManager]会话匹配成功！session：%v, room: %v \n", session, targetRoom)
+
+	return targetRoom, nil
 }
 
 // Cron initialize timer for GameRoomManager. It will broadcast props/food info of each room to its clients.
@@ -225,6 +239,11 @@ func (m *GameRoomManager) FetchGameRoom(id int64) *GameRoom {
 
 func (m *GameRoomManager) RegisterGameRoom(room *GameRoom) {
 	m.roomMap.Store(room.ID, room)
+}
+
+func (m *GameRoomManager) DeleteGameRoom(roomId int64) {
+	log.Printf("[GameRoomManager]删除房间对局！roomID：%v \n", roomId)
+	m.roomMap.Delete(roomId)
 }
 
 func (m *GameRoomManager) Unicast(roomId int64, sessionId int32, buff []byte) {

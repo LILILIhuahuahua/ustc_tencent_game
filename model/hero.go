@@ -1,10 +1,10 @@
 package model
 
 import (
-	"fmt"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
+	"log"
 	"sync"
 	"time"
 )
@@ -31,7 +31,7 @@ func NewHero(name string, sess *framework.BaseSession) *Hero {
 	h := &Hero{}
 	//初始化英雄数据
 	h.Init(name, sess)
-	fmt.Printf("新生成的heroId为%d \n", h.ID)
+	log.Printf("[Hero]初始化新英雄！hero：%v \n", h)
 	return h
 }
 
