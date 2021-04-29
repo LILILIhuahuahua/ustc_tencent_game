@@ -12,12 +12,16 @@ import (
 )
 
 type GameStarter struct {
-	room *GameRoom
+	//room *GameRoom
+	roomManager *GameRoomManager
 }
+
+var GAME_ROOM_MANAGER *GameRoomManager = NewGameRoomManager()
 
 func NewGameStarter(addr string) *GameStarter {
 	g := &GameStarter{
-		room: NewGameRoom(addr),
+		//room: NewGameRoom(addr),
+		//roomManager: NewGameRoomManager(),
 	}
 	g.init()
 	return g
@@ -27,7 +31,7 @@ func (this *GameStarter) init() {
 	//todo:加载配置
 
 	//初始化系统组件
-	GAME_ROOM_MANAGER.RegisterGameRoom(this.room)
+	//GAME_ROOM_MANAGER.RegisterGameRoom(this.room)
 
 	enterGameNotify := notify.EnterGameNotify{}
 	enterGameNotify.SetCode(int32(pb.GAME_MSG_CODE_ENTER_GAME_NOTIFY))
@@ -61,5 +65,6 @@ func (this *GameStarter) init() {
 }
 
 func (this *GameStarter) Boot() {
-	this.room.Serv()
+	//this.room.Serv()
+	GAME_ROOM_MANAGER.Serv()
 }

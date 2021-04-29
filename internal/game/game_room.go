@@ -7,7 +7,6 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/kcpnet"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/aoi"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/collision"
 	event2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event"
@@ -25,8 +24,8 @@ import (
 //游戏房间类，对应一局游戏
 type GameRoom struct {
 	ID               int64
-	addr             string
-	server           *kcpnet.KcpServer
+	//addr             string
+	//server           *kcpnet.KcpServer
 	acceptedSessions sync.Map
 	sessions         sync.Map //map[interface{}]*framework.BaseSession
 	dispatcher       event.EventDispatcher
@@ -39,15 +38,15 @@ type GameRoom struct {
 }
 
 //数据持有；连接者指针列表
-func NewGameRoom(address string) *GameRoom {
-	s, err := kcpnet.NewKcpServer(address)
-	if err != nil {
-		return nil
-	}
+func NewGameRoom() *GameRoom {
+	//s, err := kcpnet.NewKcpServer(address)
+	//if err != nil {
+	//	return nil
+	//}
 	gameroom := &GameRoom{
 		ID:           tools.UUID_UTIL.GenerateInt64UUID(),
-		addr:         address,
-		server:       s,
+		//addr:         address,
+		//server:       s,
 		dispatcher:   framework.NewBaseEventDispatcher(configs.MaxEventQueueSize),
 		props:        prop.New(),
 		towers:       aoi.InitTowers(),
@@ -85,6 +84,12 @@ func (g *GameRoom) RegisterConnector(c *framework.BaseSession) error {
 	return nil
 }
 
+// @title    AcceptConnector
+// @description 接收GameRoomManager下方的新会话
+func (g *GameRoom) AcceptConnector(session *framework.BaseSession) {
+	g.acceptedSessions.Store(session.Id, session)
+}
+
 func (g *GameRoom) FetchConnector(sessionId int32) *framework.BaseSession {
 	sess, ok := g.sessions.Load(sessionId)
 	if !ok {
@@ -104,16 +109,16 @@ func (g *GameRoom) Serv() error {
 	go g.HandleSessions()       //开启会话监听线程，监听session集合中的读事件，将读到的GMessage放入环形队列中
 	go g.HandleEventFromQueue() //开启消费线程，从环形队列中读取GMessage消息并处理
 	for {
-		conn, err := g.server.Listen.AcceptKCP()
-		if err != nil {
-			return err
-		}
-		conn.SetWindowSize(4800, 4800)
-		session := framework.NewBaseSession(conn)
-		if err != nil {
-			return err
-		}
-		g.acceptedSessions.Store(session.Id, session) //将新会话放入未注册会话集合中
+		//conn, err := g.server.Listen.AcceptKCP()
+		//if err != nil {
+		//	return err
+		//}
+		//conn.SetWindowSize(4800, 4800)
+		//session := framework.NewBaseSession(conn)
+		//if err != nil {
+		//	return err
+		//}
+		//g.acceptedSessions.Store(session.Id, session) //将新会话放入未注册会话集合中
 		g.registerSessions()                          //处理会话注册流程（等待玩家进入世界enterWorld）
 	}
 }
