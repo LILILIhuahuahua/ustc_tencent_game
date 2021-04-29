@@ -7,11 +7,6 @@ service AccountService {
   rpc AccountAdd(AccountAddRequest) returns (AccountAddResponse) {}
 }
 
-service PlayerService {
-  rpc PlayerFindByPlayerId(PlayerFindByPlayerIdRequest) returns (PlayerFindByPlayerIdResponse) {}
-  rpc PlayerAdd(PlayerAddRequest) returns (PlayerAddResponse) {}
-}
-
 message AccountFindByPhoneRequest {
   string phone = 1;
 }
@@ -27,22 +22,6 @@ message AccountAddRequest {
 message AccountAddResponse {
 }
 
-message PlayerFindByPlayerIdRequest {
-  int32 playerId = 1;
-}
-
-message PlayerFindByPlayerIdResponse {
-  Player player = 1;
-}
-
-message PlayerAddRequest {
-  Player player = 1;
-}
-
-message PlayerAddResponse {
-
-}
-
 message Account {
   string objectId = 1; //objectId
   int32 playerId = 2;
@@ -52,13 +31,4 @@ message Account {
   int64 recentLogin = 6;
   int64 createAt = 7;
   int64 updateAt = 8;
-}
-
-message Player {
-  int32 playerId = 2;
-  string accountId = 3;
-  int32 highestScore = 4;
-  int32 highestRank = 5;
-  int64 createAt = 6;
-  int64 updateAt = 7;
 }
