@@ -11,13 +11,13 @@ type EntityInfoChangeResponse struct {
 	ChangeResult        bool
 }
 
-func (this *EntityInfoChangeResponse) FromMessage(obj interface{}) {
+func (e *EntityInfoChangeResponse) FromMessage(obj interface{}) {
 	pbMsg := obj.(*pb.EntityInfoChangeResponse)
-	this.Code = int32(pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_REQUEST)
-	this.ChangeResult = pbMsg.GetChangeResult()
+	e.Code = int32(pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_REQUEST)
+	e.ChangeResult = pbMsg.GetChangeResult()
 }
 
-func (this *EntityInfoChangeResponse) CopyFromMessage(obj interface{}) event.Event {
+func (e *EntityInfoChangeResponse) CopyFromMessage(obj interface{}) event.Event {
 	pbMsg := obj.(*pb.EntityInfoChangeResponse)
 	resp := &EntityInfoChangeResponse{
 		ChangeResult: pbMsg.GetChangeResult(),
@@ -26,8 +26,8 @@ func (this *EntityInfoChangeResponse) CopyFromMessage(obj interface{}) event.Eve
 	return resp
 }
 
-func (this *EntityInfoChangeResponse) ToMessage() interface{} {
+func (e *EntityInfoChangeResponse) ToMessage() interface{} {
 	return &pb.EntityInfoChangeResponse{
-		ChangeResult: this.ChangeResult,
+		ChangeResult: e.ChangeResult,
 	}
 }

@@ -15,10 +15,10 @@ import (
 
 func (r *GameRoom) SendHeroViewNotify(changeHero *model.Hero, notifyHero *model.Hero, notifyType int32) {
 	heroViewNotify := &notify.HeroViewNotify{
-		HeroId:    changeHero.ID,
-		ViewType:  notifyType,
+		HeroId:   changeHero.ID,
+		ViewType: notifyType,
 		//HeroMsg:   changeHero.ToEvent(),
-		HeroMsg:   *info.NewHeroInfo(changeHero),
+		HeroMsg: *info.NewHeroInfo(changeHero),
 	}
 	notifyMsg := event2.GMessage{
 		MsgType:     configs.MsgTypeNotify,
@@ -60,9 +60,9 @@ func (r *GameRoom) SendHeroPropGlobalInfoNotify(towers []int32, session *framewo
 			continue
 		}
 		item := info.ItemInfo{
-			ID:           prop.Id,
-			Type:         prop.PropType,
-			Status:       prop.Status,
+			ID:     prop.Id,
+			Type:   prop.PropType,
+			Status: prop.Status,
 			ItemPosition: &info.CoordinateXYInfo{
 				CoordinateX: prop.Pos.X,
 				CoordinateY: prop.Pos.Y,

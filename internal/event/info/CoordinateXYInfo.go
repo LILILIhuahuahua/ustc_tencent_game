@@ -12,7 +12,7 @@ type CoordinateXYInfo struct {
 	CoordinateY float32
 }
 
-func NewCoordinateInfo(x float32, y float32) *CoordinateXYInfo{
+func NewCoordinateInfo(x float32, y float32) *CoordinateXYInfo {
 	return &CoordinateXYInfo{
 		CoordinateX: x,
 		CoordinateY: y,

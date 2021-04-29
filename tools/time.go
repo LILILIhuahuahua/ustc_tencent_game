@@ -12,7 +12,7 @@ func (t *TimeUtil) NowSecs() int64 {
 }
 
 func (t *TimeUtil) NowMillis() int64 {
-	return time.Now().UnixNano()/1e6
+	return time.Now().UnixNano() / 1e6
 }
 
 func (t *TimeUtil) NowNanos() int64 {

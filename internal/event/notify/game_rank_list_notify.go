@@ -21,7 +21,7 @@ type GameRankListNotify struct {
 	HeroRankInfos []info.HeroRankInfo
 }
 
-func NewGameRankListNotify(heroRankInfos []info.HeroRankInfo) *GameRankListNotify{
+func NewGameRankListNotify(heroRankInfos []info.HeroRankInfo) *GameRankListNotify {
 	return &GameRankListNotify{
 		HeroRankInfos: heroRankInfos,
 	}
@@ -37,8 +37,7 @@ func (notify *GameRankListNotify) CopyFromMessage(obj interface{}) e.Event {
 }
 
 func (notify *GameRankListNotify) ToMessage() interface{} {
-	pbMsg := &pb.GameRankListNotify{
-	}
+	pbMsg := &pb.GameRankListNotify{}
 	for _, heroRankInfo := range notify.HeroRankInfos {
 		heroRankMsg := heroRankInfo.ToMessage().(*pb.HeroRankMsg)
 		pbMsg.HeroRankMsg = append(pbMsg.HeroRankMsg, heroRankMsg)
@@ -53,11 +52,9 @@ func (notify *GameRankListNotify) ToGMessageBytes() []byte {
 	msg := pb.GMessage{
 		MsgType:  pb.MSG_TYPE_NOTIFY,
 		MsgCode:  pb.GAME_MSG_CODE_GAME_RANK_LIST_NOTIFY,
-		Notify: n,
+		Notify:   n,
 		SendTime: tools.TIME_UTIL.NowMillis(),
 	}
 	out, _ := proto.Marshal(&msg)
 	return out
 }
-
-

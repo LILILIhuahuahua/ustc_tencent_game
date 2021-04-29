@@ -86,10 +86,10 @@ func getEntityInfoChange(sessionID int32, heroID int32) []byte {
 		EventType: pb.EVENT_TYPE_HERO_MOVE,
 	}
 	hMsg := &pb.HeroMsg{
-		HeroId:       heroID,
-		HeroPosition: &pb.CoordinateXY{},
+		HeroId:        heroID,
+		HeroPosition:  &pb.CoordinateXY{},
 		HeroDirection: &pb.CoordinateXY{},
-		HeroSpeed: 1000,
+		HeroSpeed:     1000,
 	}
 
 	hMsg.HeroPosition.CoordinateX = 1.0
@@ -130,7 +130,7 @@ func receive(sess *kcp.UDPSession) {
 		case pb.GAME_MSG_CODE_GAME_GLOBAL_INFO_NOTIFY:
 			items := msg.Notify.GameGlobalInfoNotify.ItemMsg
 			log.Println("Receive game global info notify")
-			log.Printf("Item info: type %v, id %v,status %v",items[0].ItemType,items[0].ItemId,items[0].ItemStatus)
+			log.Printf("Item info: type %v, id %v,status %v", items[0].ItemType, items[0].ItemId, items[0].ItemStatus)
 			break
 		case pb.GAME_MSG_CODE_ENTITY_INFO_NOTIFY:
 			log.Println("Receive entity info change notify")
@@ -140,7 +140,7 @@ func receive(sess *kcp.UDPSession) {
 			log.Println("Receive entity info change response")
 			log.Printf("%+v", msg.Response.EntityChangeResponse)
 		default:
-			log.Println(msg.MsgType, " ",msg.MsgType)
+			log.Println(msg.MsgType, " ", msg.MsgType)
 			log.Println("New packet received")
 		}
 	}
@@ -252,5 +252,3 @@ func TestHeroMove2(t *testing.T) {
 		log.Fatal(err)
 	}
 }
-
-

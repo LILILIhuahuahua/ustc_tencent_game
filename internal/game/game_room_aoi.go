@@ -56,5 +56,3 @@ func (gameRoom *GameRoom) NotifyEntityInfoChange(entityType int32, entityId int3
 		gameRoom.SendEntityInfoChangeNotify(hero, entityType, entityId, heroInfo, itemInfo)
 	}
 }
-
-

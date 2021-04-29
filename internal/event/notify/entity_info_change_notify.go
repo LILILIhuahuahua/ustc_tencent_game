@@ -25,12 +25,12 @@ type EntityInfoChangeNotify struct {
 	ItemMsg    *info.ItemInfo
 }
 
-func NewEntityInfoChangeNotify(entityType int32, entityId int32, heroInfo *info.HeroInfo, itemInfo *info.ItemInfo) *EntityInfoChangeNotify{
+func NewEntityInfoChangeNotify(entityType int32, entityId int32, heroInfo *info.HeroInfo, itemInfo *info.ItemInfo) *EntityInfoChangeNotify {
 	return &EntityInfoChangeNotify{
 		EntityType: entityType,
-		EntityId: entityId,
-		HeroMsg: heroInfo,
-		ItemMsg: itemInfo,
+		EntityId:   entityId,
+		HeroMsg:    heroInfo,
+		ItemMsg:    itemInfo,
 	}
 }
 
@@ -66,11 +66,9 @@ func (notify *EntityInfoChangeNotify) ToGMessageBytes() []byte {
 	msg := pb.GMessage{
 		MsgType:  pb.MSG_TYPE_NOTIFY,
 		MsgCode:  pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_NOTIFY,
-		Notify: n,
+		Notify:   n,
 		SendTime: tools.TIME_UTIL.NowMillis(),
 	}
 	out, _ := proto.Marshal(&msg)
 	return out
 }
-
-

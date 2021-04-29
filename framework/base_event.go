@@ -4,7 +4,7 @@ type BaseEvent struct {
 	SessionId int32
 	Code      int32
 	RoomId    int64
-	SeqId	  int32
+	SeqId     int32
 }
 
 func (e *BaseEvent) GetCode() int32 {

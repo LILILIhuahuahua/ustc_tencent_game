@@ -19,13 +19,13 @@ import (
 type GameFinishNotify struct {
 	framework.BaseEvent
 	HeroRankInfos []info.HeroRankInfo
-	FinishTime int64
+	FinishTime    int64
 }
 
-func NewGameFinishNotify(heroRankInfos []info.HeroRankInfo, finishTime int64) *GameFinishNotify{
+func NewGameFinishNotify(heroRankInfos []info.HeroRankInfo, finishTime int64) *GameFinishNotify {
 	return &GameFinishNotify{
 		HeroRankInfos: heroRankInfos,
-		FinishTime: finishTime,
+		FinishTime:    finishTime,
 	}
 }
 
@@ -56,11 +56,9 @@ func (notify *GameFinishNotify) ToGMessageBytes() []byte {
 	msg := pb.GMessage{
 		MsgType:  pb.MSG_TYPE_NOTIFY,
 		MsgCode:  pb.GAME_MSG_CODE_GAME_FINISH_NOTIFY,
-		Notify: n,
+		Notify:   n,
 		SendTime: tools.TIME_UTIL.NowMillis(),
 	}
 	out, _ := proto.Marshal(&msg)
 	return out
 }
-
-

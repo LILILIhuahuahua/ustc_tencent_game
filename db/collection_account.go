@@ -7,28 +7,28 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type accountCollection struct {}
+type accountCollection struct{}
 
 type Account struct { // 里面的字段名一定要大写开头
-	Name string
+	Name          string
 	LoginPassword string // 登录密码
 	AccountAvatar string // 头像
-	Level int64 // 当前等级
-	Delete bool // 当前账号是否住校
-	Region string // 用户的地区
-	Phone string // 电话
-	CreateAt int64
-	UpdateAt int64
+	Level         int64  // 当前等级
+	Delete        bool   // 当前账号是否住校
+	Region        string // 用户的地区
+	Phone         string // 电话
+	CreateAt      int64
+	UpdateAt      int64
 }
 
 var AccountCollection = &accountCollection{}
 
-func (this *accountCollection) getCollection() *mongo.Collection {
+func (a *accountCollection) getCollection() *mongo.Collection {
 	return Mc.GetCollection("Account", nil)
 }
 
-func (this *accountCollection) InsertAccount(account *Account) (string, error) {
-	collection := this.getCollection()
+func (a *accountCollection) InsertAccount(account *Account) (string, error) {
+	collection := a.getCollection()
 	insertResult, err := collection.InsertOne(context.TODO(), account)
 	if err != nil {
 		return "", err
@@ -36,8 +36,8 @@ func (this *accountCollection) InsertAccount(account *Account) (string, error) {
 	return insertResult.InsertedID.(primitive.ObjectID).String(), nil
 }
 
-func (this *accountCollection) FindAccount(accountId string) (*Account, error) {
-	collection := this.getCollection()
+func (a *accountCollection) FindAccount(accountId string) (*Account, error) {
+	collection := a.getCollection()
 	accIdObject, err := primitive.ObjectIDFromHex(accountId)
 	if err != nil {
 		return nil, err
@@ -54,8 +54,8 @@ func (this *accountCollection) FindAccount(accountId string) (*Account, error) {
 	return findAcc, nil
 }
 
-func (this *accountCollection) UpdateAccount(accountId string, account *Account) {
-	collection := this.getCollection()
+func (a *accountCollection) UpdateAccount(accountId string, account *Account) {
+	collection := a.getCollection()
 	accIdObject, err := primitive.ObjectIDFromHex(accountId)
 	update := bson.M{
 		"$set": bson.M{

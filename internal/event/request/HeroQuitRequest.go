@@ -8,7 +8,7 @@ import (
 
 type HeroQuitRequest struct {
 	framework.BaseEvent
-	HeroId int32
+	HeroId   int32
 	QuitTime int64
 }
 
@@ -22,8 +22,8 @@ func (e *HeroQuitRequest) FromMessage(obj interface{}) {
 func (e *HeroQuitRequest) CopyFromMessage(obj interface{}) event.Event {
 	pbMsg := obj.(*pb.Request).HeroQuitRequest
 	req := &HeroQuitRequest{
-		HeroId: pbMsg.GetHeroId(),
-		QuitTime:  pbMsg.GetTime(),
+		HeroId:   pbMsg.GetHeroId(),
+		QuitTime: pbMsg.GetTime(),
 	}
 	req.SetCode(int32(pb.GAME_MSG_CODE_HERO_QUIT_REQUEST))
 	return req
@@ -31,7 +31,7 @@ func (e *HeroQuitRequest) CopyFromMessage(obj interface{}) event.Event {
 
 func (e *HeroQuitRequest) ToMessage() interface{} {
 	return pb.HeroQuitRequest{
-		HeroId:   e.HeroId,
-		Time:     e.QuitTime,
+		HeroId: e.HeroId,
+		Time:   e.QuitTime,
 	}
 }

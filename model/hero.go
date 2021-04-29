@@ -10,21 +10,21 @@ import (
 )
 
 type Hero struct {
-	ID            int32
-	Name          string
- 	Status        int32
-	Size          float32
-	Speed         float32
-	Score		  int32
-	Rank		  int32
+	ID                  int32
+	Name                string
+	Status              int32
+	Size                float32
+	Speed               float32
+	Score               int32
+	Rank                int32
 	InvincibleStartTime int64
-	HeroDirection Coordinate
-	HeroPosition  Coordinate
-	CreateTime    int64
-	UpdateTime    int64  // ns
-	TowerId		  int32 // 所属的towerId
-	OtherTowers	  sync.Map // 九宫格内其他的tower TowerId *aoi.Tower
-	Session       *framework.BaseSession //该hero对应的session
+	HeroDirection       Coordinate
+	HeroPosition        Coordinate
+	CreateTime          int64
+	UpdateTime          int64                  // ns
+	TowerId             int32                  // 所属的towerId
+	OtherTowers         sync.Map               // 九宫格内其他的tower TowerId *aoi.Tower
+	Session             *framework.BaseSession //该hero对应的session
 }
 
 func NewHero(name string, sess *framework.BaseSession) *Hero {

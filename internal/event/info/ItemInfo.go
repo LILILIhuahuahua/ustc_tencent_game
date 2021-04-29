@@ -13,16 +13,16 @@ type ItemInfo struct {
 	Type         int32
 	Status       int32
 	ItemPosition *CoordinateXYInfo
-	ItemRadius float32
+	ItemRadius   float32
 }
 
-func NewItemInfo(item *model.Prop) *ItemInfo{
+func NewItemInfo(item *model.Prop) *ItemInfo {
 	return &ItemInfo{
-		ID: item.Id,
-		Type: item.PropType,
-		Status: item.Status,
+		ID:           item.Id,
+		Type:         item.PropType,
+		Status:       item.Status,
 		ItemPosition: NewCoordinateInfo(item.Pos.X, item.Pos.Y),
-		ItemRadius: 0,
+		ItemRadius:   0,
 	}
 }
 
@@ -50,9 +50,9 @@ func (item *ItemInfo) CopyFromMessage(obj interface{}) event.Event {
 
 func (item *ItemInfo) ToMessage() interface{} {
 	pbMsg := &pb.ItemMsg{
-		ItemId: item.ID,
-		ItemType: pb.ENTITY_TYPE(item.Type),
-		ItemStatus: pb.ITEM_STATUS(item.Status),
+		ItemId:       item.ID,
+		ItemType:     pb.ENTITY_TYPE(item.Type),
+		ItemStatus:   pb.ITEM_STATUS(item.Status),
 		ItemPosition: item.ItemPosition.ToMessage().(*pb.CoordinateXY),
 	}
 	return pbMsg

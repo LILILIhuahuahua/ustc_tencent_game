@@ -9,9 +9,9 @@ import (
 
 type HeroViewNotify struct {
 	framework.BaseEvent
-	HeroId int32
+	HeroId   int32
 	ViewType int32
-	HeroMsg info.HeroInfo
+	HeroMsg  info.HeroInfo
 }
 
 func (notify *HeroViewNotify) FromMessage(obj interface{}) {

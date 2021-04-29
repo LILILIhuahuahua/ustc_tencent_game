@@ -72,7 +72,7 @@ func GlobalInfoNotify() {
 				notify := notify2.GameGlobalInfoNotify{
 					HeroNumber: heroNum,
 					//Time:       0,
-					HeroInfos:  heroInfos,
+					HeroInfos: heroInfos,
 					ItemInfos: items,
 					//MapInfo:    info.MapInfo{},
 				}

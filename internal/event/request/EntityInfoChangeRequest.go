@@ -16,19 +16,19 @@ type EntityInfoChangeRequest struct {
 	HeroMsg             info.HeroInfo
 }
 
-func (this *EntityInfoChangeRequest) FromMessage(obj interface{}) {
+func (e *EntityInfoChangeRequest) FromMessage(obj interface{}) {
 	pbMsg := obj.(*pb.Request).EntityChangeRequest
-	this.Code = int32(pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_REQUEST)
-	this.EventType = int32(pbMsg.EventType)
-	this.HeroId = pbMsg.HeroId
-	this.LinkedId = pbMsg.LinkedId
-	this.LinkedType = pbMsg.LinkedType.String()
+	e.Code = int32(pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_REQUEST)
+	e.EventType = int32(pbMsg.EventType)
+	e.HeroId = pbMsg.HeroId
+	e.LinkedId = pbMsg.LinkedId
+	e.LinkedType = pbMsg.LinkedType.String()
 	info := info.HeroInfo{}
 	info.FromMessage(pbMsg.GetHeroMsg())
-	this.HeroMsg = info
+	e.HeroMsg = info
 }
 
-func (this *EntityInfoChangeRequest) CopyFromMessage(obj interface{}) event.Event {
+func (e *EntityInfoChangeRequest) CopyFromMessage(obj interface{}) event.Event {
 	pbMsg := obj.(*pb.Request).EntityChangeRequest
 	info := info.HeroInfo{}
 	info.FromMessage(pbMsg.GetHeroMsg())
@@ -43,13 +43,13 @@ func (this *EntityInfoChangeRequest) CopyFromMessage(obj interface{}) event.Even
 	return &req
 }
 
-func (this *EntityInfoChangeRequest) ToMessage() interface{} {
+func (e *EntityInfoChangeRequest) ToMessage() interface{} {
 	//todo:改这里写死的类型
 	return &pb.EntityInfoChangeRequest{
 		EventType:  pb.EVENT_TYPE_HERO_MOVE,
-		HeroId:     this.HeroId,
-		LinkedId:   this.LinkedId,
+		HeroId:     e.HeroId,
+		LinkedId:   e.LinkedId,
 		LinkedType: pb.ENTITY_TYPE_HERO_TYPE,
-		HeroMsg:    this.HeroMsg.ToMessage().(*pb.HeroMsg),
+		HeroMsg:    e.HeroMsg.ToMessage().(*pb.HeroMsg),
 	}
 }

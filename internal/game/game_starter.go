@@ -23,11 +23,11 @@ func NewGameStarter(addr string) *GameStarter {
 	return g
 }
 
-func (this *GameStarter) init() {
+func (g *GameStarter) init() {
 	//todo:加载配置
 
 	//初始化系统组件
-	GAME_ROOM_MANAGER.RegisterGameRoom(this.room)
+	GAME_ROOM_MANAGER.RegisterGameRoom(g.room)
 
 	enterGameNotify := notify.EnterGameNotify{}
 	enterGameNotify.SetCode(int32(pb.GAME_MSG_CODE_ENTER_GAME_NOTIFY))
@@ -60,6 +60,6 @@ func (this *GameStarter) init() {
 	go scheduler.Sched(configs.GlobalScheduleConfig)
 }
 
-func (this *GameStarter) Boot() {
-	this.room.Serv()
+func (g *GameStarter) Boot() {
+	g.room.Serv()
 }

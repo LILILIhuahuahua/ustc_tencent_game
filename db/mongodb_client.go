@@ -8,7 +8,7 @@ import (
 
 type MongoClient struct {
 	database *mongo.Database
-	client *mongo.Client
+	client   *mongo.Client
 }
 
 var Mc *MongoClient
@@ -17,10 +17,10 @@ func InitClient() {
 	cli := GetMgoCli()
 	Mc = &MongoClient{
 		database: cli.Database(configs.MongoDatabase),
-		client: cli,
+		client:   cli,
 	}
 }
 
-func (this *MongoClient) GetCollection(collectionName string, options *options.CollectionOptions) *mongo.Collection {
-	return this.database.Collection(collectionName, options)
+func (m *MongoClient) GetCollection(collectionName string, options *options.CollectionOptions) *mongo.Collection {
+	return m.database.Collection(collectionName, options)
 }

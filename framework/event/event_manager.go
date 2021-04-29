@@ -18,29 +18,29 @@ func NewEventManager() *EventManager {
 	}
 }
 
-func (this *EventManager) Register(msgCode int32, event Event, handler Handler) {
-	if nil != this.handlerMap[msgCode] {
+func (e *EventManager) Register(msgCode int32, event Event, handler Handler) {
+	if nil != e.handlerMap[msgCode] {
 		return
 	}
 	if nil != handler {
-		this.rw.Lock()
-		this.handlerMap[msgCode] = handler
-		this.rw.Unlock()
+		e.rw.Lock()
+		e.handlerMap[msgCode] = handler
+		e.rw.Unlock()
 	}
-	if nil != this.eventMap[msgCode] {
+	if nil != e.eventMap[msgCode] {
 		return
 	}
 	if nil != event {
-		this.rw.Lock()
-		this.eventMap[msgCode] = event
-		this.rw.Unlock()
+		e.rw.Lock()
+		e.eventMap[msgCode] = event
+		e.rw.Unlock()
 	}
 }
 
-func (this *EventManager) FetchHandler(msgCode int32) Handler {
-	return this.handlerMap[msgCode]
+func (e *EventManager) FetchHandler(msgCode int32) Handler {
+	return e.handlerMap[msgCode]
 }
 
-func (this *EventManager) FetchEvent(msgCode int32) Event {
-	return this.eventMap[msgCode]
+func (e *EventManager) FetchEvent(msgCode int32) Event {
+	return e.eventMap[msgCode]
 }

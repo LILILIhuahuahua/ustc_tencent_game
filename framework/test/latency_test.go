@@ -12,15 +12,13 @@ import (
 )
 
 var (
-	seqID int32
+	seqID     int32
 	localAddr = "127.0.0.1:8888"
-
 )
 
-
-func PingServer(reqCount int32,sessionID int32, portNumber int32) (map[int32]int64,map[int32]int64,int){
+func PingServer(reqCount int32, sessionID int32, portNumber int32) (map[int32]int64, map[int32]int64, int) {
 	buf := make([]byte, 4096)
-	sent,recv := make(map[int32]int64),make(map[int32]int64)
+	sent, recv := make(map[int32]int64), make(map[int32]int64)
 	sess, err := kcp.DialWithOptions(configs.RemoteCLB, nil, 0, 0)
 	startTime := time.Now().Second()
 
@@ -37,7 +35,7 @@ func PingServer(reqCount int32,sessionID int32, portNumber int32) (map[int32]int
 			enterGameReq.SendTime = now
 			sent[seqID] = now
 
-			data,err := proto.Marshal(enterGameReq)
+			data, err := proto.Marshal(enterGameReq)
 			if err != nil {
 				log.Println("fail to marshal enterGameReq")
 				continue
@@ -64,8 +62,7 @@ func PingServer(reqCount int32,sessionID int32, portNumber int32) (map[int32]int
 				ch <- true
 			}()
 
-
-			<- ch
+			<-ch
 			seqID++
 			sessionID++
 			portNumber++
@@ -76,9 +73,8 @@ func PingServer(reqCount int32,sessionID int32, portNumber int32) (map[int32]int
 	}
 
 	totalTime := time.Now().Second() - startTime
-	return sent,recv,totalTime
+	return sent, recv, totalTime
 }
-
 
 // TestLatency is used to test rtt time from client to remote loadBalancer
 func TestLatency(t *testing.T) {
@@ -87,16 +83,14 @@ func TestLatency(t *testing.T) {
 	var portNumber int32 = 10000
 
 	for i := 0; i < 5; i++ {
-		sent,recv,totalTime := PingServer(reqCount,sessionID,portNumber)
+		sent, recv, totalTime := PingServer(reqCount, sessionID, portNumber)
 
 		var count int64
-		for seq,t := range recv {
-			elapse := (t - sent[seq])/1000000
-			fmt.Printf("sedID %d, send time %d , recv time %d, rtt %v ms\n",seq,sent[seq],recv[seq],elapse)
+		for seq, t := range recv {
+			elapse := (t - sent[seq]) / 1000000
+			fmt.Printf("sedID %d, send time %d , recv time %d, rtt %v ms\n", seq, sent[seq], recv[seq], elapse)
 			count += elapse
 		}
-
-
 
 		n := int64(len(recv))
 		if n != 0 {
@@ -111,11 +105,7 @@ func TestLatency(t *testing.T) {
 		portNumber += 50
 	}
 
-
-
 }
-
-
 
 func getEnterGameReq2(sessionID int32, client *pb.ConnectMsg) *pb.GMessage {
 	playerID := sessionID
