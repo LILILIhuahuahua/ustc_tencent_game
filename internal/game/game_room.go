@@ -18,6 +18,7 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"github.com/golang/protobuf/proto"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -35,6 +36,7 @@ type GameRoom struct {
 	towers           []*aoi.Tower
 	quadTree         *collision.QuadTree //对局内四叉树，用于进行碰撞检测
 	heroRankHeap     *GameRankHeap
+	gameOver 		 int32   // 如果 gameOver 为 0，则表示对局仍在继续，当设置为 1 时，表示对局已经结束，此时回收线程
 }
 
 //数据持有；连接者指针列表
@@ -108,7 +110,7 @@ func (g *GameRoom) DeleteConnector(c *framework.BaseSession) error {
 func (g *GameRoom) Serv() error {
 	go g.HandleSessions()       //开启会话监听线程，监听session集合中的读事件，将读到的GMessage放入环形队列中
 	go g.HandleEventFromQueue() //开启消费线程，从环形队列中读取GMessage消息并处理
-	for {
+	for g.gameOver == 0 {
 		//conn, err := g.server.Listen.AcceptKCP()
 		//if err != nil {
 		//	return err
@@ -121,6 +123,8 @@ func (g *GameRoom) Serv() error {
 		//g.acceptedSessions.Store(session.Id, session) //将新会话放入未注册会话集合中
 		g.registerSessions()                          //处理会话注册流程（等待玩家进入世界enterWorld）
 	}
+
+	return nil
 }
 
 // @title    registerSessions
@@ -163,7 +167,7 @@ func (g *GameRoom) registerSessions() {
 // @description 监听已接收但还未注册的会话，接收到进入世界请求时注册会话
 func (g *GameRoom) HandleSessions() {
 	buf := make([]byte, 4096)
-	for {
+	for g.gameOver == 0 {
 		g.sessions.Range(func(_, v interface{}) bool {
 			session := v.(*framework.BaseSession)
 			//处理单个会话的消息读取
@@ -213,7 +217,7 @@ func (g *GameRoom) Handle(session *framework.BaseSession, buf []byte) {
 }
 
 func (g *GameRoom) HandleEventFromQueue() {
-	for {
+	for g.gameOver == 0 {
 		e, err := g.dispatcher.GetEventQueue().Pop()
 		if nil == e { //todo
 			continue
@@ -652,4 +656,6 @@ func (room *GameRoom) onGameOver() {
 	GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
 	//回收游戏对局资源
 	//todo
+	atomic.AddInt32(&room.gameOver,1)  // 发通知，告诉 goroutine 游戏结束
+	//runtime.GC()
 }

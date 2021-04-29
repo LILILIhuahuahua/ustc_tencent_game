@@ -61,6 +61,7 @@ func (manager *GameRoomManager) Serv() {
 	}
 }
 
+//TODO: 在 map 中一边遍历一边删除，会不会出现问题？
 func (manager *GameRoomManager) waitForMatching() {
 	for {
 		manager.waitedSessionMap.Range(func(_, value interface{}) bool {
