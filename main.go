@@ -25,7 +25,7 @@ func main() {
 	if configs.DBProxyAddr == "" {
 		log.Fatalln("DBProxy addr is nil")
 	}
-	log.Println("Initialize MongoURI to ", configs.DBProxyAddr)
+	log.Println("Initialize DBProxyAddr to", configs.DBProxyAddr)
 
 	fmt.Println("ustc_tencent_game_server started!")
 	s := game.NewGameStarter(configs.ServerAddr)
