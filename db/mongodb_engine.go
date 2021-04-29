@@ -12,7 +12,7 @@ var mgoCli *mongo.Client
 
 func initEngine() {
 	var err error
-	clientOptions := options.Client().ApplyURI(configs.MongoUri)
+	clientOptions := options.Client().ApplyURI(configs.MongoURI)
 	clientOptions.SetMaxPoolSize(configs.MongoPoolSize) // 连接池配置
 	// 连接到MongoDB
 	mgoCli, err = mongo.Connect(context.TODO(), clientOptions)

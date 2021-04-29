@@ -16,7 +16,7 @@ var Mc *MongoClient
 func InitClient() {
 	cli := GetMgoCli()
 	Mc = &MongoClient{
-		database: cli.Database(configs.MongoDatabase),
+		database: cli.Database(configs.DBName),
 		client:   cli,
 	}
 }
