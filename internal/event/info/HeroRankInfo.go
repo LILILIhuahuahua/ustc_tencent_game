@@ -15,7 +15,7 @@ type HeroRankInfo struct {
 	HeroScore int32
 }
 
-func NewHeroRankInfo(hero *model.Hero) *HeroRankInfo{
+func NewHeroRankInfo(hero *model.Hero) *HeroRankInfo {
 	return &HeroRankInfo{
 		HeroID:    hero.ID,
 		HeroName:  hero.Name,
@@ -35,20 +35,19 @@ func (h *HeroRankInfo) FromMessage(obj interface{}) {
 func (h *HeroRankInfo) CopyFromMessage(obj interface{}) event.Event {
 	pbMsg := obj.(*pb.HeroRankMsg)
 	return &HeroRankInfo{
-		HeroID:   pbMsg.GetHeroId(),
-		HeroName: pbMsg.GetHeroName(),
-		HeroRank: pbMsg.GetHeroRank(),
+		HeroID:    pbMsg.GetHeroId(),
+		HeroName:  pbMsg.GetHeroName(),
+		HeroRank:  pbMsg.GetHeroRank(),
 		HeroScore: pbMsg.GetHeroScore(),
 	}
 }
 
 func (h *HeroRankInfo) ToMessage() interface{} {
 	pbMsg := &pb.HeroRankMsg{
-		HeroId: h.HeroID,
-		HeroName: h.HeroName,
-		HeroRank: h.HeroRank,
+		HeroId:    h.HeroID,
+		HeroName:  h.HeroName,
+		HeroRank:  h.HeroRank,
 		HeroScore: h.HeroScore,
 	}
 	return pbMsg
 }
-

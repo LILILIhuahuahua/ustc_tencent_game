@@ -106,7 +106,6 @@ func GlobalInfoNotify() {
 	GAME_ROOM_MANAGER.roomMap.Range(func(_, value interface{}) bool {
 		room := value.(*GameRoom)
 		var pbMsg *pb.GMessage
-
 		roomHeros := room.GetHeros()
 		// 该房间内所有的小球
 		var heroNeedToNotify []*model.Hero

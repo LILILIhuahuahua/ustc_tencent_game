@@ -23,7 +23,7 @@ func CalXY(dis float64, coordX, coordY float32) (x, y float32) {
 		return float32(-dis), float32(0)
 	}
 	xDivY := coordX / coordY //x相当于多少个y
-	ySquare := dis * dis / float64(1+ xDivY * xDivY)
+	ySquare := dis * dis / float64(1+xDivY*xDivY)
 	y = float32(math.Sqrt(ySquare))
 	x = y * xDivY
 	if coordX < 0 {
@@ -56,19 +56,19 @@ func GetOtherTowers(towerId int32) []int32 {
 	towerRow := towerId / configs.TowerCols
 	towerCol := towerId % configs.TowerCols
 	if towerRow > 0 &&
-		towerRow < configs.TowerRows - 1 && //减1的原因是因为TowerRows是从1开始的
+		towerRow < configs.TowerRows-1 && //减1的原因是因为TowerRows是从1开始的
 		towerCol > 0 &&
-		towerCol < configs.TowerCols - 1 {
+		towerCol < configs.TowerCols-1 {
 		towers = append(towers,
-			towerId - 1,
-			towerId + 1,
-			towerId + configs.TowerCols,
-			towerId - configs.TowerCols,
-			towerId + configs.TowerCols + 1,
-			towerId + configs.TowerCols - 1,
-			towerId - configs.TowerCols + 1,
-			towerId - configs.TowerCols - 1,
-			)
+			towerId-1,
+			towerId+1,
+			towerId+configs.TowerCols,
+			towerId-configs.TowerCols,
+			towerId+configs.TowerCols+1,
+			towerId+configs.TowerCols-1,
+			towerId-configs.TowerCols+1,
+			towerId-configs.TowerCols-1,
+		)
 		return towers
 	}
 
@@ -77,57 +77,57 @@ func GetOtherTowers(towerId int32) []int32 {
 		case 0:
 			towers = append(
 				towers,
-				towerId + 1,
-				towerId + configs.TowerCols,
-				towerId + configs.TowerCols + 1,
-				)
+				towerId+1,
+				towerId+configs.TowerCols,
+				towerId+configs.TowerCols+1,
+			)
 			return towers
 		case configs.TowerCols - 1:
 			towers = append(
 				towers,
-				towerId - 1,
-				towerId + configs.TowerCols,
-				towerId + configs.TowerCols - 1,
-				)
+				towerId-1,
+				towerId+configs.TowerCols,
+				towerId+configs.TowerCols-1,
+			)
 			return towers
 		default:
 			towers = append(
 				towers,
-				towerId + 1,
-				towerId - 1,
-				towerId + configs.TowerCols,
-				towerId + configs.TowerCols + 1,
-				towerId + configs.TowerCols - 1,
-				)
+				towerId+1,
+				towerId-1,
+				towerId+configs.TowerCols,
+				towerId+configs.TowerCols+1,
+				towerId+configs.TowerCols-1,
+			)
 			return towers
 		}
-	} else if towerRow == configs.TowerRows - 1 {
+	} else if towerRow == configs.TowerRows-1 {
 		switch towerCol {
 		case 0:
 			towers = append(
 				towers,
-				towerId + 1,
-				towerId - configs.TowerCols,
-				towerId - configs.TowerCols + 1,
-				)
+				towerId+1,
+				towerId-configs.TowerCols,
+				towerId-configs.TowerCols+1,
+			)
 			return towers
 		case configs.TowerCols - 1:
 			towers = append(
 				towers,
-				towerId - 1,
-				towerId - configs.TowerCols,
-				towerId - configs.TowerCols - 1,
-				)
+				towerId-1,
+				towerId-configs.TowerCols,
+				towerId-configs.TowerCols-1,
+			)
 			return towers
 		default:
 			towers = append(
 				towers,
-				towerId + 1,
-				towerId - 1,
-				towerId - configs.TowerCols,
-				towerId - configs.TowerCols + 1,
-				towerId - configs.TowerCols - 1,
-				)
+				towerId+1,
+				towerId-1,
+				towerId-configs.TowerCols,
+				towerId-configs.TowerCols+1,
+				towerId-configs.TowerCols-1,
+			)
 			return towers
 		}
 	} else {
@@ -135,22 +135,22 @@ func GetOtherTowers(towerId int32) []int32 {
 		case 0:
 			towers = append(
 				towers,
-				towerId + 1,
-				towerId + configs.TowerCols,
-				towerId - configs.TowerCols,
-				towerId + configs.TowerCols + 1,
-				towerId - configs.TowerCols + 1,
-				)
+				towerId+1,
+				towerId+configs.TowerCols,
+				towerId-configs.TowerCols,
+				towerId+configs.TowerCols+1,
+				towerId-configs.TowerCols+1,
+			)
 			return towers
 		case configs.TowerCols - 1:
 			towers = append(
 				towers,
-				towerId + configs.TowerCols,
-				towerId - configs.TowerCols,
-				towerId + configs.TowerCols - 1,
-				towerId - configs.TowerCols - 1,
-				towerId - 1,
-				)
+				towerId+configs.TowerCols,
+				towerId-configs.TowerCols,
+				towerId+configs.TowerCols-1,
+				towerId-configs.TowerCols-1,
+				towerId-1,
+			)
 			return towers
 		}
 	}

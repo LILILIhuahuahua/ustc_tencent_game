@@ -13,7 +13,7 @@ type HeartBeatResponse struct {
 	SendTime int64
 }
 
-func NewHeartBeatResponse(time int64)  *HeartBeatResponse{
+func NewHeartBeatResponse(time int64) *HeartBeatResponse {
 	return &HeartBeatResponse{
 		SendTime: time,
 	}
@@ -48,7 +48,7 @@ func (e *HeartBeatResponse) ToGMessageBytes(seqId int32) []byte {
 		MsgType:  pb.MSG_TYPE_RESPONSE,
 		MsgCode:  pb.GAME_MSG_CODE_HEART_BEAT_RESPONSE,
 		Response: resp,
-		SeqId: seqId,
+		SeqId:    seqId,
 		SendTime: tools.TIME_UTIL.NowMillis(),
 	}
 	out, _ := proto.Marshal(&msg)

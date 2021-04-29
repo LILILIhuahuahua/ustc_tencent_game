@@ -23,7 +23,7 @@ func (e *HeartBeatRequest) FromMessage(obj interface{}) {
 	e.SendTime = pbMsg.GetSendTime()
 }
 
-func (e *HeartBeatRequest) CopyFromMessage(obj interface{}) event.Event{
+func (e *HeartBeatRequest) CopyFromMessage(obj interface{}) event.Event {
 	pbMsg := obj.(*pb.Request).HeartBeatRequest
 	req := &HeartBeatRequest{
 		SendTime: pbMsg.GetSendTime(),

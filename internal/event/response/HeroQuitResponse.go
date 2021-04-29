@@ -13,7 +13,7 @@ type HeroQuitResponse struct {
 	QuitResult bool
 }
 
-func NewHeroQuitResponse(rlt bool)  *HeroQuitResponse{
+func NewHeroQuitResponse(rlt bool) *HeroQuitResponse {
 	return &HeroQuitResponse{
 		QuitResult: rlt,
 	}
@@ -48,7 +48,7 @@ func (e *HeroQuitResponse) ToGMessageBytes(seqId int32) []byte {
 		MsgType:  pb.MSG_TYPE_RESPONSE,
 		MsgCode:  pb.GAME_MSG_CODE_HERO_QUIT_RESPONSE,
 		Response: resp,
-		SeqId: seqId,
+		SeqId:    seqId,
 		SendTime: tools.TIME_UTIL.NowMillis(),
 	}
 	out, _ := proto.Marshal(&msg)

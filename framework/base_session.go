@@ -88,7 +88,7 @@ func (c *BaseSession) IsDeprecated() bool {
 	nowTime := time.Now().UnixNano()
 	if !c.OfflineForever &&
 		c.Status == configs.SessionStatusDead &&
-		nowTime-c.LastDisconnectTime >= 30 * int64(time.Second) {
+		nowTime-c.LastDisconnectTime >= 30*int64(time.Second) {
 		return true
 	}
 	return false

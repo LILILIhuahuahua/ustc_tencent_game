@@ -27,7 +27,7 @@ func NewGameStarter(addr string) *GameStarter {
 	return g
 }
 
-func (this *GameStarter) init() {
+func (g *GameStarter) init() {
 	//todo:加载配置
 
 	//初始化系统组件

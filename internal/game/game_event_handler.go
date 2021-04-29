@@ -29,17 +29,17 @@ func (g GameEventHandler) OnEvent(e event.Event) {
 	data := msg.Data
 	switch data.GetCode() {
 
-		case int32(pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_REQUEST):
-			g.onEntityInfoChange(data.(*request.EntityInfoChangeRequest))
+	case int32(pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_REQUEST):
+		g.onEntityInfoChange(data.(*request.EntityInfoChangeRequest))
 
-		case int32(pb.GAME_MSG_CODE_HEART_BEAT_REQUEST):
-			g.onHeartBeat(data.(*request.HeartBeatRequest))
+	case int32(pb.GAME_MSG_CODE_HEART_BEAT_REQUEST):
+		g.onHeartBeat(data.(*request.HeartBeatRequest))
 
-		case int32(pb.GAME_MSG_CODE_HERO_QUIT_REQUEST):
-			g.onHeroQuit(data.(*request.HeroQuitRequest))
+	case int32(pb.GAME_MSG_CODE_HERO_QUIT_REQUEST):
+		g.onHeroQuit(data.(*request.HeroQuitRequest))
 
-		default:
-			return
+	default:
+		return
 	}
 }
 
@@ -47,27 +47,27 @@ func (g GameEventHandler) OnEventToSession(e event.Event, s event.Session) {
 
 }
 
-func (g GameEventHandler)onHeartBeat(req *request.HeartBeatRequest)  {
+func (g GameEventHandler) onHeartBeat(req *request.HeartBeatRequest) {
 	sendTime := req.SendTime
 	heartBeatRsp := response2.NewHeartBeatResponse(sendTime)
 	outResponse := heartBeatRsp.ToGMessageBytes(req.SeqId)
 	GAME_ROOM_MANAGER.Unicast(req.GetRoomId(), req.SessionId, outResponse)
 }
 
-func (g GameEventHandler)onHeroQuit(req *request.HeroQuitRequest)  {
+func (g GameEventHandler) onHeroQuit(req *request.HeroQuitRequest) {
 	heroID := req.HeroId
 	sessionId := req.SessionId
 	//1.更改玩家状态为dead
 	roomID := req.GetRoomId()
 	room := GAME_ROOM_MANAGER.FetchGameRoom(roomID)
-	h, _ := room.Heros.Load(heroID)
+	h, _ := room.Heroes.Load(heroID)
 	if nil == h {
 		fmt.Println("[HeroQuitErr]无法找到对应英雄！")
 	}
 	hero := h.(*model.Hero)
-	room.Heros.Delete(heroID)
+	room.Heroes.Delete(heroID)
 	hero.Status = int32(pb.HERO_STATUS_DEAD)
-	room.Heros.Store(heroID, hero)
+	room.Heroes.Store(heroID, hero)
 	//2.广播给其他玩家
 	heroInfo := info.NewHeroInfo(hero)
 	notify := notify2.NewEntityInfoChangeNotify(int32(pb.ENTITY_TYPE_HERO_TYPE), hero.ID, heroInfo, nil)
@@ -79,11 +79,9 @@ func (g GameEventHandler)onHeroQuit(req *request.HeroQuitRequest)  {
 	GAME_ROOM_MANAGER.Unicast(roomID, sessionId, out)
 }
 
-
 func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeRequest) {
 	r := GAME_ROOM_MANAGER.FetchGameRoom(req.RoomId)
 	var pbNotifyMsg, pbResponseMsg *pb.GMessage
-
 
 	if req.EventType == int32(pb.EVENT_TYPE_HERO_MOVE) {
 		if r.GetHero(req.HeroMsg.ID) == nil {
@@ -129,7 +127,7 @@ func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReques
 			EntityType: configs.HeroType,
 			EntityId:   hero.ID,
 			//HeroMsg:    hero.ToEvent(),
-			HeroMsg:    info.NewHeroInfo(hero),
+			HeroMsg: info.NewHeroInfo(hero),
 			//ItemMsg: nil,
 		}
 
@@ -148,7 +146,7 @@ func (g GameEventHandler) onEntityInfoChange(req *request.EntityInfoChangeReques
 			MsgType:     configs.MsgTypeResponse,
 			GameMsgCode: configs.EntityInfoChangeResponse,
 			SessionId:   req.SessionId,
-			SeqId: req.SeqId,
+			SeqId:       req.SeqId,
 			Data:        response,
 		}
 		pbNotifyMsg = notifyMsg.ToMessage().(*pb.GMessage)

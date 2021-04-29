@@ -17,80 +17,80 @@ type GMessage struct {
 	GameMsgCode int32
 	SessionId   int32
 	SeqId       int32
-	SendTime	int64
+	SendTime    int64
 	Data        e.Event
 }
 
-func (this *GMessage) ToMessage() interface{} {
+func (g *GMessage) ToMessage() interface{} {
 	var pbMsgNotify *pb.Notify
 	var pbMsgRequest *pb.Request
 	var pbMsgResponse *pb.Response
 
-	switch this.MsgType {
+	switch g.MsgType {
 	case configs.MsgTypeNotify:
-		switch this.Data.(type) { //这里的处理函数可以进行封装
-			case *notify.EntityInfoChangeNotify:
-				pbMsgNotify = &pb.Notify{
-					EntityInfoChangeNotify: this.Data.ToMessage().(*pb.EntityInfoChangeNotify),
-				}
-			case *notify.GameGlobalInfoNotify:
-				pbMsgNotify = &pb.Notify{
-					GameGlobalInfoNotify: this.Data.ToMessage().(*pb.GameGlobalInfoNotify),
-				}
-			case *notify.EnterGameNotify:
-				pbMsgNotify = &pb.Notify{
-					EnterGameNotify: this.Data.ToMessage().(*pb.EnterGameNotify),
-				}
-			case *notify.HeroViewNotify:
-				pbMsgNotify = &pb.Notify{
-					HeroViewNotify: this.Data.ToMessage().(*pb.HeroViewNotify),
-				}
-			default:
-				panic("no match type")
+		switch g.Data.(type) { //这里的处理函数可以进行封装
+		case *notify.EntityInfoChangeNotify:
+			pbMsgNotify = &pb.Notify{
+				EntityInfoChangeNotify: g.Data.ToMessage().(*pb.EntityInfoChangeNotify),
+			}
+		case *notify.GameGlobalInfoNotify:
+			pbMsgNotify = &pb.Notify{
+				GameGlobalInfoNotify: g.Data.ToMessage().(*pb.GameGlobalInfoNotify),
+			}
+		case *notify.EnterGameNotify:
+			pbMsgNotify = &pb.Notify{
+				EnterGameNotify: g.Data.ToMessage().(*pb.EnterGameNotify),
+			}
+		case *notify.HeroViewNotify:
+			pbMsgNotify = &pb.Notify{
+				HeroViewNotify: g.Data.ToMessage().(*pb.HeroViewNotify),
+			}
+		default:
+			panic("no match type")
 		}
 		break
 	case configs.MsgTypeRequest:
-		switch this.Data.(type) {
-			case *request.EntityInfoChangeRequest:
-				pbMsgRequest = &pb.Request{
-					EntityChangeRequest: this.Data.ToMessage().(*pb.EntityInfoChangeRequest),
-				}
-			case *request.HeartBeatRequest:
-				pbMsgRequest = &pb.Request{
-					HeartBeatRequest: this.Data.ToMessage().(*pb.HeartBeatRequest),
-				}
+		switch g.Data.(type) {
+		case *request.EntityInfoChangeRequest:
+			pbMsgRequest = &pb.Request{
+				EntityChangeRequest: g.Data.ToMessage().(*pb.EntityInfoChangeRequest),
+			}
+		case *request.HeartBeatRequest:
+			pbMsgRequest = &pb.Request{
+				HeartBeatRequest: g.Data.ToMessage().(*pb.HeartBeatRequest),
+			}
 		}
 		break
 	case configs.MsgTypeResponse:
-		switch this.Data.(type) {
-			case *response2.EntityInfoChangeResponse:
-				pbMsgResponse = &pb.Response{
-					EntityChangeResponse: this.Data.ToMessage().(*pb.EntityInfoChangeResponse),
-				}
-			case *response2.HeartBeatResponse:
-				pbMsgResponse = &pb.Response{
-					HeartBeatResponse: this.Data.ToMessage().(*pb.HeartBeatResponse),
-				}
+		switch g.Data.(type) {
+		case *response2.EntityInfoChangeResponse:
+			pbMsgResponse = &pb.Response{
+				EntityChangeResponse: g.Data.ToMessage().(*pb.EntityInfoChangeResponse),
+			}
+		case *response2.HeartBeatResponse:
+			pbMsgResponse = &pb.Response{
+				HeartBeatResponse: g.Data.ToMessage().(*pb.HeartBeatResponse),
+			}
 		}
 		break
 	default:
 		panic("msg type is incorrect")
 	}
 	pbMsg := &pb.GMessage{
-		MsgType:   pb.MSG_TYPE(this.MsgType),
-		MsgCode:   pb.GAME_MSG_CODE(this.GameMsgCode),
-		SessionId: this.SessionId,
-		SeqId:     this.SeqId,
+		MsgType:   pb.MSG_TYPE(g.MsgType),
+		MsgCode:   pb.GAME_MSG_CODE(g.GameMsgCode),
+		SessionId: g.SessionId,
+		SeqId:     g.SeqId,
 		Notify:    pbMsgNotify,
 		Request:   pbMsgRequest,
 		Response:  pbMsgResponse,
-		SendTime: tools.TIME_UTIL.NowMillis(),
+		SendTime:  tools.TIME_UTIL.NowMillis(),
 	}
 
 	return pbMsg
 }
 
-func (this *GMessage) CopyFromMessage(obj interface{}) e.Event {
+func (g *GMessage) CopyFromMessage(obj interface{}) e.Event {
 	pbMsg := obj.(*pb.GMessage)
 	msg := &GMessage{
 		MsgType: int32(pbMsg.MsgType),
@@ -113,27 +113,27 @@ func (this *GMessage) CopyFromMessage(obj interface{}) e.Event {
 	//传递会话id至二层协议中
 	msg.Data.SetSessionId(pbMsg.SessionId)
 	msg.Data.SetSeqId(pbMsg.SeqId)
-	msg.Data.SetRoomId(this.RoomId)
+	msg.Data.SetRoomId(g.RoomId)
 	return msg
 }
 
-func (this *GMessage) FromMessage(obj interface{}) {
+func (g *GMessage) FromMessage(obj interface{}) {
 	pbMsg := obj.(*pb.GMessage)
-	this.MsgType = int32(pbMsg.MsgType)
-	this.Code = int32(pbMsg.MsgCode)
-	this.SessionId = pbMsg.SessionId
-	this.SeqId = pbMsg.SeqId
-	this.SendTime = pbMsg.SendTime
-	event := e.Manager.FetchEvent(this.GetCode())
+	g.MsgType = int32(pbMsg.MsgType)
+	g.Code = int32(pbMsg.MsgCode)
+	g.SessionId = pbMsg.SessionId
+	g.SeqId = pbMsg.SeqId
+	g.SendTime = pbMsg.SendTime
+	event := e.Manager.FetchEvent(g.GetCode())
 	if pb.MSG_TYPE_NOTIFY == pbMsg.MsgType {
-		this.Data = event.CopyFromMessage(pbMsg.Notify)
+		g.Data = event.CopyFromMessage(pbMsg.Notify)
 	}
 	if pb.MSG_TYPE_REQUEST == pbMsg.MsgType {
-		this.Data = event.CopyFromMessage(pbMsg.Request)
+		g.Data = event.CopyFromMessage(pbMsg.Request)
 	}
 	if pb.MSG_TYPE_RESPONSE == pbMsg.MsgType {
-		this.Data = event.CopyFromMessage(pbMsg.Response)
+		g.Data = event.CopyFromMessage(pbMsg.Response)
 	}
-	this.Data.SetSessionId(pbMsg.SessionId)
-	this.Data.SetRoomId(this.RoomId)
+	g.Data.SetSessionId(pbMsg.SessionId)
+	g.Data.SetRoomId(g.RoomId)
 }
