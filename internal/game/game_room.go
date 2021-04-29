@@ -17,7 +17,9 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"github.com/golang/protobuf/proto"
+	"log"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -35,6 +37,7 @@ type GameRoom struct {
 	towers           []*aoi.Tower
 	quadTree         *collision.QuadTree //对局内四叉树，用于进行碰撞检测
 	heroRankHeap     *GameRankHeap
+	AliveHeroNum     int32
 }
 
 //数据持有；连接者指针列表
@@ -53,8 +56,10 @@ func NewGameRoom() *GameRoom {
 		quadTree:     collision.NewQuadTree("0", 0, collision.NewRectangleByBounds(configs.MapMinX, configs.MapMinY, configs.MapMaxX, configs.MapMaxY)),
 		heroRankHeap: NewGameRankHeap(configs.HeroRankListLength),
 		//Heroes: make(map[int32]*model.Hero),
+		AliveHeroNum: 0,
 	}
 	gameroom.AdjustPropsIntoTower()
+	log.Printf("[GameRoom]初始化新对局！GameRoom：%v \n", gameroom)
 	return gameroom
 }
 
@@ -312,6 +317,7 @@ func (g *GameRoom) GetItemsNearby(hero *model.Hero) ([]*model.Hero, []*model.Pro
 func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
 	enterGameReq := e.Data.(*request.EnterGameRequest)
 	s.Id = enterGameReq.PlayerID
+	log.Printf("[GameRoom]玩家进入房间！session：%v, room: %v", s, g)
 	// todo:先不检测会话存在，放开测试，后期加上
 	//if nil==g.FetchConnector(s.Id) {
 	//注册会话绑定到玩家id
@@ -320,6 +326,7 @@ func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
 	//初始化hero加入到对局中
 	hero := model.NewHero(enterGameReq.PlayerName, s)
 	g.SessionHeroMap.Store(s.Id, hero)
+	atomic.AddInt32(&g.AliveHeroNum, 1)
 	// 视野处理
 	towers := g.GetTowers()
 	towerId := tools.CalTowerId(hero.HeroDirection.X, hero.HeroDirection.Y)
@@ -533,7 +540,7 @@ func (room *GameRoom) onCollision() {
 					if nil == loser || nil == winner {
 						continue
 					}
-					fmt.Printf("检测到玩家发生碰撞！胜者信息：%+v，败者信息：%+v\n", winner, loser)
+					log.Printf("[GameRoom]检测到玩家发生碰撞！胜者信息：%+v，败者信息：%+v\n", winner, loser)
 					// 败者退场
 					room.Heroes.Delete(loser.ID)
 					roomTowers[loser.TowerId].HeroLeave(loser)
@@ -553,6 +560,7 @@ func (room *GameRoom) onCollision() {
 					}
 					winner.Score += configs.HeroEatEnemyBonus
 					if winner.Score >= configs.GameWinLiminationScore {
+						log.Printf("[GameRoom]英雄达到胜利条件，开始对局结算！hero:%v, room:%v \n", winner, room)
 						room.onGameOver()
 					}
 					//更新排行榜
@@ -586,7 +594,7 @@ func (room *GameRoom) onCollision() {
 					if int32(pb.ITEM_STATUS_ITEM_DEAD) == prop.Status || int32(pb.HERO_STATUS_DEAD) == eater.Status {
 						continue
 					}
-					fmt.Printf("[碰撞检测]检测到玩家吃道具！玩家信息：%+v，道具信息：%+v\n", eater, prop)
+					log.Printf("[GameRoom]检测到玩家吃道具！玩家信息：%+v，道具信息：%+v\n", eater, prop)
 					// 道具退场
 					room.props.RemoveProp(prop.Id)
 					prop.Status = int32(pb.ITEM_STATUS_ITEM_DEAD)
@@ -647,6 +655,7 @@ func (room *GameRoom) onCollision() {
 
 func (room *GameRoom) onGameOver() {
 	//广播游戏结算推送
+	log.Printf("[GameRoom]游戏对局结束，开始广播至玩家并回收资源！")
 	heroRankInfos := room.heroRankHeap.GetSortedHeroRankInfos()
 	notify := notify2.NewGameFinishNotify(heroRankInfos, time.Now().Unix())
 	GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())

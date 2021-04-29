@@ -8,6 +8,7 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/response"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/scheduler"
+	"log"
 	"time"
 )
 
@@ -32,7 +33,7 @@ func (g *GameStarter) init() {
 
 	//初始化系统组件
 	//GAME_ROOM_MANAGER.RegisterGameRoom(this.room)
-
+	log.Println("[GameStarter]初始化系统组件！")
 	enterGameNotify := notify.EnterGameNotify{}
 	enterGameNotify.SetCode(int32(pb.GAME_MSG_CODE_ENTER_GAME_NOTIFY))
 	gameGlobalInfoNotify := notify.GameGlobalInfoNotify{}
@@ -66,5 +67,6 @@ func (g *GameStarter) init() {
 
 func (this *GameStarter) Boot() {
 	//this.room.Serv()
+
 	GAME_ROOM_MANAGER.Serv()
 }

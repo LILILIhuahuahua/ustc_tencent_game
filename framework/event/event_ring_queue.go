@@ -1,7 +1,6 @@
 package event
 
 import (
-	"fmt"
 	"github.com/pkg/errors"
 	"math"
 	"sync"
@@ -43,7 +42,7 @@ func (queue *EventRingQueue) Pop() (Event, error) {
 	event := queue.eventMap[queue.head]
 	queue.eventMap[queue.head] = nil
 	queue.head++
-	fmt.Printf("[EventRingQueue]取出消息成功，当前容量：%v \n", queue.capacity())
+	//fmt.Printf("[EventRingQueue]取出消息成功，当前容量：%v \n", queue.capacity())
 	queue.lock.Unlock()
 	return event, nil
 }
@@ -56,7 +55,7 @@ func (queue *EventRingQueue) Push(event Event) error {
 	}
 	queue.eventMap[queue.rear] = event
 	queue.rear++
-	fmt.Printf("[EventRingQueue]插入消息成功，当前容量：%v \n", queue.capacity())
+	//fmt.Printf("[EventRingQueue]插入消息成功，当前容量：%v \n", queue.capacity())
 	queue.lock.Unlock()
 	return nil
 }
