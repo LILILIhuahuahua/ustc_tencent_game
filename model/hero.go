@@ -18,6 +18,7 @@ type Hero struct {
 	Score               int32
 	Rank                int32
 	InvincibleStartTime int64
+	SpeedUpStartTime 	int64
 	HeroDirection       Coordinate
 	HeroPosition        Coordinate
 	CreateTime          int64

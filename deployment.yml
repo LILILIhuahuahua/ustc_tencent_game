@@ -5,7 +5,7 @@ metadata:
   labels:  # this label is used for deployment itself, we can use this label to delete deployment
     app: dgs
 spec:
-  replicas: 3
+  replicas: 1
   minReadySeconds: 5
   strategy:
     type: RollingUpdate

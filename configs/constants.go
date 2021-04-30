@@ -73,7 +73,7 @@ var (
 
 	// 道具效果
 	PropInvincibleTimeMax = int64(time.Second * 5) // 最长无敌时间
-	PropJumpDistance      = float32(300)
+	PropSpeedUpTimeMax = int64(time.Second * 5) // 最长加速时间
 
 	// mongodb
 	MongoURI      string = ""
