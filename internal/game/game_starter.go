@@ -2,14 +2,11 @@ package game
 
 import (
 	pb "github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/notify"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/response"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/scheduler"
 	"log"
-	"time"
 )
 
 type GameStarter struct {
@@ -61,8 +58,8 @@ func (g *GameStarter) init() {
 	//scheduler.NewTimer(time.Second*time.Duration(5), GAME_ROOM_MANAGER.DeleteUnavailableSession)
 	//scheduler.NewTimer(time.Second*time.Duration(5), GAME_ROOM_MANAGER.DeleteDeprecatedHero)
 	//定期更新小球位置，每50ms检测一次
-	scheduler.NewTimer(time.Millisecond*time.Duration(50), GAME_ROOM_MANAGER.UpdateHeroPositionAndStatus)
-	go scheduler.Sched(configs.GlobalScheduleConfig)
+	//scheduler.NewTimer(time.Millisecond*time.Duration(50), GAME_ROOM_MANAGER.UpdateHeroPositionAndStatus)
+	//go scheduler.Sched(configs.GlobalScheduleConfig)
 }
 
 func (this *GameStarter) Boot() {
