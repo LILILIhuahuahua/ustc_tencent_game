@@ -114,6 +114,7 @@ func (g *GameRoom) DeleteConnector(c *framework.BaseSession) error {
 func (g *GameRoom) Serv() error {
 	go g.HandleSessions()       //开启会话监听线程，监听session集合中的读事件，将读到的GMessage放入环形队列中
 	go g.HandleEventFromQueue() //开启消费线程，从环形队列中读取GMessage消息并处理
+	go g.UpdateHeros()
 	for g.gameOver == 0 {
 		//conn, err := g.server.Listen.AcceptKCP()
 		//if err != nil {
@@ -436,6 +437,13 @@ func (g *GameRoom) FetchHeros() []*model.Hero {
 		return true
 	})
 	return heros
+}
+
+func (g *GameRoom) UpdateHeros()  {
+	for atomic.LoadInt32(&g.gameOver)==0 {
+		g.UpdateHeroPosAndStatus()
+		time.Sleep(50 * 1e6) //睡50ms
+	}
 }
 
 //更新英雄位置

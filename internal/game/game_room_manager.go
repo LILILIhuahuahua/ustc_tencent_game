@@ -234,7 +234,10 @@ func GlobalInfoNotify() {
 
 func (m *GameRoomManager) FetchGameRoom(id int64) *GameRoom {
 	room, _ := m.roomMap.Load(id)
-	return room.(*GameRoom)
+	if nil != room {
+		return room.(*GameRoom)
+	}
+	return nil
 }
 
 func (m *GameRoomManager) RegisterGameRoom(room *GameRoom) {
@@ -268,7 +271,9 @@ func (m *GameRoomManager) Unicast(roomId int64, sessionId int32, buff []byte) {
 
 func (m *GameRoomManager) Braodcast(roomId int64, buff []byte) {
 	r := m.FetchGameRoom(roomId)
-	r.BroadcastAll(buff)
+	if nil != r {
+		r.BroadcastAll(buff)
+	}
 	//m.FetchGameRoom(roomId).FetchConnector(sessionId).SendMessage(buff)
 }
 
