@@ -381,7 +381,6 @@ func (g *GameRoom) ModifyHero(modifyHero *model.Hero) {
 	hero := g.GetHero(modifyHero.ID)
 	hero.HeroPosition = modifyHero.HeroPosition
 	hero.HeroDirection = modifyHero.HeroDirection
-	hero.Speed = modifyHero.Speed
 	hero.Size = modifyHero.Size
 	towers := g.GetTowers()
 	towerId := tools.CalTowerId(modifyHero.HeroPosition.X, modifyHero.HeroPosition.Y) // 计算更新位置之后的towerId
