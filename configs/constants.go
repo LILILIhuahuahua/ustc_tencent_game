@@ -40,7 +40,7 @@ var (
 	GameAliveHeroLimit int32 = 10 //房间最大人数限制
 
 	// Prop max count in map
-	MaxPropCountInMap int = 50
+	MaxPropCountInMap int = 100
 
 	// GlobalInfoNotify interval
 	GlobalInfoNotifyInterval time.Duration = 5000 * time.Millisecond
