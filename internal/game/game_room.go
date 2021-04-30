@@ -457,6 +457,14 @@ func (g *GameRoom) UpdateHeroPosAndStatus() {
 			}
 			go g.NotifyEntityInfoChange(configs.HeroType, hero.ID, hero, nil)
 		}
+
+		// 处理玩家的加速时间
+		if hero.Speed > configs.HeroMoveSpeed {
+			if nowTime - hero.SpeedUpStartTime > configs.PropSpeedUpTimeMax {
+				hero.Speed = configs.HeroMoveSpeed
+			}
+			go g.NotifyEntityInfoChange(configs.HeroType, hero.ID, hero, nil)
+		}
 		// 更新玩家位置
 		timeElapse := nowTime - hero.UpdateTime
 		hero.UpdateTime = nowTime
@@ -637,6 +645,8 @@ func (room *GameRoom) onCollision() {
 						eater.Status = int32(pb.HERO_STATUS_INVINCIBLE)
 						break
 					case int32(pb.ENTITY_TYPE_PROP_TYPE_JUMP):
+						eater.SpeedUpStartTime = time.Now().UnixNano()
+						eater.Speed = configs.HeroMoveSpeed * 2
 						break
 					}
 
