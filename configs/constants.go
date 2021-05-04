@@ -40,7 +40,7 @@ var (
 	GameAliveHeroLimit int32 = 10 //房间最大人数限制
 
 	// Prop max count in map
-	MaxPropsInitCount int = 100
+	MaxPropsCountInMap int = 100
 	// 定期生成道具数量
 	PeriodicPropsInitCount int = 30
 

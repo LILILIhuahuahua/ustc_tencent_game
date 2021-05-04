@@ -26,9 +26,12 @@ var (
 // New return an instance of propsManger, which contains many props
 func New() *PropsManger {
 	propsManager := &PropsManger{mu: &sync.RWMutex{}}
-	props := NewProps(configs.MaxPropsInitCount)
+	props := NewProps(configs.MaxPropsCountInMap)
 	propsManager.AddProps(props)
 	return propsManager
+}
+func (p *PropsManger) GetPropsCount() int {
+	return len(p.props)
 }
 
 // GetProps return all props in propManager

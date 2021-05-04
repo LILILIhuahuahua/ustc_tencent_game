@@ -23,6 +23,9 @@ func (g *GameRoom) AdjustPropsIntoTower(props []*model.Prop) {
 }
 
 func (g *GameRoom) InitNewProps() {
+	if g.props.GetPropsCount() >= configs.MaxPropsCountInMap {
+		return
+	}
 	newProps := prop.NewProps(configs.PeriodicPropsInitCount)
 	g.props.AddProps(newProps)
 	g.AdjustPropsIntoTower(newProps)
