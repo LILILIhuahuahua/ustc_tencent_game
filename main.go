@@ -22,15 +22,11 @@ func initDB() {
 
 func main() {
 	initDB()
-	err := db.InitConnection(configs.DBProxyAddr)
-	if err != nil {
-		log.Fatalln("init dbProxy failed")
-	}
 	if configs.DBProxyAddr == "" {
 		log.Fatalln("DBProxy addr is nil")
 	}
 	log.Println("Initialize DBProxyAddr to", configs.DBProxyAddr)
-
+	go db.InitConnection(configs.DBProxyAddr)
 	log.Println("[USTC-Tencent]Game Server Started!")
 	s := game.NewGameStarter(configs.ServerAddr)
 	s.Boot()
