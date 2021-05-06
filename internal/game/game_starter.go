@@ -21,11 +21,11 @@ func NewGameStarter(addr string) *GameStarter {
 		//room: NewGameRoom(addr),
 		//roomManager: NewGameRoomManager(),
 	}
-	g.init()
+	g.Init()
 	return g
 }
 
-func (g *GameStarter) init() {
+func (g *GameStarter) Init() {
 	//todo:加载配置
 
 	//初始化系统组件
@@ -41,6 +41,8 @@ func (g *GameStarter) init() {
 	entityInfochangeResp.SetCode(int32(pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_RESPONSE))
 	enterGameRequest := request.EnterGameRequest{}
 	enterGameRequest.SetCode(int32(pb.GAME_MSG_CODE_ENTER_GAME_REQUEST))
+	enterGameResponse := response.EnterGameResponse{}
+	enterGameResponse.SetCode(int32(pb.GAME_MSG_CODE_ENTER_GAME_RESPONSE))
 	heartBeatRequest := request.HeartBeatRequest{}
 	heartBeatRequest.SetCode(int32(pb.GAME_MSG_CODE_HEART_BEAT_REQUEST))
 	heroQuitRequest := request.HeroQuitRequest{}
@@ -49,6 +51,7 @@ func (g *GameStarter) init() {
 	event.Manager.Register(int32(pb.GAME_MSG_CODE_ENTER_GAME_NOTIFY), &enterGameNotify, GAME_EVENT_HANDLER)
 	event.Manager.Register(int32(pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_REQUEST), &entityInfochangeReq, GAME_EVENT_HANDLER)
 	event.Manager.Register(int32(pb.GAME_MSG_CODE_ENTER_GAME_REQUEST), &enterGameRequest, GAME_EVENT_HANDLER)
+	event.Manager.Register(int32(pb.GAME_MSG_CODE_ENTER_GAME_RESPONSE), &enterGameResponse, GAME_EVENT_HANDLER)
 	event.Manager.Register(int32(pb.GAME_MSG_CODE_GAME_GLOBAL_INFO_NOTIFY), &gameGlobalInfoNotify, GAME_EVENT_HANDLER)
 	event.Manager.Register(int32(pb.GAME_MSG_CODE_HEART_BEAT_REQUEST), &heartBeatRequest, GAME_EVENT_HANDLER)
 	event.Manager.Register(int32(pb.GAME_MSG_CODE_HERO_QUIT_REQUEST), &heroQuitRequest, GAME_EVENT_HANDLER)

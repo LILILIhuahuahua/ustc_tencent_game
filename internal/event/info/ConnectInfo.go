@@ -12,6 +12,13 @@ type ConnectInfo struct {
 	Port                int32
 }
 
+func NewConnectInfo(ip string, port int32)  *ConnectInfo{
+	return &ConnectInfo{
+		Ip: ip,
+		Port: port,
+	}
+}
+
 func (c *ConnectInfo) FromMessage(obj interface{}) {
 	pbMsg := obj.(*pb.ConnectMsg)
 	c.Ip = pbMsg.Ip
