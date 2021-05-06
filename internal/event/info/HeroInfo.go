@@ -39,7 +39,6 @@ func (h *HeroInfo) FromMessage(obj interface{}) {
 	h.Speed = pbMsg.GetHeroSpeed()
 	h.Size = pbMsg.HeroSize
 	h.Score = pbMsg.HeroScore
-	h.InvincibleStartTime = pbMsg.InvincibleStartTime
 	pos := CoordinateXYInfo{}
 	pos.FromMessage(pbMsg.GetHeroPosition())
 	h.HeroPosition = &pos
@@ -60,7 +59,6 @@ func (h *HeroInfo) CopyFromMessage(obj interface{}) event.Event {
 		Speed:               pbMsg.GetHeroSpeed(),
 		Size:                pbMsg.GetHeroSize(),
 		Score:               pbMsg.HeroScore,
-		InvincibleStartTime: pbMsg.InvincibleStartTime,
 		HeroPosition:        &pos,
 		HeroDirection:       &dict,
 	}
@@ -73,7 +71,6 @@ func (h *HeroInfo) ToMessage() interface{} {
 		HeroSpeed:           h.Speed,
 		HeroSize:            h.Size,
 		HeroScore:           h.Score,
-		InvincibleStartTime: h.InvincibleStartTime,
 		HeroPosition:        h.HeroPosition.ToMessage().(*pb.CoordinateXY),
 		HeroDirection:       h.HeroDirection.ToMessage().(*pb.CoordinateXY),
 	}
@@ -84,10 +81,6 @@ func (h *HeroInfo) ToMessage() interface{} {
 
 	case int32(pb.HERO_STATUS_DEAD):
 		pbMsg.HeroStatus = pb.HERO_STATUS_DEAD
-		break
-
-	case int32(pb.HERO_STATUS_INVINCIBLE):
-		pbMsg.HeroStatus = pb.HERO_STATUS_INVINCIBLE
 		break
 	}
 	return pbMsg

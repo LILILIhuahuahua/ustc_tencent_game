@@ -105,12 +105,16 @@ func NewProps(count int) []*model.Prop {
 		x := minX + r.Float32()*(maxX-minX)
 		y := minY + r.Float32()*(maxY-minY)
 		pid := int32(guuid.New().ID())
-		z := r.Intn(10)
+		z := r.Intn(100)
 		var propType int32
-		if z <= 1 {
+		if z <= 5 {
 			propType = configs.PropTypeInvincible // 无敌
-		} else if z <= 2 {
-			propType = configs.PropTypeJump // 跃迁道具
+		} else if z <= 10 {
+			propType = configs.PropTypeSpeedUp // 加速道具
+		} else if z <= 15 {
+			propType = configs.PropTypeSpeedSlow // 减速道具
+		} else if z <= 20 {
+			propType = configs.PropTypeSizeDown // 缩小道具
 		} else {
 			propType = configs.PropTypeFood
 		}

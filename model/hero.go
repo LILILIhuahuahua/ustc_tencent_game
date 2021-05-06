@@ -17,8 +17,12 @@ type Hero struct {
 	Speed               float32
 	Score               int32
 	Rank                int32
+	Invincible          bool
+	SpeedUp             bool
+	SpeedDown           bool
 	InvincibleStartTime int64
-	SpeedUpStartTime 	int64
+	SpeedUpStartTime    int64
+	SpeedDownStartTime  int64
 	HeroDirection       Coordinate
 	HeroPosition        Coordinate
 	CreateTime          int64

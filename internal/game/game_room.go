@@ -445,20 +445,33 @@ func (g *GameRoom) UpdateHeroPosAndStatus() {
 		}
 		nowTime := time.Now().UnixNano()
 		// 处理玩家的无敌时间
-		if hero.Status == configs.HeroStatusInvincible {
-			if nowTime-hero.InvincibleStartTime > configs.PropInvincibleTimeMax {
-				hero.Status = configs.HeroStatusLive
-			}
+		if hero.Invincible && nowTime - hero.InvincibleStartTime > configs.PropInvincibleTimeMax {
+			hero.Invincible = false
 			go g.NotifyEntityInfoChange(configs.HeroType, hero.ID, hero, nil)
 		}
 
 		// 处理玩家的加速时间
-		if hero.Speed > configs.HeroMoveSpeed {
-			if nowTime - hero.SpeedUpStartTime > configs.PropSpeedUpTimeMax {
-				hero.Speed = configs.HeroMoveSpeed
+		if hero.SpeedUp && nowTime - hero.SpeedUpStartTime > configs.PropSpeedUpTimeMax {
+			originHeroSpeed := configs.HeroSpeedSizeCoeffcient / hero.Size
+			if originHeroSpeed < configs.HeroSpeedDownLimit {
+				originHeroSpeed = configs.HeroSpeedDownLimit
 			}
+			hero.Speed = originHeroSpeed
+			hero.SpeedUp = false
 			go g.NotifyEntityInfoChange(configs.HeroType, hero.ID, hero, nil)
 		}
+
+		// 处理玩家的减速时间
+		if hero.SpeedDown && nowTime - hero.SpeedDownStartTime > configs.PropSpeedSlowTimeMax {
+			originHeroSpeed := configs.HeroSpeedSizeCoeffcient / hero.Size
+			if originHeroSpeed > configs.HeroSpeedUpLimit {
+				originHeroSpeed = configs.HeroSpeedUpLimit
+			}
+			hero.Speed = originHeroSpeed
+			hero.SpeedDown = false
+			go g.NotifyEntityInfoChange(configs.HeroType, hero.ID, hero, nil)
+		}
+
 		// 更新玩家位置
 		timeElapse := nowTime - hero.UpdateTime
 		hero.UpdateTime = nowTime
@@ -520,8 +533,8 @@ func (room *GameRoom) onCollision() {
 				if candidate.Type == int32(pb.ENTITY_TYPE_HERO_TYPE) {
 					candidateObject, _ := room.Heroes.Load(candidate.ID)
 					candidateHero := candidateObject.(*model.Hero)
-					if hero.Status == configs.HeroStatusInvincible ||
-						candidateHero.Status == configs.HeroStatusInvincible {
+					if hero.Invincible ||
+						candidateHero.Invincible {
 						continue
 					}
 					var loser, winner *model.Hero
@@ -559,7 +572,7 @@ func (room *GameRoom) onCollision() {
 					if winner.Size > configs.HeroSizeUpLimit {
 						winner.Size = configs.HeroSizeUpLimit
 					}
-					winner.Speed -= configs.HeroSpeedSlowStep
+					winner.Speed = configs.HeroSpeedSizeCoeffcient / winner.Size
 					if winner.Speed < configs.HeroSpeedDownLimit {
 						winner.Speed = configs.HeroSpeedDownLimit
 					}
@@ -593,7 +606,9 @@ func (room *GameRoom) onCollision() {
 				// 一方为食物，开启吃道具流程
 				if candidate.Type == int32(pb.ENTITY_TYPE_PROP_TYPE_FOOD) ||
 					candidate.Type == int32(pb.ENTITY_TYPE_PROP_TYPE_INVINCIBLE) ||
-					candidate.Type == int32(pb.ENTITY_TYPE_PROP_TYPE_JUMP) {
+					candidate.Type == int32(pb.ENTITY_TYPE_PROP_TYPE_SPEED_UP) ||
+					candidate.Type == int32(pb.ENTITY_TYPE_PROP_TYPE_SIZE_DOWN) ||
+					candidate.Type == int32(pb.ENTITY_TYPE_PROP_TYPE_SPEED_DOWN) {
 					var prop (*model.Prop)
 					var eater (*model.Hero)
 					prop, _ = room.props.GetProp(candidate.ID)
@@ -617,7 +632,7 @@ func (room *GameRoom) onCollision() {
 						if eater.Size > configs.HeroSizeUpLimit {
 							eater.Size = configs.HeroSizeUpLimit
 						}
-						eater.Speed -= configs.HeroSpeedSlowStep
+						eater.Speed = configs.HeroSpeedSizeCoeffcient / eater.Size
 						if eater.Speed < configs.HeroSpeedDownLimit {
 							eater.Speed = configs.HeroSpeedDownLimit
 						}
@@ -639,14 +654,39 @@ func (room *GameRoom) onCollision() {
 						break
 					case int32(pb.ENTITY_TYPE_PROP_TYPE_INVINCIBLE):
 						eater.InvincibleStartTime = time.Now().UnixNano()
-						eater.Status = int32(pb.HERO_STATUS_INVINCIBLE)
+						eater.Invincible = true
 						break
-					case int32(pb.ENTITY_TYPE_PROP_TYPE_JUMP):
+					case int32(pb.ENTITY_TYPE_PROP_TYPE_SPEED_UP):
 						eater.SpeedUpStartTime = time.Now().UnixNano()
-						eater.Speed = configs.HeroMoveSpeed * 2
+						eater.SpeedUp = true
+						eater.SpeedDown = false
+						eaterOriginSpeed := configs.HeroSpeedSizeCoeffcient / eater.Size
+						eater.Speed = eaterOriginSpeed * 2
+						if eater.Speed > configs.HeroSpeedUpLimit {
+							eater.Speed = configs.HeroSpeedUpLimit
+						}
+						break
+					case int32(pb.ENTITY_TYPE_PROP_TYPE_SPEED_DOWN):
+						eater.SpeedDownStartTime = time.Now().UnixNano()
+						eater.SpeedDown = true
+						eater.SpeedUp = false
+						eaterOriginSpeed := configs.HeroSpeedSizeCoeffcient / eater.Size
+						eater.Speed = eaterOriginSpeed / 2
+						if eater.Speed < configs.HeroSpeedDownLimit {
+							eater.Speed = configs.HeroSpeedSizeCoeffcient
+						}
+						break
+					case int32(pb.ENTITY_TYPE_PROP_TYPE_SIZE_DOWN):
+						eater.Size /= 2
+						if eater.Size < configs.HeroSizeDownLimit {
+							eater.Size = configs.HeroSizeDownLimit
+						}
+						eater.Speed = configs.HeroSpeedSizeCoeffcient / eater.Size
+						if eater.Speed > configs.HeroSpeedUpLimit {
+							eater.Speed = configs.HeroSpeedUpLimit
+						}
 						break
 					}
-
 					go room.NotifyEntityInfoChange(prop.PropType, prop.Id, nil, prop)
 					//itemInfo := info.NewItemInfo(prop)
 					//notify := notify2.NewEntityInfoChangeNotify(prop.PropType, prop.Id, nil, itemInfo)
