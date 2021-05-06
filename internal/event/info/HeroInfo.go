@@ -9,26 +9,30 @@ import (
 
 type HeroInfo struct {
 	framework.BaseEvent
-	ID                  int32
-	Status              int32
-	Speed               float32
-	Size                float32
-	Score               int32
-	InvincibleStartTime int64
-	HeroPosition        *CoordinateXYInfo
-	HeroDirection       *CoordinateXYInfo
+	ID            int32
+	Status        int32
+	Speed         float32
+	Size          float32
+	Score         int32
+	Invincible    bool
+	SpeedUp       bool
+	SpeedDown     bool
+	HeroPosition  *CoordinateXYInfo
+	HeroDirection *CoordinateXYInfo
 }
 
 func NewHeroInfo(hero *model.Hero) *HeroInfo {
 	return &HeroInfo{
-		ID:                  hero.ID,
-		Speed:               hero.Speed,
-		Size:                hero.Size,
-		Status:              hero.Status,
-		Score:               hero.Score,
-		InvincibleStartTime: hero.InvincibleStartTime,
-		HeroPosition:        NewCoordinateInfo(hero.HeroPosition.X, hero.HeroPosition.Y),
-		HeroDirection:       NewCoordinateInfo(hero.HeroDirection.X, hero.HeroDirection.Y),
+		ID:            hero.ID,
+		Speed:         hero.Speed,
+		Size:          hero.Size,
+		Status:        hero.Status,
+		Score:         hero.Score,
+		Invincible:    hero.Invincible,
+		SpeedUp:       hero.SpeedUp,
+		SpeedDown:     hero.SpeedDown,
+		HeroPosition:  NewCoordinateInfo(hero.HeroPosition.X, hero.HeroPosition.Y),
+		HeroDirection: NewCoordinateInfo(hero.HeroDirection.X, hero.HeroDirection.Y),
 	}
 }
 
@@ -59,6 +63,9 @@ func (h *HeroInfo) CopyFromMessage(obj interface{}) event.Event {
 		Speed:         pbMsg.GetHeroSpeed(),
 		Size:          pbMsg.GetHeroSize(),
 		Score:         pbMsg.HeroScore,
+		Invincible:    pbMsg.Invincible,
+		SpeedUp:       pbMsg.SpeedUp,
+		SpeedDown:     pbMsg.SpeedDown,
 		HeroPosition:  &pos,
 		HeroDirection: &dict,
 	}
@@ -71,6 +78,9 @@ func (h *HeroInfo) ToMessage() interface{} {
 		HeroSpeed:     h.Speed,
 		HeroSize:      h.Size,
 		HeroScore:     h.Score,
+		Invincible:    h.Invincible,
+		SpeedUp:       h.SpeedUp,
+		SpeedDown:     h.SpeedDown,
 		HeroPosition:  h.HeroPosition.ToMessage().(*pb.CoordinateXY),
 		HeroDirection: h.HeroDirection.ToMessage().(*pb.CoordinateXY),
 	}
