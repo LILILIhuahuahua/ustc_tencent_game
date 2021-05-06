@@ -10,8 +10,10 @@ message HeroMsg {
   float heroSize = 4; //玩家的大小
   CoordinateXY heroDirection = 5; //玩家的行进方向
   HERO_STATUS heroStatus = 6; //玩家的状态
-  int32 heroScore = 7; //玩家分数
-  int64 invincibleStartTime = 8; // 玩家的无敌开始时间
+  bool invincible = 7; // 是否处于无敌状态
+  bool speedUp = 8; // 是否处于加速状态
+  bool speedDown = 9; // 是否处于减速状态
+  int32 heroScore = 10; //玩家分数
 }
 
 message HeroRankMsg {
