@@ -6,6 +6,9 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/db"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/game"
 	"log"
+	"net/http"
+
+	_ "github.com/mkevac/debugcharts"
 )
 
 func initDB() {
@@ -27,6 +30,12 @@ func main() {
 	}
 	log.Println("Initialize DBProxyAddr to", configs.DBProxyAddr)
 	go db.InitConnection(configs.DBProxyAddr)
+
+	// visual representation of goroutine
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
+
 	log.Println("[USTC-Tencent]Game Server Started!")
 	s := game.NewGameStarter(configs.ServerAddr)
 	s.Boot()

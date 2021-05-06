@@ -54,13 +54,13 @@ func (h *HeroInfo) CopyFromMessage(obj interface{}) event.Event {
 	dict.FromMessage(pbMsg.GetHeroDirection())
 	pos.FromMessage(pbMsg.GetHeroPosition())
 	return &HeroInfo{
-		ID:                  pbMsg.GetHeroId(),
-		Status:              int32(pbMsg.GetHeroStatus()),
-		Speed:               pbMsg.GetHeroSpeed(),
-		Size:                pbMsg.GetHeroSize(),
-		Score:               pbMsg.HeroScore,
-		HeroPosition:        &pos,
-		HeroDirection:       &dict,
+		ID:            pbMsg.GetHeroId(),
+		Status:        int32(pbMsg.GetHeroStatus()),
+		Speed:         pbMsg.GetHeroSpeed(),
+		Size:          pbMsg.GetHeroSize(),
+		Score:         pbMsg.HeroScore,
+		HeroPosition:  &pos,
+		HeroDirection: &dict,
 	}
 }
 
@@ -68,11 +68,11 @@ func (h *HeroInfo) ToMessage() interface{} {
 	pbMsg := &pb.HeroMsg{
 		HeroId: h.ID,
 		//HeroStatus:    h.Status,
-		HeroSpeed:           h.Speed,
-		HeroSize:            h.Size,
-		HeroScore:           h.Score,
-		HeroPosition:        h.HeroPosition.ToMessage().(*pb.CoordinateXY),
-		HeroDirection:       h.HeroDirection.ToMessage().(*pb.CoordinateXY),
+		HeroSpeed:     h.Speed,
+		HeroSize:      h.Size,
+		HeroScore:     h.Score,
+		HeroPosition:  h.HeroPosition.ToMessage().(*pb.CoordinateXY),
+		HeroDirection: h.HeroDirection.ToMessage().(*pb.CoordinateXY),
 	}
 	switch h.Status {
 	case int32(pb.HERO_STATUS_LIVE):

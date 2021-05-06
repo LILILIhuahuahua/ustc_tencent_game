@@ -10,16 +10,16 @@ import (
 )
 
 type ServiceConnection struct {
-	conn *grpc.ClientConn
+	conn           *grpc.ClientConn
 	accountService databaseGrpc.AccountServiceClient
-	playerService databaseGrpc.PlayerServiceClient
+	playerService  databaseGrpc.PlayerServiceClient
 }
 
 var serviceConnection *ServiceConnection
 
 func InitConnection(address string) {
 	serviceConnection = &ServiceConnection{}
-	ctx, _ := context.WithDeadline(context.TODO(), time.Now().Add(5 * time.Second))
+	ctx, _ := context.WithDeadline(context.TODO(), time.Now().Add(5*time.Second))
 	conn, err := grpc.DialContext(ctx, address, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		log.Fatalln("[dbProxy] dbProxy初始化失败, 失败原因:", err)
