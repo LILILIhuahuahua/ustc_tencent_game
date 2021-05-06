@@ -20,9 +20,9 @@ type Hero struct {
 	Invincible          bool
 	SpeedUp             bool
 	SpeedDown           bool
-	InvincibleStartTime int64
 	SpeedUpStartTime    int64
 	SpeedDownStartTime  int64
+	InvincibleStartTime int64
 	HeroDirection       Coordinate
 	HeroPosition        Coordinate
 	CreateTime          int64

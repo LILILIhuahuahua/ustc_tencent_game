@@ -56,7 +56,7 @@ func (manager *GameRoomManager) Serv() {
 		//接收新的kcp连接
 		conn.SetWindowSize(4800, 4800)
 		session := framework.NewBaseSession(conn)
-		log.Printf("[GameRoomManager]监听到新连接！%v \n",session)
+		log.Printf("[GameRoomManager]监听到新连接！%v \n", session)
 		atomic.AddInt32(&manager.waitedSessionNum, 1)
 		manager.waitedSessionMap.Store(session.Id, session)
 	}

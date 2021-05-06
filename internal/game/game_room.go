@@ -25,7 +25,7 @@ import (
 
 //GameRoom 游戏房间类，对应一局游戏
 type GameRoom struct {
-	ID               int64
+	ID int64
 	//addr             string
 	//server           *kcpnet.KcpServer
 	acceptedSessions sync.Map
@@ -37,7 +37,7 @@ type GameRoom struct {
 	towers           []*aoi.Tower
 	quadTree         *collision.QuadTree //对局内四叉树，用于进行碰撞检测
 	heroRankHeap     *GameRankHeap
-	gameOver 		 int32   // 如果 gameOver 为 0，则表示对局仍在继续，当设置为 1 时，表示对局已经结束，此时回收线程
+	gameOver         int32 // 如果 gameOver 为 0，则表示对局仍在继续，当设置为 1 时，表示对局已经结束，此时回收线程
 	AliveHeroNum     int32
 }
 
@@ -48,7 +48,7 @@ func NewGameRoom() *GameRoom {
 	//	return nil
 	//}
 	gameroom := &GameRoom{
-		ID:           tools.UUID_UTIL.GenerateInt64UUID(),
+		ID: tools.UUID_UTIL.GenerateInt64UUID(),
 		//addr:         address,
 		//server:       s,
 		dispatcher:   framework.NewBaseEventDispatcher(configs.MaxEventQueueSize),
@@ -118,8 +118,8 @@ func (g *GameRoom) DeleteConnector(c *framework.BaseSession) error {
 func (g *GameRoom) Serv() error {
 	go g.HandleSessions()       //开启会话监听线程，监听session集合中的读事件，将读到的GMessage放入环形队列中
 	go g.HandleEventFromQueue() //开启消费线程，从环形队列中读取GMessage消息并处理
-	go g.UpdateHeros() // 更新hero的信息（位置、状态等）
-	go g.PeriodicalInitProps() // 定期生成新的道具
+	go g.UpdateHeros()          // 更新hero的信息（位置、状态等）
+	go g.PeriodicalInitProps()  // 定期生成新的道具
 
 	for g.gameOver == 0 {
 		//conn, err := g.server.Listen.AcceptKCP()
@@ -132,7 +132,7 @@ func (g *GameRoom) Serv() error {
 		//	return err
 		//}
 		//g.acceptedSessions.Store(session.Id, session) //将新会话放入未注册会话集合中
-		g.registerSessions()                          //处理会话注册流程（等待玩家进入世界enterWorld）
+		g.registerSessions() //处理会话注册流程（等待玩家进入世界enterWorld）
 	}
 
 	return nil
@@ -425,8 +425,8 @@ func (g *GameRoom) FetchHeros() []*model.Hero {
 	return heros
 }
 
-func (g *GameRoom) UpdateHeros()  {
-	for atomic.LoadInt32(&g.gameOver)==0 {
+func (g *GameRoom) UpdateHeros() {
+	for atomic.LoadInt32(&g.gameOver) == 0 {
 		g.UpdateHeroPosAndStatus()
 		time.Sleep(50 * 1e6) //睡50ms
 	}
@@ -445,13 +445,13 @@ func (g *GameRoom) UpdateHeroPosAndStatus() {
 		}
 		nowTime := time.Now().UnixNano()
 		// 处理玩家的无敌时间
-		if hero.Invincible && nowTime - hero.InvincibleStartTime > configs.PropInvincibleTimeMax {
+		if hero.Invincible && nowTime-hero.InvincibleStartTime > configs.PropInvincibleTimeMax {
 			hero.Invincible = false
 			go g.NotifyEntityInfoChange(configs.HeroType, hero.ID, hero, nil)
 		}
 
 		// 处理玩家的加速时间
-		if hero.SpeedUp && nowTime - hero.SpeedUpStartTime > configs.PropSpeedUpTimeMax {
+		if hero.SpeedUp && nowTime-hero.SpeedUpStartTime > configs.PropSpeedUpTimeMax {
 			originHeroSpeed := configs.HeroSpeedSizeCoeffcient / hero.Size
 			if originHeroSpeed < configs.HeroSpeedDownLimit {
 				originHeroSpeed = configs.HeroSpeedDownLimit
@@ -462,7 +462,7 @@ func (g *GameRoom) UpdateHeroPosAndStatus() {
 		}
 
 		// 处理玩家的减速时间
-		if hero.SpeedDown && nowTime - hero.SpeedDownStartTime > configs.PropSpeedSlowTimeMax {
+		if hero.SpeedDown && nowTime-hero.SpeedDownStartTime > configs.PropSpeedSlowTimeMax {
 			originHeroSpeed := configs.HeroSpeedSizeCoeffcient / hero.Size
 			if originHeroSpeed > configs.HeroSpeedUpLimit {
 				originHeroSpeed = configs.HeroSpeedUpLimit
@@ -711,7 +711,7 @@ func (room *GameRoom) onGameOver() {
 	GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
 	//回收游戏对局资源
 	//todo
-	atomic.AddInt32(&room.gameOver,1)  // 发通知，告诉 goroutine 游戏结束
+	atomic.AddInt32(&room.gameOver, 1) // 发通知，告诉 goroutine 游戏结束
 	GAME_ROOM_MANAGER.DeleteGameRoom(room.ID)
 	//runtime.GC()
 }

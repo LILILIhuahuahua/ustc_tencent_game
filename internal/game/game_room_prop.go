@@ -32,7 +32,7 @@ func (g *GameRoom) InitNewProps() {
 }
 
 func (g *GameRoom) PeriodicalInitProps() {
-	for atomic.LoadInt32(&g.gameOver)==0 {
+	for atomic.LoadInt32(&g.gameOver) == 0 {
 		g.InitNewProps()
 		time.Sleep(15 * time.Second) //睡15s
 	}

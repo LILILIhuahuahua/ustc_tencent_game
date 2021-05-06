@@ -81,7 +81,7 @@ var (
 
 	// Hero info
 	HeroSizeGrowthStep float32 = 5.0   // 英雄吃道具以后size增长步长
-	HeroSpeedSizeCoeffcient float32 = HeroMoveSpeed * HeroInitSize / 0.8 //控制小球速度的系数
+	HeroSpeedSizeCoeffcient float32 = HeroMoveSpeed * HeroInitSize  //控制小球速度的系数
 	HeroSizeUpLimit    float32 = 200.0 // 英雄size上限
 	HeroSizeDownLimit  float32 = 10.0 // 英雄size下限
 	HeroSpeedDownLimit float32 = 10.0  // 英雄速度下限
