@@ -59,7 +59,11 @@ func NewGameRoom() *GameRoom {
 		//Heroes: make(map[int32]*model.Hero),
 		AliveHeroNum: 0,
 	}
-	gameroom.AdjustPropsIntoTower()
+	roomInitProps, err := gameroom.props.GetProps()
+	if err != nil {
+		log.Printf("[GameRoom]在初始化道具视野的时候出错了 \n")
+	}
+	gameroom.AdjustPropsIntoTower(roomInitProps)
 	log.Printf("[GameRoom]初始化新对局！GameRoom：%v \n", gameroom)
 	return gameroom
 }
@@ -114,7 +118,9 @@ func (g *GameRoom) DeleteConnector(c *framework.BaseSession) error {
 func (g *GameRoom) Serv() error {
 	go g.HandleSessions()       //开启会话监听线程，监听session集合中的读事件，将读到的GMessage放入环形队列中
 	go g.HandleEventFromQueue() //开启消费线程，从环形队列中读取GMessage消息并处理
-	go g.UpdateHeros()
+	go g.UpdateHeros() // 更新hero的信息（位置、状态等）
+	go g.PeriodicalInitProps() // 定期生成新的道具
+
 	for g.gameOver == 0 {
 		//conn, err := g.server.Listen.AcceptKCP()
 		//if err != nil {
@@ -279,25 +285,6 @@ func (g *GameRoom) Multiplecast(buff []byte, sessions []*framework.BaseSession) 
 		}
 	}
 	return nil
-}
-
-func (g *GameRoom) AdjustPropsIntoTower() {
-	towers := g.GetTowers()
-	propManager := g.props
-	props, err := propManager.GetProps()
-	if err != nil {
-		fmt.Printf("在调整props的时候出错了")
-	}
-	//fmt.Printf("灯塔的个数为%d", len(towers))
-	for _, prop := range props {
-		if prop.Status == configs.PropStatusDead {
-			continue
-		}
-		towerId := tools.CalTowerId(prop.Pos.X, prop.Pos.Y)
-		prop.TowerId = towerId
-		towers[towerId].PropEnter(prop)
-		//fmt.Printf("把编号为%d的道具放入%d号灯塔中\n, 该灯塔的坐标为X:%f, Y:%f \n", prop.ID(), towerId, prop.GetX(), prop.GetY())
-	}
 }
 
 // 获取某玩家附近的玩家和道具
