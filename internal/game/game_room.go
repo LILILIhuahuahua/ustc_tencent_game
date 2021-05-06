@@ -577,10 +577,7 @@ func (room *GameRoom) onCollision() {
 						winner.Speed = configs.HeroSpeedDownLimit
 					}
 					winner.Score += configs.HeroEatEnemyBonus
-					if winner.Score >= configs.GameWinLiminationScore {
-						log.Printf("[GameRoom]英雄达到胜利条件，开始对局结算！hero:%v, room:%v \n", winner, room)
-						room.onGameOver()
-					}
+
 					//更新排行榜
 					heroRankInfo := info.NewHeroRankInfo(winner)
 					room.heroRankHeap.ChallengeRank(heroRankInfo)
@@ -598,6 +595,12 @@ func (room *GameRoom) onCollision() {
 					heroInfo = info.NewHeroInfo(winner)
 					notify = notify2.NewEntityInfoChangeNotify(int32(pb.ENTITY_TYPE_HERO_TYPE), winner.ID, heroInfo, nil)
 					GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
+
+					//检测是否达到胜利条件
+					if winner.Score >= configs.GameWinLiminationScore {
+						log.Printf("[GameRoom]英雄达到胜利条件，开始对局结算！hero:%v, room:%v \n", winner, room)
+						room.onGameOver()
+					}
 				}
 
 				// 一方为食物，开启吃道具流程
@@ -632,10 +635,6 @@ func (room *GameRoom) onCollision() {
 							eater.Speed = configs.HeroSpeedDownLimit
 						}
 						eater.Score += configs.HeroEatItemBonus
-						if eater.Score >= configs.GameWinLiminationScore {
-							room.onGameOver()
-						}
-
 						//更新排行榜
 						heroRankInfo := info.NewHeroRankInfo(eater)
 						room.heroRankHeap.ChallengeRank(heroRankInfo)
@@ -643,6 +642,10 @@ func (room *GameRoom) onCollision() {
 						rankInfos := room.heroRankHeap.GetSortedHeroRankInfos()
 						rankNotify := notify2.NewGameRankListNotify(rankInfos)
 						GAME_ROOM_MANAGER.Braodcast(room.ID, rankNotify.ToGMessageBytes())
+						//检测是否达到胜利条件
+						if eater.Score >= configs.GameWinLiminationScore {
+							room.onGameOver()
+						}
 
 						room.Heroes.Store(eater.ID, eater)
 						room.quadTree.UpdateObj(collision.NewRectangleByObj(eater.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), eater.Size, eater.HeroPosition.X, eater.HeroPosition.Y))
