@@ -24,23 +24,16 @@ var (
 	MaxObjectNum int32 = 5
 	MaxLevelNum  int32 = 5
 
-	// Hero info
-	HeroSizeGrowthStep float32 = 5.0   // 英雄吃道具以后size增长步长
-	HeroSpeedSlowStep  float32 = 0.5   // 英雄吃道具以后速度减缓步长
-	HeroSizeUpLimit    float32 = 200.0 // 英雄size上限
-	HeroSpeedDownLimit float32 = 10.0  // 英雄速度下限
-	HeroEatItemBonus   int32   = 10
-	HeroEatEnemyBonus  int32   = 50
-	HeroRankListLength int32   = 10
-
 	// Game info
-	GameWinLiminationScore int32 = 300 //对局优胜分数值
-	MinMatchingBatchSessionNum int32 = 1 //最小批量匹配会话数量
-	MatchingWaitOverTime int64 = 10 //匹配等待超时时间（单位：s ）
-	GameAliveHeroLimit int32 = 10 //房间最大人数限制
+	GameWinLiminationScore     int32 = 300 //对局优胜分数值
+	MinMatchingBatchSessionNum int32 = 1   //最小批量匹配会话数量
+	MatchingWaitOverTime       int64 = 10  //匹配等待超时时间（单位：s ）
+	GameAliveHeroLimit         int32 = 10  //房间最大人数限制
 
 	// Prop max count in map
-	MaxPropCountInMap int = 100
+	MaxPropsCountInMap int = 100
+	// 定期生成道具数量
+	PeriodicPropsInitCount int = 30
 
 	// GlobalInfoNotify interval
 	GlobalInfoNotifyInterval time.Duration = 5000 * time.Millisecond
@@ -73,7 +66,8 @@ var (
 
 	// 道具效果
 	PropInvincibleTimeMax = int64(time.Second * 5) // 最长无敌时间
-	PropSpeedUpTimeMax = int64(time.Second * 5) // 最长加速时间
+	PropSpeedUpTimeMax    = int64(time.Second * 5) // 最长加速时间
+	PropSpeedSlowTimeMax  = int64(time.Second * 5) // 最长减速时间
 
 	// mongodb
 	MongoURI      string = ""
@@ -82,4 +76,15 @@ var (
 
 	// DBProxy configuration
 	DBProxyAddr string = ""
+
+	// Hero info
+	HeroSizeGrowthStep      float32 = 5.0                                // 英雄吃道具以后size增长步长
+	HeroSpeedSizeCoeffcient float32 = HeroMoveSpeed * HeroInitSize / 0.8 //控制小球速度的系数
+	HeroSizeUpLimit         float32 = 200.0                              // 英雄size上限
+	HeroSizeDownLimit       float32 = 10.0                               // 英雄size下限
+	HeroSpeedDownLimit      float32 = 10.0                               // 英雄速度下限
+	HeroSpeedUpLimit        float32 = 300                                // 英雄速度上线
+	HeroEatItemBonus        int32   = 10
+	HeroEatEnemyBonus       int32   = 50
+	HeroRankListLength      int32   = 10
 )

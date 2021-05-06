@@ -25,7 +25,7 @@ import (
 
 //GameRoom 游戏房间类，对应一局游戏
 type GameRoom struct {
-	ID               int64
+	ID int64
 	//addr             string
 	//server           *kcpnet.KcpServer
 	acceptedSessions sync.Map
@@ -37,7 +37,7 @@ type GameRoom struct {
 	towers           []*aoi.Tower
 	quadTree         *collision.QuadTree //对局内四叉树，用于进行碰撞检测
 	heroRankHeap     *GameRankHeap
-	gameOver 		 int32   // 如果 gameOver 为 0，则表示对局仍在继续，当设置为 1 时，表示对局已经结束，此时回收线程
+	gameOver         int32 // 如果 gameOver 为 0，则表示对局仍在继续，当设置为 1 时，表示对局已经结束，此时回收线程
 	AliveHeroNum     int32
 }
 
@@ -48,7 +48,7 @@ func NewGameRoom() *GameRoom {
 	//	return nil
 	//}
 	gameroom := &GameRoom{
-		ID:           tools.UUID_UTIL.GenerateInt64UUID(),
+		ID: tools.UUID_UTIL.GenerateInt64UUID(),
 		//addr:         address,
 		//server:       s,
 		dispatcher:   framework.NewBaseEventDispatcher(configs.MaxEventQueueSize),
@@ -59,7 +59,11 @@ func NewGameRoom() *GameRoom {
 		//Heroes: make(map[int32]*model.Hero),
 		AliveHeroNum: 0,
 	}
-	gameroom.AdjustPropsIntoTower()
+	roomInitProps, err := gameroom.props.GetProps()
+	if err != nil {
+		log.Printf("[GameRoom]在初始化道具视野的时候出错了 \n")
+	}
+	gameroom.AdjustPropsIntoTower(roomInitProps)
 	log.Printf("[GameRoom]初始化新对局！GameRoom：%v \n", gameroom)
 	return gameroom
 }
@@ -114,7 +118,9 @@ func (g *GameRoom) DeleteConnector(c *framework.BaseSession) error {
 func (g *GameRoom) Serv() error {
 	go g.HandleSessions()       //开启会话监听线程，监听session集合中的读事件，将读到的GMessage放入环形队列中
 	go g.HandleEventFromQueue() //开启消费线程，从环形队列中读取GMessage消息并处理
-	go g.UpdateHeros()
+	go g.UpdateHeros()          // 更新hero的信息（位置、状态等）
+	go g.PeriodicalInitProps()  // 定期生成新的道具
+
 	for g.gameOver == 0 {
 		//conn, err := g.server.Listen.AcceptKCP()
 		//if err != nil {
@@ -126,7 +132,7 @@ func (g *GameRoom) Serv() error {
 		//	return err
 		//}
 		//g.acceptedSessions.Store(session.Id, session) //将新会话放入未注册会话集合中
-		g.registerSessions()                          //处理会话注册流程（等待玩家进入世界enterWorld）
+		g.registerSessions() //处理会话注册流程（等待玩家进入世界enterWorld）
 	}
 
 	return nil
@@ -281,25 +287,6 @@ func (g *GameRoom) Multiplecast(buff []byte, sessions []*framework.BaseSession) 
 	return nil
 }
 
-func (g *GameRoom) AdjustPropsIntoTower() {
-	towers := g.GetTowers()
-	propManager := g.props
-	props, err := propManager.GetProps()
-	if err != nil {
-		fmt.Printf("在调整props的时候出错了")
-	}
-	//fmt.Printf("灯塔的个数为%d", len(towers))
-	for _, prop := range props {
-		if prop.Status == configs.PropStatusDead {
-			continue
-		}
-		towerId := tools.CalTowerId(prop.Pos.X, prop.Pos.Y)
-		prop.TowerId = towerId
-		towers[towerId].PropEnter(prop)
-		//fmt.Printf("把编号为%d的道具放入%d号灯塔中\n, 该灯塔的坐标为X:%f, Y:%f \n", prop.ID(), towerId, prop.GetX(), prop.GetY())
-	}
-}
-
 // 获取某玩家附近的玩家和道具
 func (g *GameRoom) GetItemsNearby(hero *model.Hero) ([]*model.Hero, []*model.Prop) {
 	towers := g.GetTowers()
@@ -438,8 +425,8 @@ func (g *GameRoom) FetchHeros() []*model.Hero {
 	return heros
 }
 
-func (g *GameRoom) UpdateHeros()  {
-	for atomic.LoadInt32(&g.gameOver)==0 {
+func (g *GameRoom) UpdateHeros() {
+	for atomic.LoadInt32(&g.gameOver) == 0 {
 		g.UpdateHeroPosAndStatus()
 		time.Sleep(50 * 1e6) //睡50ms
 	}
@@ -458,20 +445,33 @@ func (g *GameRoom) UpdateHeroPosAndStatus() {
 		}
 		nowTime := time.Now().UnixNano()
 		// 处理玩家的无敌时间
-		if hero.Status == configs.HeroStatusInvincible {
-			if nowTime-hero.InvincibleStartTime > configs.PropInvincibleTimeMax {
-				hero.Status = configs.HeroStatusLive
-			}
+		if hero.Invincible && nowTime-hero.InvincibleStartTime > configs.PropInvincibleTimeMax {
+			hero.Invincible = false
 			go g.NotifyEntityInfoChange(configs.HeroType, hero.ID, hero, nil)
 		}
 
 		// 处理玩家的加速时间
-		if hero.Speed > configs.HeroMoveSpeed {
-			if nowTime - hero.SpeedUpStartTime > configs.PropSpeedUpTimeMax {
-				hero.Speed = configs.HeroMoveSpeed
+		if hero.SpeedUp && nowTime-hero.SpeedUpStartTime > configs.PropSpeedUpTimeMax {
+			originHeroSpeed := configs.HeroSpeedSizeCoeffcient / hero.Size
+			if originHeroSpeed < configs.HeroSpeedDownLimit {
+				originHeroSpeed = configs.HeroSpeedDownLimit
 			}
+			hero.Speed = originHeroSpeed
+			hero.SpeedUp = false
 			go g.NotifyEntityInfoChange(configs.HeroType, hero.ID, hero, nil)
 		}
+
+		// 处理玩家的减速时间
+		if hero.SpeedDown && nowTime-hero.SpeedDownStartTime > configs.PropSpeedSlowTimeMax {
+			originHeroSpeed := configs.HeroSpeedSizeCoeffcient / hero.Size
+			if originHeroSpeed > configs.HeroSpeedUpLimit {
+				originHeroSpeed = configs.HeroSpeedUpLimit
+			}
+			hero.Speed = originHeroSpeed
+			hero.SpeedDown = false
+			go g.NotifyEntityInfoChange(configs.HeroType, hero.ID, hero, nil)
+		}
+
 		// 更新玩家位置
 		timeElapse := nowTime - hero.UpdateTime
 		hero.UpdateTime = nowTime
@@ -533,8 +533,8 @@ func (room *GameRoom) onCollision() {
 				if candidate.Type == int32(pb.ENTITY_TYPE_HERO_TYPE) {
 					candidateObject, _ := room.Heroes.Load(candidate.ID)
 					candidateHero := candidateObject.(*model.Hero)
-					if hero.Status == configs.HeroStatusInvincible ||
-						candidateHero.Status == configs.HeroStatusInvincible {
+					if hero.Invincible ||
+						candidateHero.Invincible {
 						continue
 					}
 					var loser, winner *model.Hero
@@ -572,15 +572,12 @@ func (room *GameRoom) onCollision() {
 					if winner.Size > configs.HeroSizeUpLimit {
 						winner.Size = configs.HeroSizeUpLimit
 					}
-					winner.Speed -= configs.HeroSpeedSlowStep
+					winner.Speed = configs.HeroSpeedSizeCoeffcient / winner.Size
 					if winner.Speed < configs.HeroSpeedDownLimit {
 						winner.Speed = configs.HeroSpeedDownLimit
 					}
 					winner.Score += configs.HeroEatEnemyBonus
-					if winner.Score >= configs.GameWinLiminationScore {
-						log.Printf("[GameRoom]英雄达到胜利条件，开始对局结算！hero:%v, room:%v \n", winner, room)
-						room.onGameOver()
-					}
+
 					//更新排行榜
 					heroRankInfo := info.NewHeroRankInfo(winner)
 					room.heroRankHeap.ChallengeRank(heroRankInfo)
@@ -598,12 +595,20 @@ func (room *GameRoom) onCollision() {
 					heroInfo = info.NewHeroInfo(winner)
 					notify = notify2.NewEntityInfoChangeNotify(int32(pb.ENTITY_TYPE_HERO_TYPE), winner.ID, heroInfo, nil)
 					GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
+
+					//检测是否达到胜利条件
+					if winner.Score >= configs.GameWinLiminationScore {
+						log.Printf("[GameRoom]英雄达到胜利条件，开始对局结算！hero:%v, room:%v \n", winner, room)
+						room.onGameOver()
+					}
 				}
 
 				// 一方为食物，开启吃道具流程
 				if candidate.Type == int32(pb.ENTITY_TYPE_PROP_TYPE_FOOD) ||
 					candidate.Type == int32(pb.ENTITY_TYPE_PROP_TYPE_INVINCIBLE) ||
-					candidate.Type == int32(pb.ENTITY_TYPE_PROP_TYPE_JUMP) {
+					candidate.Type == int32(pb.ENTITY_TYPE_PROP_TYPE_SPEED_UP) ||
+					candidate.Type == int32(pb.ENTITY_TYPE_PROP_TYPE_SIZE_DOWN) ||
+					candidate.Type == int32(pb.ENTITY_TYPE_PROP_TYPE_SPEED_DOWN) {
 					var prop (*model.Prop)
 					var eater (*model.Hero)
 					prop, _ = room.props.GetProp(candidate.ID)
@@ -627,15 +632,11 @@ func (room *GameRoom) onCollision() {
 						if eater.Size > configs.HeroSizeUpLimit {
 							eater.Size = configs.HeroSizeUpLimit
 						}
-						eater.Speed -= configs.HeroSpeedSlowStep
+						eater.Speed = configs.HeroSpeedSizeCoeffcient / eater.Size
 						if eater.Speed < configs.HeroSpeedDownLimit {
 							eater.Speed = configs.HeroSpeedDownLimit
 						}
 						eater.Score += configs.HeroEatItemBonus
-						if eater.Score >= configs.GameWinLiminationScore {
-							room.onGameOver()
-						}
-
 						//更新排行榜
 						heroRankInfo := info.NewHeroRankInfo(eater)
 						room.heroRankHeap.ChallengeRank(heroRankInfo)
@@ -643,20 +644,49 @@ func (room *GameRoom) onCollision() {
 						rankInfos := room.heroRankHeap.GetSortedHeroRankInfos()
 						rankNotify := notify2.NewGameRankListNotify(rankInfos)
 						GAME_ROOM_MANAGER.Braodcast(room.ID, rankNotify.ToGMessageBytes())
+						//检测是否达到胜利条件
+						if eater.Score >= configs.GameWinLiminationScore {
+							room.onGameOver()
+						}
 
 						room.Heroes.Store(eater.ID, eater)
 						room.quadTree.UpdateObj(collision.NewRectangleByObj(eater.ID, int32(pb.ENTITY_TYPE_HERO_TYPE), eater.Size, eater.HeroPosition.X, eater.HeroPosition.Y))
 						break
 					case int32(pb.ENTITY_TYPE_PROP_TYPE_INVINCIBLE):
 						eater.InvincibleStartTime = time.Now().UnixNano()
-						eater.Status = int32(pb.HERO_STATUS_INVINCIBLE)
+						eater.Invincible = true
 						break
-					case int32(pb.ENTITY_TYPE_PROP_TYPE_JUMP):
+					case int32(pb.ENTITY_TYPE_PROP_TYPE_SPEED_UP):
 						eater.SpeedUpStartTime = time.Now().UnixNano()
-						eater.Speed = configs.HeroMoveSpeed * 2
+						eater.SpeedUp = true
+						eater.SpeedDown = false
+						eaterOriginSpeed := configs.HeroSpeedSizeCoeffcient / eater.Size
+						eater.Speed = eaterOriginSpeed * 2
+						if eater.Speed > configs.HeroSpeedUpLimit {
+							eater.Speed = configs.HeroSpeedUpLimit
+						}
+						break
+					case int32(pb.ENTITY_TYPE_PROP_TYPE_SPEED_DOWN):
+						eater.SpeedDownStartTime = time.Now().UnixNano()
+						eater.SpeedDown = true
+						eater.SpeedUp = false
+						eaterOriginSpeed := configs.HeroSpeedSizeCoeffcient / eater.Size
+						eater.Speed = eaterOriginSpeed / 2
+						if eater.Speed < configs.HeroSpeedDownLimit {
+							eater.Speed = configs.HeroSpeedSizeCoeffcient
+						}
+						break
+					case int32(pb.ENTITY_TYPE_PROP_TYPE_SIZE_DOWN):
+						eater.Size /= 2
+						if eater.Size < configs.HeroSizeDownLimit {
+							eater.Size = configs.HeroSizeDownLimit
+						}
+						eater.Speed = configs.HeroSpeedSizeCoeffcient / eater.Size
+						if eater.Speed > configs.HeroSpeedUpLimit {
+							eater.Speed = configs.HeroSpeedUpLimit
+						}
 						break
 					}
-
 					go room.NotifyEntityInfoChange(prop.PropType, prop.Id, nil, prop)
 					//itemInfo := info.NewItemInfo(prop)
 					//notify := notify2.NewEntityInfoChangeNotify(prop.PropType, prop.Id, nil, itemInfo)
@@ -681,7 +711,7 @@ func (room *GameRoom) onGameOver() {
 	GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
 	//回收游戏对局资源
 	//todo
-	atomic.AddInt32(&room.gameOver,1)  // 发通知，告诉 goroutine 游戏结束
+	atomic.AddInt32(&room.gameOver, 1) // 发通知，告诉 goroutine 游戏结束
 	GAME_ROOM_MANAGER.DeleteGameRoom(room.ID)
 	//runtime.GC()
 }

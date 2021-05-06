@@ -39,7 +39,6 @@ func (h *HeroInfo) FromMessage(obj interface{}) {
 	h.Speed = pbMsg.GetHeroSpeed()
 	h.Size = pbMsg.HeroSize
 	h.Score = pbMsg.HeroScore
-	h.InvincibleStartTime = pbMsg.InvincibleStartTime
 	pos := CoordinateXYInfo{}
 	pos.FromMessage(pbMsg.GetHeroPosition())
 	h.HeroPosition = &pos
@@ -55,14 +54,13 @@ func (h *HeroInfo) CopyFromMessage(obj interface{}) event.Event {
 	dict.FromMessage(pbMsg.GetHeroDirection())
 	pos.FromMessage(pbMsg.GetHeroPosition())
 	return &HeroInfo{
-		ID:                  pbMsg.GetHeroId(),
-		Status:              int32(pbMsg.GetHeroStatus()),
-		Speed:               pbMsg.GetHeroSpeed(),
-		Size:                pbMsg.GetHeroSize(),
-		Score:               pbMsg.HeroScore,
-		InvincibleStartTime: pbMsg.InvincibleStartTime,
-		HeroPosition:        &pos,
-		HeroDirection:       &dict,
+		ID:            pbMsg.GetHeroId(),
+		Status:        int32(pbMsg.GetHeroStatus()),
+		Speed:         pbMsg.GetHeroSpeed(),
+		Size:          pbMsg.GetHeroSize(),
+		Score:         pbMsg.HeroScore,
+		HeroPosition:  &pos,
+		HeroDirection: &dict,
 	}
 }
 
@@ -70,12 +68,11 @@ func (h *HeroInfo) ToMessage() interface{} {
 	pbMsg := &pb.HeroMsg{
 		HeroId: h.ID,
 		//HeroStatus:    h.Status,
-		HeroSpeed:           h.Speed,
-		HeroSize:            h.Size,
-		HeroScore:           h.Score,
-		InvincibleStartTime: h.InvincibleStartTime,
-		HeroPosition:        h.HeroPosition.ToMessage().(*pb.CoordinateXY),
-		HeroDirection:       h.HeroDirection.ToMessage().(*pb.CoordinateXY),
+		HeroSpeed:     h.Speed,
+		HeroSize:      h.Size,
+		HeroScore:     h.Score,
+		HeroPosition:  h.HeroPosition.ToMessage().(*pb.CoordinateXY),
+		HeroDirection: h.HeroDirection.ToMessage().(*pb.CoordinateXY),
 	}
 	switch h.Status {
 	case int32(pb.HERO_STATUS_LIVE):
@@ -84,10 +81,6 @@ func (h *HeroInfo) ToMessage() interface{} {
 
 	case int32(pb.HERO_STATUS_DEAD):
 		pbMsg.HeroStatus = pb.HERO_STATUS_DEAD
-		break
-
-	case int32(pb.HERO_STATUS_INVINCIBLE):
-		pbMsg.HeroStatus = pb.HERO_STATUS_INVINCIBLE
 		break
 	}
 	return pbMsg

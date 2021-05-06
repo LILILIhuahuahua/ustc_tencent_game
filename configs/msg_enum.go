@@ -21,9 +21,8 @@ const (
 	HeroViewNotify           = int32(proto.GAME_MSG_CODE_HERO_VIEW_NOTIFY)
 
 	// 英雄状态
-	HeroStatusLive       = int32(proto.HERO_STATUS_LIVE)
-	HeroStatusDead       = int32(proto.HERO_STATUS_DEAD)
-	HeroStatusInvincible = int32(proto.HERO_STATUS_INVINCIBLE)
+	HeroStatusLive = int32(proto.HERO_STATUS_LIVE)
+	HeroStatusDead = int32(proto.HERO_STATUS_DEAD)
 
 	// Item status
 	ItemLive = int32(proto.ITEM_STATUS_ITEM_LIVE)
@@ -38,7 +37,9 @@ const (
 	// entityType的枚举
 	HeroType           = int32(proto.ENTITY_TYPE_HERO_TYPE)
 	PropTypeInvincible = int32(proto.ENTITY_TYPE_PROP_TYPE_INVINCIBLE)
-	PropTypeJump       = int32(proto.ENTITY_TYPE_PROP_TYPE_JUMP)
+	PropTypeSpeedUp    = int32(proto.ENTITY_TYPE_PROP_TYPE_SPEED_UP)
+	PropTypeSpeedSlow  = int32(proto.ENTITY_TYPE_PROP_TYPE_SPEED_DOWN)
+	PropTypeSizeDown   = int32(proto.ENTITY_TYPE_PROP_TYPE_SIZE_DOWN)
 	PropTypeFood       = int32(proto.ENTITY_TYPE_PROP_TYPE_FOOD)
 
 	// response的枚举

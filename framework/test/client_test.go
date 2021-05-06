@@ -154,7 +154,7 @@ func TestGlobalPropInfoNotify(t *testing.T) {
 
 	remoteServ := "127.0.0.1" + ":" + "8888"
 	_ = remoteServ
-	sess, err := kcp.DialWithOptions(configs.RemoteCLB, nil, 0, 0)
+	sess, err := kcp.DialWithOptions(remoteServ, nil, 0, 0)
 	if err == nil {
 		enterGameReq := getEnterGameReq(sessionID, &pb.ConnectMsg{
 			Ip:   "127.0.0.1",

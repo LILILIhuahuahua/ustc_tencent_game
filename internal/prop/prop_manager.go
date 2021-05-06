@@ -25,10 +25,16 @@ var (
 
 // New return an instance of propsManger, which contains many props
 func New() *PropsManger {
-	return &PropsManger{
+	propsManager := &PropsManger{
 		mu:    &sync.RWMutex{},
-		props: newProps(configs.MaxPropCountInMap),
+		props: make(map[int32]*model.Prop),
 	}
+	props := NewProps(configs.MaxPropsCountInMap)
+	propsManager.AddProps(props)
+	return propsManager
+}
+func (p *PropsManger) GetPropsCount() int {
+	return len(p.props)
 }
 
 // GetProps return all props in propManager
@@ -82,8 +88,14 @@ func (p *PropsManger) RemoveProp(id int32) error {
 	return nil
 }
 
+func (p *PropsManger) AddProps(props []*model.Prop) {
+	for _, prop := range props {
+		p.props[prop.Id] = prop
+	}
+}
+
 // newProps generate a bunch of props randomly
-func newProps(count int) map[int32]*model.Prop {
+func NewProps(count int) []*model.Prop {
 	minX := configs.MapMinX
 	minY := configs.MapMinY
 	maxX := configs.MapMaxX
@@ -91,22 +103,26 @@ func newProps(count int) map[int32]*model.Prop {
 	s := rand.NewSource(time.Now().Unix())
 	r := rand.New(s)
 
-	m := make(map[int32]*model.Prop, count)
+	propsSlice := make([]*model.Prop, count)
 	for i := 0; i < count; i++ {
 		x := minX + r.Float32()*(maxX-minX)
 		y := minY + r.Float32()*(maxY-minY)
 		pid := int32(guuid.New().ID())
-		z := r.Intn(10)
+		z := r.Intn(100)
 		var propType int32
-		if z <= 2 {
+		if z <= 5 {
 			propType = configs.PropTypeInvincible // 无敌
-		} else if z <= 4 {
-			propType = configs.PropTypeJump // 跃迁道具
+		} else if z <= 10 {
+			propType = configs.PropTypeSpeedUp // 加速道具
+		} else if z <= 15 {
+			propType = configs.PropTypeSpeedSlow // 减速道具
+		} else if z <= 20 {
+			propType = configs.PropTypeSizeDown // 缩小道具
 		} else {
 			propType = configs.PropTypeFood
 		}
 
-		m[pid] = &model.Prop{
+		propsSlice[i] = &model.Prop{
 			Id:     pid,
 			Status: int32(proto.ITEM_STATUS_ITEM_LIVE),
 			Pos: model.Coordinate{
@@ -116,5 +132,5 @@ func newProps(count int) map[int32]*model.Prop {
 			PropType: propType,
 		}
 	}
-	return m
+	return propsSlice
 }

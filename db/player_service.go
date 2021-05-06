@@ -21,11 +21,11 @@ func getService() (databaseGrpc.PlayerServiceClient, error) {
 }
 
 func PlayerUpdateHighestScoreByPlayerId(playerId, newScore int32) error {
-	service, err  := getService()
+	service, err := getService()
 	if err != nil {
 		return err
 	}
-	ctx, cancel:= context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	requestMsg := &databaseGrpc.PlayerUpdateHighestScoreByPlayerIdRequest{
 		PlayerId:     playerId,
