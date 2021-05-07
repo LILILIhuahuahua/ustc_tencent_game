@@ -34,7 +34,13 @@ func New() *PropsManger {
 	return propsManager
 }
 func (p *PropsManger) GetPropsCount() int {
-	return len(p.props)
+	propNum := len(p.props)
+	for _, prop := range p.props {
+		if prop.Status == configs.PropStatusDead {
+			propNum--
+		}
+	}
+	return propNum
 }
 
 // GetProps return all props in propManager
