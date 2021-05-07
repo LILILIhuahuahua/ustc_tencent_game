@@ -350,7 +350,7 @@ func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
 	GAME_ROOM_MANAGER.Unicast(g.ID, s.Id, notify.ToGMessageBytes())
 	//调整hero的注册位置
 	towers[towerId].HeroEnter(hero) //将hero存入tower中
-	g.NotifyHeroPropMsg(hero)       // 向该hero发送附近的道具信息
+	g.NotifyHeroPropMsgToHero(hero) // 向该hero发送附近的道具信息
 }
 
 func (g *GameRoom) RegisterHero(h *model.Hero) {
@@ -376,7 +376,7 @@ func (g *GameRoom) ModifyHero(modifyHero *model.Hero) {
 	}
 	if towerId != hero.TowerId {
 		towers[towerId].HeroEnter(hero)      // 将hero加入灯塔中
-		g.NotifyHeroPropMsg(hero)            // 向该hero发送附近的道具信息
+		g.NotifyHeroPropMsgToHero(hero)      // 向该hero发送附近的道具信息
 		towers[hero.TowerId].HeroLeave(hero) // 将hero从原来灯塔中删除
 		hero.TowerId = towerId
 		otherIds := tools.GetOtherTowers(towerId)
