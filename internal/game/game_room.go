@@ -683,6 +683,7 @@ func (room *GameRoom) onCollision() {
 						}
 						break
 					case int32(pb.ENTITY_TYPE_PROP_TYPE_SIZE_DOWN):
+						eater.Score /= 2
 						eater.Size /= 2
 						if eater.Size < configs.HeroSizeDownLimit {
 							eater.Size = configs.HeroSizeDownLimit
