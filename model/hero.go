@@ -56,7 +56,7 @@ func (h *Hero) Init(name string, sess *framework.BaseSession) {
 	h.Score = 0
 	h.Status = configs.HeroStatusLive
 	h.Size = configs.HeroInitSize
-	h.Speed = configs.HeroMoveSpeed
+	h.Speed = configs.HeroSpeedSizeCoeffcient / h.Size
 	h.HeroDirection = dcit
 	h.HeroPosition = pos
 	h.CreateTime = nowTime
