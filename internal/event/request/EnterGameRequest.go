@@ -5,6 +5,8 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
+	"github.com/golang/protobuf/proto"
 )
 
 type EnterGameRequest struct {
@@ -12,6 +14,14 @@ type EnterGameRequest struct {
 	PlayerID   int32
 	Connect    info.ConnectInfo
 	PlayerName string
+}
+
+func NewEnterGameRequest(playerId int32, connectInfo info.ConnectInfo, name string) *EnterGameRequest{
+	return &EnterGameRequest{
+		PlayerID: playerId,
+		Connect: connectInfo,
+		PlayerName: name,
+	}
 }
 
 func (e *EnterGameRequest) FromMessage(obj interface{}) {
@@ -44,9 +54,24 @@ func (e *EnterGameRequest) ToMessage() interface{} {
 		Ip:   e.Connect.Ip,
 		Port: e.Connect.Port,
 	}
-	return pb.EnterGameRequest{
+	return &pb.EnterGameRequest{
 		PlayerId:         e.PlayerID,
 		ClientConnectMsg: infoMsg,
 		PlayerName:       e.PlayerName,
 	}
+}
+
+func (e *EnterGameRequest) ToGMessageBytes() []byte {
+	req := &pb.Request{
+		EnterGameRequest: e.ToMessage().(*pb.EnterGameRequest),
+	}
+	msg := pb.GMessage{
+		MsgType: pb.MSG_TYPE_REQUEST,
+		MsgCode: pb.GAME_MSG_CODE_ENTER_GAME_REQUEST,
+		Request: req,
+		SeqId: -1,
+		SendTime: tools.TIME_UTIL.NowMillis(),
+	}
+	out, _ := proto.Marshal(&msg)
+	return out
 }

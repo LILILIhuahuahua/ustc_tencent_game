@@ -5,6 +5,8 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
+	"github.com/golang/protobuf/proto"
 )
 
 type EntityInfoChangeRequest struct {
@@ -14,6 +16,16 @@ type EntityInfoChangeRequest struct {
 	LinkedId            int32
 	LinkedType          string
 	HeroMsg             info.HeroInfo
+}
+
+func NewEntityInfoChangeRequest(eventType int32, heroId int32, linkedId int32, linkedType string, heroInfo info.HeroInfo)  *EntityInfoChangeRequest{
+	return &EntityInfoChangeRequest{
+		EventType: eventType,
+		HeroId: heroId,
+		LinkedId: linkedId,
+		LinkedType: linkedType,
+		HeroMsg: heroInfo,
+	}
 }
 
 func (e *EntityInfoChangeRequest) FromMessage(obj interface{}) {
@@ -52,4 +64,19 @@ func (e *EntityInfoChangeRequest) ToMessage() interface{} {
 		LinkedType: pb.ENTITY_TYPE_HERO_TYPE,
 		HeroMsg:    e.HeroMsg.ToMessage().(*pb.HeroMsg),
 	}
+}
+
+func (e *EntityInfoChangeRequest) ToGMessageBytes()  []byte{
+	req := &pb.Request{
+		EntityChangeRequest: e.ToMessage().(*pb.EntityInfoChangeRequest),
+	}
+	msg := pb.GMessage{
+		MsgType:  pb.MSG_TYPE_REQUEST,
+		MsgCode:  pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_REQUEST,
+		Request: req,
+		SeqId:    -1,
+		SendTime: tools.TIME_UTIL.NowMillis(),
+	}
+	out, _ := proto.Marshal(&msg)
+	return out
 }
