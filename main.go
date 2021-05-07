@@ -5,10 +5,11 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/db"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/game"
+	_ "github.com/mkevac/debugcharts"
 	"log"
 	"net/http"
-
-	_ "github.com/mkevac/debugcharts"
+	_ "net/http/pprof"
+	"runtime"
 )
 
 func initDB() {
@@ -31,6 +32,8 @@ func main() {
 	log.Println("Initialize DBProxyAddr to", configs.DBProxyAddr)
 	go db.InitConnection(configs.DBProxyAddr)
 
+	n := runtime.NumCPU()
+	runtime.GOMAXPROCS(n)
 	// visual representation of goroutine
 	go func() {
 		log.Println(http.ListenAndServe("0.0.0.0:6060", nil))
