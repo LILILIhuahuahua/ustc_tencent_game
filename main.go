@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/db"
+	//"github.com/LILILIhuahuahua/ustc_tencent_game/db"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/game"
 	"log"
 	"net/http"
@@ -29,7 +29,7 @@ func main() {
 		log.Fatalln("DBProxy addr is nil")
 	}
 	log.Println("Initialize DBProxyAddr to", configs.DBProxyAddr)
-	go db.InitConnection(configs.DBProxyAddr)
+	//go db.InitConnection(configs.DBProxyAddr)
 
 	// visual representation of goroutine
 	go func() {
