@@ -178,7 +178,7 @@ func TestGlobalPropInfoNotify(t *testing.T) {
 
 		go receive(sess)
 		for {
-			time.Sleep(time.Second)
+			time.Sleep(20 * time.Millisecond)
 			sess.Write(data)
 		}
 	} else {

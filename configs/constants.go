@@ -14,7 +14,7 @@ var (
 
 	// Aoi coordinate
 	TileSize      float32 = 1                                                              //地图瓦片大小，一个瓦片对应一个地图坐标
-	TowerRadius   float32 = 200                                                            // 灯塔AOI半径
+	TowerRadius   float32 = 250                                                            // 灯塔AOI半径
 	TowerDiameter float32 = TowerRadius * 2                                                //灯塔AOI直径
 	PlayerRange   float32 = 100                                                            // 玩家视野半径
 	TowerCols     int32   = int32(math.Ceil(float64((MapMaxX - MapMinX) / TowerDiameter))) // 整个地图中有多少列Tower 从1开始
@@ -81,7 +81,7 @@ var (
 
 	// Hero info
 	HeroSizeGrowthStep float32 = 5.0   // 英雄吃道具以后size增长步长
-	HeroSpeedSizeCoeffcient float32 = HeroMoveSpeed * HeroInitSize  //控制小球速度的系数
+	HeroSpeedSizeCoeffcient float32 = HeroMoveSpeed * HeroInitSize * 2  //控制小球速度的系数
 	HeroSizeUpLimit    float32 = 200.0 // 英雄size上限
 	HeroSizeDownLimit  float32 = 10.0 // 英雄size下限
 	HeroSpeedDownLimit float32 = 10.0  // 英雄速度下限

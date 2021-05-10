@@ -20,6 +20,8 @@ func (g *GameRoom) AdjustPropsIntoTower(props []*model.Prop) {
 		towers[towerId].PropEnter(prop)
 		//fmt.Printf("把编号为%d的道具放入%d号灯塔中\n, 该灯塔的坐标为X:%f, Y:%f \n", prop.ID(), towerId, prop.GetX(), prop.GetY())
 	}
+	// todo 通知灯塔中的玩家道具信息
+	go g.NotifyHeroPropMsg()
 }
 
 func (g *GameRoom) InitNewProps() {
@@ -34,6 +36,6 @@ func (g *GameRoom) InitNewProps() {
 func (g *GameRoom) PeriodicalInitProps() {
 	for atomic.LoadInt32(&g.gameOver) == 0 {
 		g.InitNewProps()
-		time.Sleep(15 * time.Second) //睡15s
+		time.Sleep(5 * time.Second) //睡15s
 	}
 }

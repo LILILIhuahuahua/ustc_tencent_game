@@ -26,10 +26,23 @@ func (gameRoom *GameRoom) NotifyHeroView(changeHero *model.Hero, notifyType int3
 	}
 }
 
-func (gameRoom *GameRoom) NotifyHeroPropMsg(enterHero *model.Hero) {
+func (gameRoom *GameRoom) NotifyHeroPropMsgToHero(enterHero *model.Hero) {
 	towersIds := tools.GetOtherTowers(enterHero.TowerId)
 	towersIds = append(towersIds, enterHero.TowerId)
 	gameRoom.SendHeroPropGlobalInfoNotify(towersIds, enterHero.Session)
+}
+
+// 向灯塔内的所有小球广播信息
+func (gameRoom *GameRoom) NotifyHeroPropMsg() {
+	towers := gameRoom.GetTowers()
+	for _, tower := range towers {
+		towersId := tools.GetOtherTowers(tower.Id)
+		towersId = append(towersId, tower.Id)
+		heros := tower.GetHeros()
+		for _, hero := range heros {
+			gameRoom.SendHeroPropGlobalInfoNotify(towersId, hero.Session)
+		}
+	}
 }
 
 func (gameRoom *GameRoom) NotifyEntityInfoChange(entityType int32, entityId int32, changedHero *model.Hero, changedProp *model.Prop) {

@@ -350,7 +350,7 @@ func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
 	GAME_ROOM_MANAGER.Unicast(g.ID, s.Id, notify.ToGMessageBytes())
 	//调整hero的注册位置
 	towers[towerId].HeroEnter(hero) //将hero存入tower中
-	g.NotifyHeroPropMsg(hero)       // 向该hero发送附近的道具信息
+	g.NotifyHeroPropMsgToHero(hero) // 向该hero发送附近的道具信息
 }
 
 func (g *GameRoom) RegisterHero(h *model.Hero) {
@@ -376,7 +376,7 @@ func (g *GameRoom) ModifyHero(modifyHero *model.Hero) {
 	}
 	if towerId != hero.TowerId {
 		towers[towerId].HeroEnter(hero)      // 将hero加入灯塔中
-		g.NotifyHeroPropMsg(hero)            // 向该hero发送附近的道具信息
+		go g.NotifyHeroPropMsgToHero(hero)      // 向该hero发送附近的道具信息
 		towers[hero.TowerId].HeroLeave(hero) // 将hero从原来灯塔中删除
 		hero.TowerId = towerId
 		otherIds := tools.GetOtherTowers(towerId)
@@ -398,13 +398,13 @@ func (g *GameRoom) ModifyHero(modifyHero *model.Hero) {
 			return true
 		})
 		for _, tower := range needToDelete {
-			g.NotifyHeroView(hero, configs.Leave, tower)
+			go g.NotifyHeroView(hero, configs.Leave, tower)
 			hero.OtherTowers.Delete(tower.GetId())
 		}
 		// 接下来处理新加入的otherTowerId
 		for k, v := range midMap {
 			if !v {
-				g.NotifyHeroView(hero, configs.Enter, towers[k])
+				go g.NotifyHeroView(hero, configs.Enter, towers[k])
 				hero.OtherTowers.Store(k, towers[k])
 				midMap[k] = true
 			}
@@ -633,6 +633,12 @@ func (room *GameRoom) onCollision() {
 							eater.Size = configs.HeroSizeUpLimit
 						}
 						eater.Speed = configs.HeroSpeedSizeCoeffcient / eater.Size
+						if eater.SpeedUp {
+							eater.Speed *= 2
+						}
+						if eater.SpeedDown {
+							eater.Speed /= 2
+						}
 						if eater.Speed < configs.HeroSpeedDownLimit {
 							eater.Speed = configs.HeroSpeedDownLimit
 						}
@@ -677,6 +683,7 @@ func (room *GameRoom) onCollision() {
 						}
 						break
 					case int32(pb.ENTITY_TYPE_PROP_TYPE_SIZE_DOWN):
+						eater.Score /= 2
 						eater.Size /= 2
 						if eater.Size < configs.HeroSizeDownLimit {
 							eater.Size = configs.HeroSizeDownLimit
