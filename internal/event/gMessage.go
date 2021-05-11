@@ -9,6 +9,7 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
 	response2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/response"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
+	"log"
 )
 
 type GMessage struct {
@@ -101,6 +102,10 @@ func (g *GMessage) CopyFromMessage(obj interface{}) e.Event {
 	msg.SetSeqId(pbMsg.SeqId)
 	msg.SendTime = pbMsg.SendTime
 	event := e.Manager.FetchEvent(msg.GetCode())
+	if nil == event {
+		log.Printf("[GMessage]二级消息解包时未找到对应消息模板！请检查该类型消息是否在GameStarter中进行注册！pbMsg:%+v \n", pbMsg)
+		return msg
+	}
 	if pb.MSG_TYPE_NOTIFY == pbMsg.MsgType {
 		msg.Data = event.CopyFromMessage(pbMsg.Notify)
 	}

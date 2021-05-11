@@ -34,13 +34,45 @@ func NewEntityInfoChangeNotify(entityType int32, entityId int32, heroInfo *info.
 	}
 }
 
-func (notify *EntityInfoChangeNotify) FromMessage(obj interface{}) {
-	//不需要做,因为这个消息只会由服务端发送给客户端，不涉及到解析
+func (e *EntityInfoChangeNotify) FromMessage(obj interface{}) {
+	pbMsg := obj.(*pb.EntityInfoChangeNotify)
+	e.SetCode(int32(pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_NOTIFY))
+	e.EntityType = int32(pbMsg.EntityType)
+	e.EntityId = pbMsg.EntityId
+	//hero
+	pbHeroMsg := pbMsg.HeroMsg
+	if nil != pbHeroMsg {
+		e.HeroMsg = &info.HeroInfo{}
+		e.HeroMsg.FromMessage(pbHeroMsg)
+	}
+	//item
+	pbItemMsg := pbMsg.ItemMsg
+	if nil != pbItemMsg {
+		e.ItemMsg = &info.ItemInfo{}
+		e.ItemMsg.FromMessage(pbItemMsg)
+	}
 }
 
 func (notify *EntityInfoChangeNotify) CopyFromMessage(obj interface{}) e.Event {
-	//不需要做,因为这个消息只会由服务端发送给客户端，不涉及到解析
-	return &EntityInfoChangeNotify{}
+	pbMsg := obj.(*pb.Notify).EntityInfoChangeNotify
+	n := &EntityInfoChangeNotify{
+		EntityId:   pbMsg.GetEntityId(),
+		EntityType: int32(pbMsg.GetEntityType()),
+	}
+	//hero
+	pbHeroMsg := pbMsg.HeroMsg
+	if nil != pbHeroMsg {
+		n.HeroMsg = &info.HeroInfo{}
+		n.HeroMsg.FromMessage(pbHeroMsg)
+	}
+	//item
+	pbItemMsg := pbMsg.ItemMsg
+	if nil != pbItemMsg {
+		n.ItemMsg = &info.ItemInfo{}
+		n.ItemMsg.FromMessage(pbItemMsg)
+	}
+	n.SetCode(int32(pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_NOTIFY))
+	return n
 }
 
 func (notify *EntityInfoChangeNotify) ToMessage() interface{} {

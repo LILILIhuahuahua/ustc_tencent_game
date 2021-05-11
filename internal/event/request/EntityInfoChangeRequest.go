@@ -18,13 +18,13 @@ type EntityInfoChangeRequest struct {
 	HeroMsg             info.HeroInfo
 }
 
-func NewEntityInfoChangeRequest(eventType int32, heroId int32, linkedId int32, linkedType string, heroInfo info.HeroInfo)  *EntityInfoChangeRequest{
+func NewEntityInfoChangeRequest(eventType int32, heroId int32, linkedId int32, linkedType string, heroInfo info.HeroInfo) *EntityInfoChangeRequest {
 	return &EntityInfoChangeRequest{
-		EventType: eventType,
-		HeroId: heroId,
-		LinkedId: linkedId,
+		EventType:  eventType,
+		HeroId:     heroId,
+		LinkedId:   linkedId,
 		LinkedType: linkedType,
-		HeroMsg: heroInfo,
+		HeroMsg:    heroInfo,
 	}
 }
 
@@ -66,14 +66,14 @@ func (e *EntityInfoChangeRequest) ToMessage() interface{} {
 	}
 }
 
-func (e *EntityInfoChangeRequest) ToGMessageBytes()  []byte{
+func (e *EntityInfoChangeRequest) ToGMessageBytes() []byte {
 	req := &pb.Request{
 		EntityChangeRequest: e.ToMessage().(*pb.EntityInfoChangeRequest),
 	}
 	msg := pb.GMessage{
 		MsgType:  pb.MSG_TYPE_REQUEST,
 		MsgCode:  pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_REQUEST,
-		Request: req,
+		Request:  req,
 		SeqId:    -1,
 		SendTime: tools.TIME_UTIL.NowMillis(),
 	}
