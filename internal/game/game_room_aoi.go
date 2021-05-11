@@ -7,6 +7,7 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
+	"log"
 )
 
 func (gameRoom *GameRoom) NotifyHeroView(changeHero *model.Hero, notifyType int32, tower *aoi.Tower) {
@@ -29,7 +30,8 @@ func (gameRoom *GameRoom) NotifyHeroView(changeHero *model.Hero, notifyType int3
 func (gameRoom *GameRoom) NotifyHeroPropMsgToHero(enterHero *model.Hero) {
 	towersIds := tools.GetOtherTowers(enterHero.TowerId)
 	towersIds = append(towersIds, enterHero.TowerId)
-	gameRoom.SendHeroPropGlobalInfoNotify(towersIds, enterHero.Session)
+	go gameRoom.SendHeroInTowerNotify(towersIds, enterHero.Session)
+	go gameRoom.SendPropInTowerNotify(towersIds, enterHero.Session)
 }
 
 // 向灯塔内的所有小球广播信息
@@ -40,7 +42,8 @@ func (gameRoom *GameRoom) NotifyHeroPropMsg() {
 		towersId = append(towersId, tower.Id)
 		heros := tower.GetHeros()
 		for _, hero := range heros {
-			gameRoom.SendHeroPropGlobalInfoNotify(towersId, hero.Session)
+			go gameRoom.SendPropInTowerNotify(towersId, hero.Session)
+			go gameRoom.SendHeroInTowerNotify(towersId, hero.Session)
 		}
 	}
 }

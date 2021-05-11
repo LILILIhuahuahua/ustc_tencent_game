@@ -37,24 +37,58 @@ func (r *GameRoom) SendHeroViewNotify(changeHero *model.Hero, notifyHero *model.
 	}
 }
 
-func (r *GameRoom) SendHeroPropGlobalInfoNotify(towers []int32, session *framework.BaseSession) {
+// 向session发送灯塔内的小球信息
+func (r *GameRoom) SendHeroInTowerNotify(towers []int32, session *framework.BaseSession) {
 	ts := r.GetTowers()
 	var heroMsg []*model.Hero
-	var propMsg []*model.Prop
 	var heroEvent []info.HeroInfo
 	//后面加上道具
 	for _, id := range towers {
 		hs := ts[id].GetHeros()
-		ps := ts[id].GetProps()
 		heroMsg = append(heroMsg, hs...)
-		propMsg = append(propMsg, ps...)
 	}
 	for _, h := range heroMsg {
-		//heroEvent = append(heroEvent, h.ToEvent())
 		heroEvent = append(heroEvent, *info.NewHeroInfo(h))
-		//fmt.Printf("向%d，发送%d的位置信息 -------刚刚进入灯塔\n", session.Id, h.Session.Id)
 	}
-	var items []info.ItemInfo
+	items := []info.ItemInfo{}
+
+	herosLength := len(heroEvent)
+	maxHeroLength := 10
+
+	for herosLength > 0 {
+		if herosLength < maxHeroLength {
+			pbMsg := NewGlobalInfoNotify(heroEvent, items)
+			data, err := proto.Marshal(pbMsg)
+			if err != nil {
+				log.Printf("获取tower中hero信息的时候解析出错")
+			}
+			r.Unicast(data, session)
+			return
+		}
+		herosLength -= maxHeroLength
+		midItems := items[:maxHeroLength]
+		pbMsg := NewGlobalInfoNotify(heroEvent, midItems)
+		data, err := proto.Marshal(pbMsg)
+		if err != nil {
+			log.Printf("获取tower中hero信息的时候解析出错")
+		}
+		items = items[maxHeroLength:]
+		r.Unicast(data, session)
+	}
+}
+
+// 向session发送灯塔内的道具信息
+func (r *GameRoom) SendPropInTowerNotify(towers []int32, session *framework.BaseSession) {
+	ts := r.GetTowers()
+	var propMsg []*model.Prop
+	var heroEvent []info.HeroInfo
+	//后面加上道具
+	for _, id := range towers {
+		ps := ts[id].GetProps()
+		propMsg = append(propMsg, ps...)
+	}
+
+	items := []info.ItemInfo{}
 	for _, prop := range propMsg {
 		if prop.Status != configs.PropStatusLive {
 			continue
@@ -71,6 +105,32 @@ func (r *GameRoom) SendHeroPropGlobalInfoNotify(towers []int32, session *framewo
 		items = append(items, item)
 	}
 
+	itemsLength := len(items)
+	maxItemLength := 25
+
+	for itemsLength > 0 {
+		if itemsLength < maxItemLength {
+			pbMsg := NewGlobalInfoNotify(heroEvent, items)
+			data, err := proto.Marshal(pbMsg)
+			if err != nil {
+				log.Printf("获取tower中hero信息的时候解析出错")
+			}
+			r.Unicast(data, session)
+			return
+		}
+		itemsLength -= maxItemLength
+		midItems := items[:maxItemLength]
+		pbMsg := NewGlobalInfoNotify(heroEvent, midItems)
+		data, err := proto.Marshal(pbMsg)
+		if err != nil {
+			log.Printf("获取tower中hero信息的时候解析出错")
+		}
+		items = items[maxItemLength:]
+		r.Unicast(data, session)
+	}
+}
+
+func NewGlobalInfoNotify(heroEvent []info.HeroInfo, items []info.ItemInfo) *pb.GMessage {
 	notify := notify.GameGlobalInfoNotify{
 		HeroNumber: int32(len(heroEvent)),
 		HeroInfos:  heroEvent,
@@ -84,11 +144,7 @@ func (r *GameRoom) SendHeroPropGlobalInfoNotify(towers []int32, session *framewo
 	}
 
 	pbMsg := msg.ToMessage().(*pb.GMessage)
-	data, err := proto.Marshal(pbMsg)
-	if err != nil {
-		log.Printf("获取tower中hero信息的时候解析出错")
-	}
-	r.Unicast(data, session)
+	return pbMsg
 }
 
 //todo 发送entityInfoChangeNotify 发送给附近玩家

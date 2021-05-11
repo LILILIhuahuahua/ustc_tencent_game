@@ -269,7 +269,7 @@ func (g *GameRoom) Unicast(buff []byte, session *framework.BaseSession) error {
 	}
 	err := session.SendMessage(buff)
 	if nil != err {
-		println(err)
+		println(err.Error())
 		return err
 	}
 	return nil
@@ -350,7 +350,7 @@ func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
 	GAME_ROOM_MANAGER.Unicast(g.ID, s.Id, notify.ToGMessageBytes())
 	//调整hero的注册位置
 	towers[towerId].HeroEnter(hero) //将hero存入tower中
-	g.NotifyHeroPropMsgToHero(hero) // 向该hero发送附近的道具信息
+	go g.NotifyHeroPropMsgToHero(hero) // 向该hero发送附近的道具信息
 }
 
 func (g *GameRoom) RegisterHero(h *model.Hero) {
@@ -617,7 +617,7 @@ func (room *GameRoom) onCollision() {
 					if int32(pb.ITEM_STATUS_ITEM_DEAD) == prop.Status || int32(pb.HERO_STATUS_DEAD) == eater.Status {
 						continue
 					}
-					log.Printf("[GameRoom]检测到玩家吃道具！玩家信息：%+v，道具信息：%+v\n", eater, prop)
+					//log.Printf("[GameRoom]检测到玩家吃道具！玩家信息：%+v，道具信息：%+v\n", eater, prop)
 					// 道具退场
 					room.props.RemoveProp(prop.Id)
 					prop.Status = int32(pb.ITEM_STATUS_ITEM_DEAD)
