@@ -41,7 +41,7 @@ func (r *GameRoom) SendHeroViewNotify(changeHero *model.Hero, notifyHero *model.
 func (r *GameRoom) SendHeroInTowerNotify(towers []int32, session *framework.BaseSession) {
 	ts := r.GetTowers()
 	var heroMsg []*model.Hero
-	var heroEvent []info.HeroInfo
+	heroEvent := []info.HeroInfo{}
 	//后面加上道具
 	for _, id := range towers {
 		hs := ts[id].GetHeros()
@@ -66,13 +66,13 @@ func (r *GameRoom) SendHeroInTowerNotify(towers []int32, session *framework.Base
 			return
 		}
 		herosLength -= maxHeroLength
-		midItems := items[:maxHeroLength]
-		pbMsg := NewGlobalInfoNotify(heroEvent, midItems)
+		midHeros := heroEvent[:maxHeroLength]
+		pbMsg := NewGlobalInfoNotify(midHeros, items)
 		data, err := proto.Marshal(pbMsg)
 		if err != nil {
 			log.Printf("获取tower中hero信息的时候解析出错")
 		}
-		items = items[maxHeroLength:]
+		heroEvent = heroEvent[maxHeroLength:]
 		r.Unicast(data, session)
 	}
 }
