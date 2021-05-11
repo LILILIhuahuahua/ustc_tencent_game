@@ -7,7 +7,6 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
-	"log"
 )
 
 func (gameRoom *GameRoom) NotifyHeroView(changeHero *model.Hero, notifyType int32, tower *aoi.Tower) {
