@@ -24,13 +24,11 @@ var (
 	MaxObjectNum int32 = 5
 	MaxLevelNum  int32 = 5
 
-
-
 	// Game info
-	GameWinLiminationScore int32 = 300 //对局优胜分数值
-	MinMatchingBatchSessionNum int32 = 1 //最小批量匹配会话数量
-	MatchingWaitOverTime int64 = 10 //匹配等待超时时间（单位：s ）
-	GameAliveHeroLimit int32 = 10 //房间最大人数限制
+	GameWinLiminationScore     int32 = 300 //对局优胜分数值
+	MinMatchingBatchSessionNum int32 = 1   //最小批量匹配会话数量
+	MatchingWaitOverTime       int64 = 10  //匹配等待超时时间（单位：s ）
+	GameAliveHeroLimit         int32 = 10  //房间最大人数限制
 
 	// Prop max count in map
 	MaxPropsCountInMap int = 100
@@ -68,8 +66,8 @@ var (
 
 	// 道具效果
 	PropInvincibleTimeMax = int64(time.Second * 5) // 最长无敌时间
-	PropSpeedUpTimeMax = int64(time.Second * 5) // 最长加速时间
-	PropSpeedSlowTimeMax = int64(time.Second * 5) // 最长减速时间
+	PropSpeedUpTimeMax    = int64(time.Second * 5) // 最长加速时间
+	PropSpeedSlowTimeMax  = int64(time.Second * 5) // 最长减速时间
 
 	// mongodb
 	MongoURI      string = ""
@@ -80,13 +78,13 @@ var (
 	DBProxyAddr string = ""
 
 	// Hero info
-	HeroSizeGrowthStep float32 = 5.0   // 英雄吃道具以后size增长步长
-	HeroSpeedSizeCoeffcient float32 = HeroMoveSpeed * HeroInitSize * 2  //控制小球速度的系数
-	HeroSizeUpLimit    float32 = 200.0 // 英雄size上限
-	HeroSizeDownLimit  float32 = 10.0 // 英雄size下限
-	HeroSpeedDownLimit float32 = 10.0  // 英雄速度下限
-	HeroSpeedUpLimit   float32 = 300 // 英雄速度上线
-	HeroEatItemBonus   int32   = 10
-	HeroEatEnemyBonus  int32   = 50
-	HeroRankListLength int32   = 10
+	HeroSizeGrowthStep      float32 = 5.0                              // 英雄吃道具以后size增长步长
+	HeroSpeedSizeCoeffcient float32 = HeroMoveSpeed * HeroInitSize * 2 //控制小球速度的系数
+	HeroSizeUpLimit         float32 = 200.0                            // 英雄size上限
+	HeroSizeDownLimit       float32 = 10.0                             // 英雄size下限
+	HeroSpeedDownLimit      float32 = 10.0                             // 英雄速度下限
+	HeroSpeedUpLimit        float32 = 300                              // 英雄速度上线
+	HeroEatItemBonus        int32   = 10
+	HeroEatEnemyBonus       int32   = 50
+	HeroRankListLength      int32   = 10
 )

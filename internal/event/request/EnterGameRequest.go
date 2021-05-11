@@ -16,10 +16,10 @@ type EnterGameRequest struct {
 	PlayerName string
 }
 
-func NewEnterGameRequest(playerId int32, connectInfo info.ConnectInfo, name string) *EnterGameRequest{
+func NewEnterGameRequest(playerId int32, connectInfo info.ConnectInfo, name string) *EnterGameRequest {
 	return &EnterGameRequest{
-		PlayerID: playerId,
-		Connect: connectInfo,
+		PlayerID:   playerId,
+		Connect:    connectInfo,
 		PlayerName: name,
 	}
 }
@@ -66,10 +66,10 @@ func (e *EnterGameRequest) ToGMessageBytes() []byte {
 		EnterGameRequest: e.ToMessage().(*pb.EnterGameRequest),
 	}
 	msg := pb.GMessage{
-		MsgType: pb.MSG_TYPE_REQUEST,
-		MsgCode: pb.GAME_MSG_CODE_ENTER_GAME_REQUEST,
-		Request: req,
-		SeqId: -1,
+		MsgType:  pb.MSG_TYPE_REQUEST,
+		MsgCode:  pb.GAME_MSG_CODE_ENTER_GAME_REQUEST,
+		Request:  req,
+		SeqId:    -1,
 		SendTime: tools.TIME_UTIL.NowMillis(),
 	}
 	out, _ := proto.Marshal(&msg)

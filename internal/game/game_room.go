@@ -121,6 +121,7 @@ func (g *GameRoom) Serv() error {
 	go g.UpdateHeros()          // 更新hero的信息（位置、状态等）
 	go g.PeriodicalInitProps()  // 定期生成新的道具
 
+	//TODO 优化：CPU
 	for g.gameOver == 0 {
 		//conn, err := g.server.Listen.AcceptKCP()
 		//if err != nil {
@@ -132,16 +133,18 @@ func (g *GameRoom) Serv() error {
 		//	return err
 		//}
 		//g.acceptedSessions.Store(session.Id, session) //将新会话放入未注册会话集合中
+		// TODO 每次循环都会申请 4KB 内存，造成 GC 频繁调用
 		g.registerSessions() //处理会话注册流程（等待玩家进入世界enterWorld）
 	}
 
 	return nil
 }
 
+// TODO 优化：内存分配以及 Range
 // @title    registerSessions
 // @description 监听已接收但还未注册的会话，接收到进入世界请求时注册会话
 func (g *GameRoom) registerSessions() {
-	buf := make([]byte, 4096)
+	buf := make([]byte, 4096) // TODO 待优化
 	g.acceptedSessions.Range(func(_, v interface{}) bool {
 		session := v.(*framework.BaseSession)
 		err := session.Sess.SetReadDeadline(time.Now().Add(time.Millisecond * time.Duration(2)))
@@ -227,10 +230,11 @@ func (g *GameRoom) Handle(session *framework.BaseSession, buf []byte) {
 	g.dispatcher.FireEvent(m)
 }
 
+// TODO 优化: CPU
 func (g *GameRoom) HandleEventFromQueue() {
 	for g.gameOver == 0 {
-		e, err := g.dispatcher.GetEventQueue().Pop()
-		if nil == e { //todo
+		e, err := g.dispatcher.GetEventQueue().Pop() // TODO 待优化。 空转导致 Pop 函数中的 error.New 经常会被调用。
+		if nil == e {                                //todo
 			continue
 		}
 		if nil != err {
@@ -376,7 +380,7 @@ func (g *GameRoom) ModifyHero(modifyHero *model.Hero) {
 	}
 	if towerId != hero.TowerId {
 		towers[towerId].HeroEnter(hero)      // 将hero加入灯塔中
-		go g.NotifyHeroPropMsgToHero(hero)      // 向该hero发送附近的道具信息
+		go g.NotifyHeroPropMsgToHero(hero)   // 向该hero发送附近的道具信息
 		towers[hero.TowerId].HeroLeave(hero) // 将hero从原来灯塔中删除
 		hero.TowerId = towerId
 		otherIds := tools.GetOtherTowers(towerId)

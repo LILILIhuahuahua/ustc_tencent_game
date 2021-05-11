@@ -3,11 +3,10 @@ package main
 import (
 	"flag"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
-	//"github.com/LILILIhuahuahua/ustc_tencent_game/db"
+
+	"github.com/LILILIhuahuahua/ustc_tencent_game/db"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/game"
-	_ "github.com/mkevac/debugcharts"
 	"log"
-	"net/http"
 	_ "net/http/pprof"
 	"runtime"
 )
@@ -30,14 +29,17 @@ func main() {
 		log.Fatalln("DBProxy addr is nil")
 	}
 	log.Println("Initialize DBProxyAddr to", configs.DBProxyAddr)
-	//go db.InitConnection(configs.DBProxyAddr)
+	go db.InitConnection(configs.DBProxyAddr)
 
 	n := runtime.NumCPU()
 	runtime.GOMAXPROCS(n)
-	// visual representation of goroutine
-	go func() {
-		log.Println(http.ListenAndServe("0.0.0.0:6060", nil))
-	}()
+
+	// for pprof
+	//runtime.SetMutexProfileFraction(1)
+	//runtime.SetBlockProfileRate(1)
+	//go func() {
+	//	log.Println(http.ListenAndServe("0.0.0.0:6060", nil))
+	//}()
 
 	log.Println("[USTC-Tencent]Game Server Started!")
 	s := game.NewGameStarter(configs.ServerAddr)

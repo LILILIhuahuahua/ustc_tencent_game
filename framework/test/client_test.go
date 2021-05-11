@@ -11,10 +11,12 @@ import (
 	"github.com/xtaci/kcp-go"
 	"io"
 	"log"
+	"math/rand"
 	"testing"
 	"time"
 )
 
+// deprecated
 // TestConnect check whether the client could connect to server correctly
 func TestConnect(t *testing.T) {
 	// wait for server to become ready
@@ -60,6 +62,7 @@ func TestConnect(t *testing.T) {
 	}
 }
 
+// getEnterGameReq generate an enterGameRequest and return to caller
 func getEnterGameReq(sessionID int32, client *pb.ConnectMsg) []byte {
 	playerID := sessionID
 	enterGameReq := &pb.GMessage{
@@ -80,7 +83,9 @@ func getEnterGameReq(sessionID int32, client *pb.ConnectMsg) []byte {
 	return enterGameReqData
 }
 
-func getEntityInfoChange(sessionID int32, heroID int32) []byte {
+// getEntityInfoChangeReq generate an entityInfoChangeRequest to its caller.
+// It generate
+func getEntityInfoChangeReq(sessionID int32, heroID int32) []byte {
 	var entityChangeReq = &pb.EntityInfoChangeRequest{
 		HeroId:    heroID,
 		EventType: pb.EVENT_TYPE_HERO_MOVE,
@@ -92,10 +97,16 @@ func getEntityInfoChange(sessionID int32, heroID int32) []byte {
 		HeroSpeed:     1000,
 	}
 
-	hMsg.HeroPosition.CoordinateX = 1.0
-	hMsg.HeroPosition.CoordinateY = 1.0
-	hMsg.HeroDirection.CoordinateX = 1.0
-	hMsg.HeroDirection.CoordinateY = 0
+	randX := configs.MapMaxX - configs.MapMinX
+	randY := configs.MapMaxY - configs.MapMinY
+	randDirX := float32(rand.Int31n(2) - 1)
+	randDirY := float32(rand.Int31n(2) - 1)
+	var moveSpeed float32 = 5
+
+	hMsg.HeroPosition.CoordinateX = randX + moveSpeed
+	hMsg.HeroPosition.CoordinateY = randY + moveSpeed
+	hMsg.HeroDirection.CoordinateX = randDirX
+	hMsg.HeroDirection.CoordinateY = randDirY
 	entityChangeReq.HeroMsg = hMsg
 
 	msg1 := &pb.GMessage{}
@@ -174,11 +185,11 @@ func TestGlobalPropInfoNotify(t *testing.T) {
 
 		log.Printf("receive %v", msg.MsgCode.String())
 		heroID := msg.Response.EnterGameResponse.HeroId
-		data := getEntityInfoChange(sessionID, heroID)
+		data := getEntityInfoChangeReq(sessionID, heroID)
 
 		go receive(sess)
 		for {
-			time.Sleep(20 * time.Millisecond)
+			time.Sleep(200 * time.Millisecond)
 			sess.Write(data)
 		}
 	} else {
@@ -212,7 +223,7 @@ func TestHeroMove1(t *testing.T) {
 
 		log.Printf("receive %v", msg.MsgCode.String())
 		heroID := msg.Response.EnterGameResponse.HeroId
-		data := getEntityInfoChange(sessionID, heroID)
+		data := getEntityInfoChangeReq(sessionID, heroID)
 		sess.Write(data)
 	} else {
 		log.Fatal(err)
@@ -246,7 +257,7 @@ func TestHeroMove2(t *testing.T) {
 		log.Printf("receive %v", msg.MsgCode.String())
 		heroID := msg.Response.EnterGameResponse.HeroId
 		fmt.Println("hedo是", heroID)
-		data := getEntityInfoChange(sessionID, heroID)
+		data := getEntityInfoChangeReq(sessionID, heroID)
 		sess.Write(data)
 	} else {
 		log.Fatal(err)

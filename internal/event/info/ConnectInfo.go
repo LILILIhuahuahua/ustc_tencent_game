@@ -12,9 +12,9 @@ type ConnectInfo struct {
 	Port                int32
 }
 
-func NewConnectInfo(ip string, port int32)  *ConnectInfo{
+func NewConnectInfo(ip string, port int32) *ConnectInfo {
 	return &ConnectInfo{
-		Ip: ip,
+		Ip:   ip,
 		Port: port,
 	}
 }

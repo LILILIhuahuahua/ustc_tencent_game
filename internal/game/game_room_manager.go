@@ -62,7 +62,8 @@ func (manager *GameRoomManager) Serv() {
 	}
 }
 
-//TODO: 在 map 中一边遍历一边删除，会不会出现问题？
+// TODO 优化： CPU
+// sync.Map 是线程安全的 map，可以一边遍历，一边删除
 func (manager *GameRoomManager) waitForMatching() {
 	log.Println("[GameRoomManager]游戏房间管理器开始轮询对等待匹配会话进行匹配!")
 	for {

@@ -25,14 +25,14 @@ type Robot struct {
 	sessionId int32
 	hero      *model.Hero
 	session   *kcp.UDPSession
-	done 	  chan struct{}
+	done      chan struct{}
 }
 
 func NewTestRobot() *Robot {
 	return &Robot{
 		recvQueue: event.NewEventRingQueue(300),
 		sessionId: tools.UUID_UTIL.GenerateInt32UUID(),
-		done: make(chan struct{}),
+		done:      make(chan struct{}),
 	}
 }
 
@@ -111,25 +111,57 @@ func (robot *Robot) dispatchGMessage(msg *event2.GMessage) {
 
 	case int32(pb.GAME_MSG_CODE_GAME_FINISH_NOTIFY):
 		robot.close()
-
+	case int32(pb.GAME_MSG_CODE_ENTER_GAME_NOTIFY):
+		robot.onEnterGameNotify(data.(*notify.EnterGameNotify))
+	case int32(pb.GAME_MSG_CODE_GAME_RANK_LIST_NOTIFY):
+		robot.onGameRankListNotify(data.(*notify.GameRankListNotify))
 	case int32(pb.GAME_MSG_CODE_GAME_GLOBAL_INFO_NOTIFY):
-
+		robot.onGameGlobalInfoNotify(data.(*notify.GameGlobalInfoNotify))
+	case int32(pb.GAME_MSG_CODE_ENTITY_INFO_CHANGE_RESPONSE):
+		robot.onEntityInfoChangeResponse(data.(*response.EntityInfoChangeResponse))
+	case int32(pb.GAME_MSG_CODE_HERO_VIEW_NOTIFY):
+		robot.onHeroViewNotify(data.(*notify.HeroViewNotify))
+	case int32(pb.GAME_MSG_CODE_TIME_NOTIFY):
+	default:
+		log.Println("Unrecognized message code...")
 	}
+}
+
+func (robot *Robot) onHeroViewNotify(nty *notify.HeroViewNotify) {
+	log.Printf("[HeroViewNotify] %+v\n", nty)
+}
+
+func (robot *Robot) onEntityInfoChangeResponse(rsp *response.EntityInfoChangeResponse) {
+	log.Printf("[EntifyInfoChangeResponse] %+v\n", rsp)
+}
+
+func (robot *Robot) onGameGlobalInfoNotify(nty *notify.GameGlobalInfoNotify) {
+	log.Printf("[GameGlobalInfoNotify] %+v\n", nty)
+}
+func (robot *Robot) onGameRankListNotify(nty *notify.GameRankListNotify) {
+	log.Printf("[GameRankListNotify] %+v\n", nty)
+}
+func (robot *Robot) onEnterGameNotify(nty *notify.EnterGameNotify) {
+	log.Printf("[EnterGameNotify] %+v\n", nty)
 }
 
 func (robot *Robot) onEnterGame(resp *response.EnterGameResponse) {
 	robot.hero = model.NewHero("", nil)
 	robot.hero.ID = resp.HeroId
+	xr := configs.MapMaxX - configs.MapMinX
+	yr := configs.MapMaxY - configs.MapMinY
+	randX := rand.Int31n(int32(xr)) + int32(configs.MapMinX)
+	randY := rand.Int31n(int32(yr)) + int32(configs.MapMinY)
+	robot.hero.HeroPosition.X = float32(randX)
+	robot.hero.HeroPosition.Y = float32(randY)
 	// 开启本地更新英雄位置线程
 	go robot.updateHeroPos()
 	go robot.updateHeroDirt()
-	// 随机化英雄出生位置
-	// todo
 }
 
 func (robot *Robot) onEntityInfoChange(notify *notify.EntityInfoChangeNotify) {
 	if notify.EntityType == int32(pb.ENTITY_TYPE_HERO_TYPE) && notify.EntityId == robot.hero.ID { //只处理自己的状态
-		log.Printf("[EntityInfoChange]收到本机器人持有英雄状态改变推送！位置：%+v, 方向：%+v, 信息为：%+v",notify.HeroMsg.HeroPosition, notify.HeroMsg.HeroDirection, notify.HeroMsg)
+		log.Printf("[EntityInfoChange]收到本机器人持有英雄状态改变推送！位置：%+v, 方向：%+v, 信息为：%+v", notify.HeroMsg.HeroPosition, notify.HeroMsg.HeroDirection, notify.HeroMsg)
 		heroInfo := notify.HeroMsg
 		if heroInfo.Status == int32(pb.HERO_STATUS_DEAD) {
 			log.Println("[robot]英雄阵亡！")
@@ -157,50 +189,63 @@ func (robot *Robot) updateHero(heroInfo *info.HeroInfo) {
 	robot.hero.SpeedUp = heroInfo.SpeedUp
 }
 
+// TODO 循环优化
 func (robot *Robot) updateHeroPos() {
 	for {
-		//fmt.Println("[go updateHeroPos]更新位置")
-		nowTime := time.Now().UnixNano()
-		// 更新玩家位置
-		timeElapse := nowTime - robot.hero.UpdateTime
-		robot.hero.UpdateTime = nowTime
-		distance := float64(timeElapse) * float64(robot.hero.Speed) / 1e9
-		x, y := tools.CalXY(distance, robot.hero.HeroDirection.X, robot.hero.HeroDirection.Y)
-		robot.hero.HeroPosition.X += x
-		robot.hero.HeroPosition.X = tools.GetMax(robot.hero.HeroPosition.X, configs.MapMinX)
-		robot.hero.HeroPosition.X = tools.GetMin(robot.hero.HeroPosition.X, configs.MapMaxX)
-		robot.hero.HeroPosition.Y += y
-		robot.hero.HeroPosition.Y = tools.GetMax(robot.hero.HeroPosition.Y, configs.MapMinY)
-		robot.hero.HeroPosition.Y = tools.GetMin(robot.hero.HeroPosition.Y, configs.MapMaxY)
-		time.Sleep(50 * 1e6) //睡50ms
+		select {
+		case <-robot.done:
+			log.Println("Exit updateHeroPos...")
+			return
+		default:
+			//fmt.Println("[go updateHeroPos]更新位置")
+			nowTime := time.Now().UnixNano()
+			// 更新玩家位置
+			timeElapse := nowTime - robot.hero.UpdateTime
+			robot.hero.UpdateTime = nowTime
+			distance := float64(timeElapse) * float64(robot.hero.Speed) / 1e9
+			x, y := tools.CalXY(distance, robot.hero.HeroDirection.X, robot.hero.HeroDirection.Y)
+			robot.hero.HeroPosition.X += x
+			robot.hero.HeroPosition.X = tools.GetMax(robot.hero.HeroPosition.X, configs.MapMinX)
+			robot.hero.HeroPosition.X = tools.GetMin(robot.hero.HeroPosition.X, configs.MapMaxX)
+			robot.hero.HeroPosition.Y += y
+			robot.hero.HeroPosition.Y = tools.GetMax(robot.hero.HeroPosition.Y, configs.MapMinY)
+			robot.hero.HeroPosition.Y = tools.GetMin(robot.hero.HeroPosition.Y, configs.MapMaxY)
+			time.Sleep(1 * time.Second) //睡200ms
+		}
 	}
 }
 
+// TODO 循环优化
 func (robot *Robot) updateHeroDirt() {
-	for  {
-		//fmt.Println("[go updateHeroDirt]更新方向")
-		rand.Seed(time.Now().UnixNano())
-		sleepTime := rand.Int63()%5
-		randDict := rand.Intn(4)
-		switch randDict {
-		case 0:
-			robot.hero.HeroDirection.X = 1
-			robot.hero.HeroDirection.Y = 0
-		case 1:
-			robot.hero.HeroDirection.X = -1
-			robot.hero.HeroDirection.Y = 0
-		case 2:
-			robot.hero.HeroDirection.X = 0
-			robot.hero.HeroDirection.Y = 1
-		case 3:
-			robot.hero.HeroDirection.X = 0
-			robot.hero.HeroDirection.Y = -1
+	for {
+		select {
+		case <-robot.done:
+			log.Println("Exit updateHeroDirt...")
+			return
+		default:
+			rand.Seed(time.Now().UnixNano())
+			//sleepTime := rand.Int63()%5
+			randDict := rand.Intn(4)
+			switch randDict {
+			case 0:
+				robot.hero.HeroDirection.X = 1
+				robot.hero.HeroDirection.Y = 0
+			case 1:
+				robot.hero.HeroDirection.X = -1
+				robot.hero.HeroDirection.Y = 0
+			case 2:
+				robot.hero.HeroDirection.X = 0
+				robot.hero.HeroDirection.Y = 1
+			case 3:
+				robot.hero.HeroDirection.X = 0
+				robot.hero.HeroDirection.Y = -1
+			}
+			heroInfo := info.NewHeroInfo(robot.hero)
+			entityInfoChangeReq := request.NewEntityInfoChangeRequest(int32(pb.EVENT_TYPE_HERO_MOVE), robot.hero.ID, -1, "", *heroInfo)
+			data := entityInfoChangeReq.ToGMessageBytes()
+			robot.session.Write(data)
+			time.Sleep(2 * time.Second)
 		}
-		heroInfo := info.NewHeroInfo(robot.hero)
-		entityInfoChangeReq := request.NewEntityInfoChangeRequest(int32(pb.EVENT_TYPE_HERO_MOVE), robot.hero.ID, -1, "", *heroInfo)
-		data := entityInfoChangeReq.ToGMessageBytes()
-		robot.session.Write(data)
-		time.Sleep(time.Duration(sleepTime) * time.Second)
 	}
 }
 
@@ -212,8 +257,7 @@ func (robot *Robot) close() {
 
 func TestRobot(t *testing.T) {
 	// 初始化framework包组件
-	g := &game.GameStarter{
-	}
+	g := &game.GameStarter{}
 	g.Init()
 	// 启动机器人
 	robot := NewTestRobot()
