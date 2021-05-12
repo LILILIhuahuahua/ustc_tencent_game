@@ -3,8 +3,9 @@ package main
 import (
 	"flag"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
-
 	"github.com/LILILIhuahuahua/ustc_tencent_game/db"
+	"net/http"
+
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/game"
 	"log"
 	_ "net/http/pprof"
@@ -35,11 +36,11 @@ func main() {
 	runtime.GOMAXPROCS(n)
 
 	// for pprof
-	//runtime.SetMutexProfileFraction(1)
-	//runtime.SetBlockProfileRate(1)
-	//go func() {
-	//	log.Println(http.ListenAndServe("0.0.0.0:6060", nil))
-	//}()
+	runtime.SetMutexProfileFraction(1)
+	runtime.SetBlockProfileRate(1)
+	go func() {
+		log.Println(http.ListenAndServe("0.0.0.0:6060", nil))
+	}()
 
 	log.Println("[USTC-Tencent]Game Server Started!")
 	s := game.NewGameStarter(configs.ServerAddr)
