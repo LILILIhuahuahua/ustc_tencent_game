@@ -5,11 +5,10 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework"
 	e "github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/notify"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
-	response2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/response"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/gameInternal/event/notify"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/gameInternal/event/request"
+	response2 "github.com/LILILIhuahuahua/ustc_tencent_game/gameInternal/event/response"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
-	"log"
 )
 
 type GMessage struct {
@@ -103,7 +102,7 @@ func (g *GMessage) CopyFromMessage(obj interface{}) e.Event {
 	msg.SendTime = pbMsg.SendTime
 	event := e.Manager.FetchEvent(msg.GetCode())
 	if nil == event {
-		log.Printf("[GMessage]二级消息解包时未找到对应消息模板！请检查该类型消息是否在GameStarter中进行注册！pbMsg:%+v \n", pbMsg)
+		//log.Printf("[GMessage]二级消息解包时未找到对应消息模板！请检查该类型消息是否在GameStarter中进行注册！pbMsg:%+v \n", pbMsg)
 		return msg
 	}
 	if pb.MSG_TYPE_NOTIFY == pbMsg.MsgType {

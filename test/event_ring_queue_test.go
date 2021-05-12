@@ -3,7 +3,7 @@ package test
 import (
 	"fmt"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/notify"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/gameInternal/event/notify"
 	"testing"
 )
 

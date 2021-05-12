@@ -3,8 +3,8 @@ package game
 import (
 	"fmt"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/aoi"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/gameInternal/aoi"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/gameInternal/event/info"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 )

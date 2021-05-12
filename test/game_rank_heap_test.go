@@ -1,8 +1,8 @@
 package test
 
 import (
-	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/game"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/gameInternal/event/info"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/gameInternal/game"
 	"testing"
 )
 

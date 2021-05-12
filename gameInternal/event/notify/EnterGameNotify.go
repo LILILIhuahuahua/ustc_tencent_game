@@ -4,7 +4,7 @@ import (
 	pb "github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/gameInternal/event/info"
 )
 
 type EnterGameNotify struct {

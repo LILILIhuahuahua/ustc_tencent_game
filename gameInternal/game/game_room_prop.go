@@ -2,7 +2,7 @@ package game
 
 import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/prop"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/gameInternal/prop"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"sync/atomic"

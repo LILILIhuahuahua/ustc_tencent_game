@@ -7,13 +7,13 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/configs"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/aoi"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/collision"
-	event2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
-	notify2 "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/notify"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/prop"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/gameInternal/aoi"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/gameInternal/collision"
+	event2 "github.com/LILILIhuahuahua/ustc_tencent_game/gameInternal/event"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/gameInternal/event/info"
+	notify2 "github.com/LILILIhuahuahua/ustc_tencent_game/gameInternal/event/notify"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/gameInternal/event/request"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/gameInternal/prop"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
 	"github.com/golang/protobuf/proto"
@@ -353,7 +353,7 @@ func (g *GameRoom) onEnterGame(e *event2.GMessage, s *framework.BaseSession) {
 	notify := notify2.NewGameRankListNotify(rankInfos)
 	GAME_ROOM_MANAGER.Unicast(g.ID, s.Id, notify.ToGMessageBytes())
 	//调整hero的注册位置
-	towers[towerId].HeroEnter(hero) //将hero存入tower中
+	towers[towerId].HeroEnter(hero)    //将hero存入tower中
 	go g.NotifyHeroPropMsgToHero(hero) // 向该hero发送附近的道具信息
 }
 

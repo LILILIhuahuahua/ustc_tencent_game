@@ -1,6 +1,6 @@
 package game
 
-import "github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/info"
+import "github.com/LILILIhuahuahua/ustc_tencent_game/gameInternal/event/info"
 
 type GameRankHeap struct {
 	Size     int32

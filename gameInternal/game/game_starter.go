@@ -3,9 +3,9 @@ package game
 import (
 	pb "github.com/LILILIhuahuahua/ustc_tencent_game/api/proto"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/framework/event"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/notify"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/request"
-	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/event/response"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/gameInternal/event/notify"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/gameInternal/event/request"
+	"github.com/LILILIhuahuahua/ustc_tencent_game/gameInternal/event/response"
 	"log"
 )
 
