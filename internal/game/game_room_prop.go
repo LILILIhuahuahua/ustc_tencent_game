@@ -5,7 +5,6 @@ import (
 	"github.com/LILILIhuahuahua/ustc_tencent_game/internal/prop"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/model"
 	"github.com/LILILIhuahuahua/ustc_tencent_game/tools"
-	"sync/atomic"
 	"time"
 )
 
@@ -34,8 +33,13 @@ func (g *GameRoom) InitNewProps() {
 }
 
 func (g *GameRoom) PeriodicalInitProps() {
-	for atomic.LoadInt32(&g.gameOver) == 0 {
-		g.InitNewProps()
-		time.Sleep(5 * time.Second) //睡15s
+	for {
+		select {
+		case <- g.die:
+			return
+		default:
+			g.InitNewProps()
+			time.Sleep(5 * time.Second) //睡15s
+		}
 	}
 }

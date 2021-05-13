@@ -38,6 +38,7 @@ type GameRoom struct {
 	quadTree         *collision.QuadTree //对局内四叉树，用于进行碰撞检测
 	heroRankHeap     *GameRankHeap
 	gameOver         int32 // 如果 gameOver 为 0，则表示对局仍在继续，当设置为 1 时，表示对局已经结束，此时回收线程
+	die				chan struct{}
 	AliveHeroNum     int32
 }
 
@@ -57,6 +58,8 @@ func NewGameRoom() *GameRoom {
 		quadTree:     collision.NewQuadTree("0", 0, collision.NewRectangleByBounds(configs.MapMinX, configs.MapMinY, configs.MapMaxX, configs.MapMaxY)),
 		heroRankHeap: NewGameRankHeap(configs.HeroRankListLength),
 		//Heroes: make(map[int32]*model.Hero),
+		gameOver: 0,
+		die: make(chan struct{}),
 		AliveHeroNum: 0,
 	}
 	roomInitProps, err := gameroom.props.GetProps()
@@ -121,8 +124,8 @@ func (g *GameRoom) Serv() error {
 	go g.UpdateHeros()          // 更新hero的信息（位置、状态等）
 	go g.PeriodicalInitProps()  // 定期生成新的道具
 
-	//TODO 优化：CPU
-	for g.gameOver == 0 {
+	//TODO 优化：CPU 保护，GC 优化
+	for  {
 		//conn, err := g.server.Listen.AcceptKCP()
 		//if err != nil {
 		//	return err
@@ -133,14 +136,18 @@ func (g *GameRoom) Serv() error {
 		//	return err
 		//}
 		//g.acceptedSessions.Store(session.Id, session) //将新会话放入未注册会话集合中
-		// TODO 每次循环都会申请 4KB 内存，造成 GC 频繁调用
-		g.registerSessions() //处理会话注册流程（等待玩家进入世界enterWorld）
+		select {
+		case <- g.die:
+			return nil
+		default:
+			g.registerSessions() //处理会话注册流程（等待玩家进入世界enterWorld）
+		}
 	}
 
 	return nil
 }
 
-// TODO 优化：内存分配以及 Range
+// TODO 优化：内存分配以及 Range，移动 buf 的位置
 // @title    registerSessions
 // @description 监听已接收但还未注册的会话，接收到进入世界请求时注册会话
 func (g *GameRoom) registerSessions() {
@@ -230,19 +237,24 @@ func (g *GameRoom) Handle(session *framework.BaseSession, buf []byte) {
 	g.dispatcher.FireEvent(m)
 }
 
-// TODO 优化: CPU
+// TODO 优化: CPU 保护
 func (g *GameRoom) HandleEventFromQueue() {
-	for g.gameOver == 0 {
-		e, err := g.dispatcher.GetEventQueue().Pop() // TODO 待优化。 空转导致 Pop 函数中的 error.New 经常会被调用。
-		if nil == e {                                //todo
-			continue
+	for {
+		select {
+		case <- g.die:
+			return
+		default:
+			e, err := g.dispatcher.GetEventQueue().Pop() // TODO 待优化。 空转导致 Pop 函数中的 error.New 经常会被调用。
+			if nil == e {                                //todo
+				continue
+			}
+			if nil != err {
+				fmt.Println(err)
+				continue
+			}
+			msg := e.(*event2.GMessage)
+			framework.EVENT_HANDLER.OnEvent(msg)
 		}
-		if nil != err {
-			fmt.Println(err)
-			continue
-		}
-		msg := e.(*event2.GMessage)
-		framework.EVENT_HANDLER.OnEvent(msg)
 	}
 }
 
@@ -714,6 +726,7 @@ func (room *GameRoom) onCollision() {
 	}
 }
 
+// TODO bug: onCollision 冲重复调用 onGameOver
 func (room *GameRoom) onGameOver() {
 	//广播游戏结算推送
 	log.Printf("[GameRoom]游戏对局结束，开始广播至玩家并回收资源！")
@@ -722,6 +735,9 @@ func (room *GameRoom) onGameOver() {
 	GAME_ROOM_MANAGER.Braodcast(room.ID, notify.ToGMessageBytes())
 	//回收游戏对局资源
 	//todo
+	if room.gameOver == 0 {
+		close(room.die)
+	}
 	atomic.AddInt32(&room.gameOver, 1) // 发通知，告诉 goroutine 游戏结束
 	time.Sleep(2 * time.Second)   //  在清理对局资源之前，等待一定时间让对局内其他任务完成
 	GAME_ROOM_MANAGER.DeleteGameRoom(room.ID)
