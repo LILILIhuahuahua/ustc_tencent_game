@@ -9,7 +9,7 @@ metadata:
 spec:
   type: LoadBalancer
   externalTrafficPolicy: Cluster
-  sessionAffinity: ClientIP
+#  sessionAffinity: ClientIP
   ports:
     - port: 32001
       nodePort: 32001
