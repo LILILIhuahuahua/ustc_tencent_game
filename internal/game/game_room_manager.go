@@ -45,6 +45,22 @@ func NewGameRoomManager() *GameRoomManager {
 	return manager
 }
 
+func (manager *GameRoomManager) NewGameRoom() int64 {
+	newRoom := NewGameRoom()
+	manager.roomMap.Store(newRoom.ID, newRoom)
+	return newRoom.ID
+}
+
+func (manager *GameRoomManager) GetRoomList() []*GameRoom {
+	roomList := []*GameRoom{}
+	manager.roomMap.Range(func(key, value interface{}) bool {
+		room := value.(*GameRoom)
+		roomList = append(roomList, room)
+		return true
+	})
+	return roomList
+}
+
 func (manager *GameRoomManager) Serv() {
 	log.Println("[GameRoomManager]游戏房间管理器开始监听新连接！")
 	go manager.waitForMatching()
