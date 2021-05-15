@@ -48,7 +48,8 @@ func (p *PropsManger) GetProps() ([]*model.Prop, error) {
 	if p == nil {
 		return nil, ErrNilPropManager
 	}
-
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	var props []*model.Prop
 	for _, v := range p.props {
 		props = append(props, v)
@@ -60,6 +61,8 @@ func (p *PropsManger) GetProp(id int32) (*model.Prop, error) {
 	if p == nil {
 		return nil, ErrNilPropManager
 	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	var prop *model.Prop
 	prop = p.props[id]
 	return prop, nil
